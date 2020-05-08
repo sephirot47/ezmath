@@ -1,0 +1,3 @@
+[submodule "deps/ezcommon"]
+	path = deps/ezcommon
+	url = https://github.com/sephirot47/ezcommon

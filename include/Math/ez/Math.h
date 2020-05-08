@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ez/AAHyperRectangle.h"
 #include "ez/Color.h"
 #include "ez/Mat.h"
 #include "ez/MathInitializers.h"
@@ -263,6 +264,21 @@ constexpr SquareMat<T, N> Transposed(const SquareMat<T, N>& inMat)
     for (std::size_t col = 0; col < N; ++col) { transposed[row][col] = inMat[col][row]; }
   }
   return transposed;
+}
+
+template <typename T, typename TValueType, std::size_t N>
+constexpr AAHyperRectangle<TValueType, N> BoundingHyperRectangle(const T& inThingToBound)
+{
+  if constexpr (IsVec_v<T>)
+  {
+    return inThingToBound;
+  }
+  else
+  {
+    AAHyperRectangle<T, N> bounding_hyper_rectangle;
+    bounding_hyper_rectangle.WrapPoint(inThingToBound);
+    return bounding_hyper_rectangle;
+  }
 }
 
 template <typename T, std::size_t N>

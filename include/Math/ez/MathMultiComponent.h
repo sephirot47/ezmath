@@ -185,6 +185,12 @@ constexpr auto Min(const T& inValue)
 }
 
 template <typename T>
+constexpr auto Min()
+{
+  return All<T>(std::numeric_limits<ValueType_t<T>>::min());
+}
+
+template <typename T>
 constexpr auto Max(const T& inLHS, const T& inRHS)
 {
   if constexpr (IsNumber_v<T>)
@@ -210,6 +216,12 @@ constexpr auto Max(const T& inValue)
     for (const auto& component : inValue) { max = std::max(max, Max(component)); }
     return max;
   }
+}
+
+template <typename T>
+constexpr auto Max()
+{
+  return All<T>(std::numeric_limits<ValueType_t<T>>::max());
 }
 
 template <typename T>
