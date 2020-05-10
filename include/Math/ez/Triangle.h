@@ -9,6 +9,9 @@ template <typename T, std::size_t N>
 class Triangle final
 {
 public:
+  using ValueType = T;
+  static constexpr auto NumDimensions = N;
+
   Triangle() = default;
   Triangle(const Vec<T, N>& inPoint0, const Vec<T, N>& inPoint1, const Vec<T, N>& inPoint2)
       : mPoints { inPoint0, inPoint1, inPoint2 }

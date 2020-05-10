@@ -1,5 +1,6 @@
 #include "ez/Math.h"
 #include "ez/Transformation.h"
+#include <experimental/type_traits>
 
 namespace ez
 {
@@ -46,6 +47,38 @@ SquareMat<T, N + 1> Transformation<T, N>::GetInverseMatrix() const
   return ScaleMat(1.0f / mScale) * RotationMat(-mRotation) * TranslationMat(-mPosition);
 }
 
+template <typename T>
+using HasTransformIteratorDetector = decltype(std::declval<T>().GetTransformIteratorBegin());
+
+template <typename T>
+static constexpr auto HasTransformIterator_v = std::experimental::is_detected_v<HasTransformIteratorDetector, T>;
+
+template <typename TObject>
+auto GetTransformIteratorBegin(TObject& ioObject)
+{
+  if constexpr (HasTransformIterator_v<TObject>)
+  {
+    return ioObject.GetTransformIteratorBegin();
+  }
+  else
+  {
+    return ioObject.begin();
+  }
+}
+
+template <typename TObject>
+auto GetTransformIteratorEnd(TObject& ioObject)
+{
+  if constexpr (HasTransformIterator_v<TObject>)
+  {
+    return ioObject.GetTransformIteratorEnd();
+  }
+  else
+  {
+    return ioObject.end();
+  }
+}
+
 template <typename T, std::size_t N>
 void Transform(Vec<T, N>& ioPoint, const SquareMat<T, N>& inTransformMatrix)
 {
@@ -83,33 +116,40 @@ template <typename T, std::size_t N>
 }
 
 template <typename T, std::size_t N>
-void Transform(T& ioObjectToTransform, const SquareMat<T, N + 1>& inTransformMatrix)
+void Transform(T& ioObject, const SquareMat<ValueType_t<T>, N>& inTransformMatrix)
 {
-  for (auto& value : ioObjectToTransform) { Transform(value, inTransformMatrix); }
+  for (auto it = GetTransformIteratorBegin(ioObject); it != GetTransformIteratorEnd(ioObject); ++it)
+  {
+    auto& value = *it;
+    Transform(value, inTransformMatrix);
+  }
 }
 
 template <typename T, std::size_t N>
-[[nodiscard]] Vec<T, N> Transformed(const T& inObjectToTransform, const SquareMat<T, N + 1>& inTransformMatrix)
+[[nodiscard]] T Transformed(const T& inObject, const SquareMat<ValueType_t<T>, N>& inTransformMatrix)
 {
-  auto transformed_object = inObjectToTransform;
+  auto transformed_object = inObject;
   Transform(transformed_object, inTransformMatrix);
   return transformed_object;
 }
 
 template <typename T, std::size_t N>
-void Transform(T& ioObjectToTransform, const Transformation<T, N>& inTransformation)
+void Transform(T& ioObject, const Transformation<ValueType_t<T>, N>& inTransformation)
 {
   const auto transform_matrix = inTransformation.GetMatrix();
-  for (auto& value : ioObjectToTransform) { Transform(value, transform_matrix); }
+  for (auto it = GetTransformIteratorBegin(ioObject); it != GetTransformIteratorEnd(ioObject); ++it)
+  {
+    auto& value = *it;
+    Transform(value, transform_matrix);
+  }
 }
 
 template <typename T, std::size_t N>
-[[nodiscard]] Vec<T, N> Transformed(const T& inObjectToTransform, const Transformation<T, N>& inTransformation)
+[[nodiscard]] T Transformed(const T& inObject, const Transformation<ValueType_t<T>, N>& inTransformation)
 {
-  auto transformed_object = inObjectToTransform;
+  auto transformed_object = inObject;
   Transform(transformed_object, inTransformation);
   return transformed_object;
 }
-
 
 }

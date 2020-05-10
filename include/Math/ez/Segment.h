@@ -11,6 +11,7 @@ class Segment final
 public:
   using ValueType = T;
   static constexpr auto NumComponents = N;
+  static constexpr auto NumDimensions = N;
 
   Segment() = default;
   Segment(const Vec<T, N>& inFromPoint, const Vec<T, N>& inToPoint);

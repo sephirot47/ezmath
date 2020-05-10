@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ez/Math.h"
+#include "ez/MathCommon.h"
 #include "ez/MathInitializers.h"
 #include "ez/MathMultiComponent.h"
 

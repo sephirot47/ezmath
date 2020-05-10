@@ -1,21 +1,26 @@
 #pragma once
 
-#include "AACube.h"
-#include "MathTypeTraits.h"
-#include "Span.h"
+#include "ez/AACube.h"
+#include "ez/BinaryIndex.h"
+#include "ez/MathTypeTraits.h"
+#include "ez/Span.h"
 #include <array>
 #include <memory>
 #include <vector>
 
 namespace ez
 {
+
+template <typename TPrimitive>
+class OctreeBuilder;
+
 template <typename TPrimitive>
 class Octree final
 {
 public:
-  using ChildMultiIndex01 = Vec<uint32_t, 3>;
+  using ChildMultiIndex01 = BinaryIndex<3>;
   using ValueType = ValueType_t<TPrimitive>;
-  using AACube = AACube<ValueType>;
+  using AACubeType = AACube<ValueType>;
   using InternalIndex = std::size_t;
 
   Octree() = default;
@@ -32,25 +37,29 @@ public:
       = std::function<void(const Octree::ChildMultiIndex01 inChildIndex, const Octree& inChildOctree)>;
   void ForEach(const ForEachFunctionConst& inForEachFunctionConst) const;
 
-  AACube GetChildCube(const Octree::ChildMultiIndex01 inChildIndex) const;
-  AACube GetChildCube(const InternalIndex inInternalIndex) const;
+  const AACubef& GetAACube() const { return mAACube; }
+  const std::vector<TPrimitive>& GetPrimitives() const { return mPrimitives; }
+  const std::array<std::unique_ptr<Octree>, 8>& GetChildren() const { return mChildren; }
+  AACubeType GetChildAACube(const Octree::ChildMultiIndex01 inChildIndex) const;
+  AACubeType GetChildAACube(const InternalIndex inInternalIndex) const;
   Octree* GetChildOctree(const Octree::ChildMultiIndex01 inChildIndex);
   const Octree* GetChildOctree(const Octree::ChildMultiIndex01 inChildIndex) const;
   Octree* GetChildOctree(const InternalIndex inInternalIndex);
   const Octree* GetChildOctree(const InternalIndex inInternalIndex) const;
+  bool IsEmpty() const { return mPrimitives.empty(); }
 
   template <bool IsConst>
-  class GIterator
+  class GIterator final
   {
   public:
-    using OctreeType = std::conditional_t<IsConst, Octree, const Octree>;
+    using OctreeType = std::conditional_t<IsConst, const Octree, Octree>;
 
     GIterator(OctreeType& ioOctree, const Octree::InternalIndex inBeginIndex);
     GIterator& operator++();
-    bool operator==(const Iterator& inRHS) const { return mCurrentIndex != inRHS.mCurrentIndex; }
-    bool operator!=(const Iterator& inRHS) const { return !(*this == inRHS); }
+    bool operator==(const GIterator& inRHS) const { return mCurrentIndex == inRHS.mCurrentIndex; }
+    bool operator!=(const GIterator& inRHS) const { return !(*this == inRHS); }
     OctreeType& operator*();
-    const OctreeType& operator*() const { return const_cast<Iterator&>(*this).operator*(); }
+    const OctreeType& operator*() const { return const_cast<GIterator&>(*this).operator*(); }
 
   private:
     OctreeType& mOctree;
@@ -60,7 +69,7 @@ public:
   using ConstIterator = GIterator<true>;
 
   Octree::Iterator begin() { return Iterator(*this, 0); }
-  Octree::Iterator end()   { return Iterator(*this, 8); }
+  Octree::Iterator end() { return Iterator(*this, 8); }
   Octree::ConstIterator begin() const { return cbegin(); }
   Octree::ConstIterator end() const { return cend(); }
   Octree::ConstIterator cbegin() const { return ConstIterator(*this, 0); }
@@ -68,21 +77,19 @@ public:
 
 private:
   static inline constexpr std::array<ChildMultiIndex01, 8> AllChildMultiIndices01 = {
-    GetChildMultiIndex(0u),
-    GetChildMultiIndex(1u),
-    GetChildMultiIndex(2u),
-    GetChildMultiIndex(3u),
-    GetChildMultiIndex(4u),
-    GetChildMultiIndex(5u),
-    GetChildMultiIndex(6u),
-    GetChildMultiIndex(7u),
+    MakeBinaryIndex<3>(0),
+    MakeBinaryIndex<3>(1),
+    MakeBinaryIndex<3>(2),
+    MakeBinaryIndex<3>(3),
+    MakeBinaryIndex<3>(4),
+    MakeBinaryIndex<3>(5),
+    MakeBinaryIndex<3>(6),
+    MakeBinaryIndex<3>(7),
   };
 
+  AACube<ValueType> mAACube;
   std::vector<TPrimitive> mPrimitives;
   std::array<std::unique_ptr<Octree>, 8> mChildren;
-
-  static constexpr Octree::ChildMultiIndex01 GetChildMultiIndex01(const InternalIndex inInternalIndex);
-  static constexpr InternalIndex GetInternalIndex(const Octree::ChildMultiIndex01 inChildIndex);
 
   friend class OctreeBuilder<TPrimitive>;
 };
@@ -96,7 +103,7 @@ public:
   static Octree<TPrimitive> Build(const Span<TPrimitive>& inPrimitives, const std::size_t inLeafNodesMaxCapacity = 8);
 
 private:
-  static Octree<TPrimitive> BuildRecursive(const typename Octree<TPrimitive>::AACube& inAABoundingCube,
+  static Octree<TPrimitive> BuildRecursive(const typename Octree<TPrimitive>::AACubeType& inAABoundingCube,
       const Span<TPrimitive>& inPrimitives,
       const std::size_t inLeafNodesMaxCapacity);
 };

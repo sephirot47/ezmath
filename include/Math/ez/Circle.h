@@ -9,6 +9,9 @@ template <typename T>
 class Circle
 {
 public:
+  using ValueType = T;
+  static constexpr auto NumDimensions = 2;
+
   Circle() = default;
   Circle(const Vec2<T>& inCenter, const T& inRadius) : mCenter(inCenter), mRadius(inRadius) {}
 

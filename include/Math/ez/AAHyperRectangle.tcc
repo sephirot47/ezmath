@@ -1,4 +1,5 @@
 #include "ez/AAHyperRectangle.h"
+#include "ez/BinaryIndex.h"
 #include "ez/Macros.h"
 #include "ez/MathTypeTraits.h"
 
@@ -42,7 +43,7 @@ template <typename T, std::size_t N>
 void AAHyperRectangle<T, N>::Wrap(const Vec<T, N>& inPoint)
 {
   mMinMax[0] = Min(mMinMax[0], inPoint);
-  mMinMax[1] = Min(mMinMax[1], inPoint);
+  mMinMax[1] = Max(mMinMax[1], inPoint);
 }
 
 template <typename T, std::size_t N>
@@ -85,7 +86,36 @@ void AAHyperRectangle<T, N>::Wrap(const TOther& inThingToBound)
   }
   else
   {
-    for (const auto& x : inThingToBound) { Wrap(inThingToBound); }
+    for (const auto& subthing_to_bound : inThingToBound) { Wrap(subthing_to_bound); }
   }
 }
+
+template <typename T, std::size_t N>
+template <bool IsConst>
+AAHyperRectangle<T, N>::GPointsIterator<IsConst>::GPointsIterator(AAHyperRectangleType& ioHyperRectangle,
+    const std::size_t inBeginIndex)
+    : mAAHyperRectangle { ioHyperRectangle }, mCurrentIndex(inBeginIndex)
+{
+}
+
+template <typename T, std::size_t N>
+template <bool IsConst>
+typename AAHyperRectangle<T, N>::template GPointsIterator<IsConst>&
+AAHyperRectangle<T, N>::GPointsIterator<IsConst>::operator++()
+{
+  EXPECTS((mCurrentIndex < AAHyperRectangle<T, N>::NumPoints));
+  ++mCurrentIndex;
+  return *this;
+}
+
+template <typename T, std::size_t N>
+template <bool IsConst>
+typename AAHyperRectangle<T, N>::template GPointsIterator<IsConst>::VecType
+    AAHyperRectangle<T, N>::GPointsIterator<IsConst>::operator*() const
+{
+  const auto current_binary_index = MakeBinaryIndex<N>(mCurrentIndex);
+  const auto point = mAAHyperRectangle.GetMin() + mAAHyperRectangle.GetSize() * VecType(current_binary_index);
+  return point;
+}
+
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ez/Math.h"
+#include "ez/MathCommon.h"
 #include "ez/Plane.h"
 #include "ez/Triangle.h"
 
@@ -76,5 +76,4 @@ Vec3<T> Projected(const Vec3<T>& inPoint, const Triangle3<T>& inTriangle)
   const auto triangle_plane = Plane(inTriangle);
   return Projected(inPoint, triangle_plane);
 }
-
 }

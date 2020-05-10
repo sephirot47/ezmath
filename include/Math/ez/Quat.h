@@ -68,9 +68,8 @@ using Quatf = Quat<float>;
 using Quatd = Quat<double>;
 
 template <typename T>
-struct IsQuat<Quat<T>>
+struct IsQuat<Quat<T>> : std::true_type
 {
-  static constexpr bool value = true;
 };
 }
 

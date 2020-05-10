@@ -28,3 +28,17 @@ target_compile_features(ezmath INTERFACE "cxx_template_template_parameters")
 
 target_sources(ezmath INTERFACE ${EZMATH_H_FILES} ${EZMATH_TCC_FILES})
 target_include_directories(ezmath INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include/Math")
+
+# ======================================================================
+# Dependencies =========================================================
+# ======================================================================
+
+# ezcommon
+if (NOT TARGET ezcommon)
+  add_subdirectory(deps/ezcommon)
+  target_link_libraries(ezmath ezcommon)
+endif()
+
+# ======================================================================
+# ======================================================================
+# ======================================================================

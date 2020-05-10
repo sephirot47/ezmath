@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ez/Macros.h"
-#include "ez/Vec.h"
 #include "ez/MathInitializers.h"
+#include "ez/Vec.h"
 
 namespace ez
 {
@@ -10,6 +10,9 @@ template <typename T>
 class Plane final
 {
 public:
+  using ValueType = T;
+  static constexpr auto NumDimensions = 3;
+
   Plane() = default;
   Plane(const Vec3<T>& inNormal, const T inDistanceFromOriginInNormalDirection);
   Plane(const Vec3<T>& inNormal, const Vec3<T>& inPlanePoint);

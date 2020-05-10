@@ -93,9 +93,8 @@ using Mat4d = Mat4<double>;
 using Mat4i = Mat4<int32_t>;
 
 template <typename T, std::size_t N>
-struct IsMat<Mat<T, N, N>> final
+struct IsMat<Mat<T, N, N>> final : std::true_type
 {
-  static constexpr bool value = true;
 };
 
 }

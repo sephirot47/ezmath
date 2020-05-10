@@ -58,6 +58,12 @@ template <typename T> struct TransformationRotationType<Transformation3<T>> { us
 // clang-format on
 
 // Helper functions
+template <typename TObject, typename TTransformIterator>
+TTransformIterator GetTransformIteratorBegin(TObject& ioObject);
+
+template <typename TObject, typename TTransformIterator>
+TTransformIterator GetTransformIteratorEnd(TObject& ioObject);
+
 template <typename T, std::size_t N>
 void Transform(Vec<T, N>& ioPoint, const SquareMat<T, N>& inTransformMatrix);
 
@@ -68,19 +74,20 @@ template <typename T, std::size_t N>
 void Transform(Vec<T, N>& ioPoint, const SquareMat<T, N + 1>& inTransformMatrix);
 
 template <typename T, std::size_t N>
-[[nodiscard]] Vec<T, N> Transformed(const Vec<T, N>& inPoint, const SquareMat<T, N + 1>& inTransformMatrix);
+[[nodiscard]] Vec<T, N> Transformed(const Vec<T, N>& inPoint,
+    const SquareMat<ValueType_t<T>, N + 1>& inTransformMatrix);
 
 template <typename T, std::size_t N>
-void Transform(T& ioObjectToTransform, const SquareMat<T, N + 1>& inTransformMatrix);
+void Transform(T& ioObjectToTransform, const SquareMat<ValueType_t<T>, N>& inTransformMatrix);
 
 template <typename T, std::size_t N>
-[[nodiscard]] Vec<T, N> Transformed(const T& inObjectToTransform, const SquareMat<T, N + 1>& inTransformMatrix);
+[[nodiscard]] T Transformed(const T& inObjectToTransform, const SquareMat<ValueType_t<T>, N>& inTransformMatrix);
 
 template <typename T, std::size_t N>
-void Transform(T& ioObjectToTransform, const Transformation<T, N>& inTransformation);
+void Transform(T& ioObjectToTransform, const Transformation<ValueType_t<T>, N>& inTransformation);
 
 template <typename T, std::size_t N>
-[[nodiscard]] Vec<T, N> Transformed(const T& inObjectToTransform, const Transformation<T, N>& inTransformation);
+[[nodiscard]] T Transformed(const T& inObjectToTransform, const Transformation<ValueType_t<T>, N>& inTransformation);
 
 }
 

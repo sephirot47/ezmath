@@ -20,17 +20,17 @@ public:
 
   using ValueType = T;
   static constexpr auto NumComponents = N;
+  static constexpr auto NumDimensions = N;
 
   constexpr explicit Vec(const MITAll<ValueType>& inMITAll) noexcept;
-  constexpr explicit Vec(const MITAdditiveIdentity&) noexcept
-      : Vec(MITAll<ValueType>(static_cast<ValueType>(0)))
-  {
-  }
-  constexpr explicit Vec(const MITMultiplicativeIdentity&) noexcept
-      : Vec(MITAll<ValueType>(static_cast<ValueType>(1)))
+  constexpr explicit Vec(const MITAdditiveIdentity&) noexcept : Vec(MITAll<ValueType>(static_cast<ValueType>(0))) {}
+  constexpr explicit Vec(const MITMultiplicativeIdentity&) noexcept : Vec(MITAll<ValueType>(static_cast<ValueType>(1)))
   {
   }
   constexpr Vec() noexcept : Vec(MITAll<ValueType> { static_cast<ValueType>(0) }) {}
+
+  template <typename TOther>
+  constexpr explicit Vec(const Vec<TOther, N>& inOther) noexcept;
 
   template <typename... TArgs, typename = std::enable_if_t<sizeof...(TArgs) == N>>
   constexpr explicit Vec(TArgs&&... inArgs) noexcept;
@@ -121,10 +121,10 @@ using Vec4f = Vec4<float>;
 using Vec4d = Vec4<double>;
 
 template <typename T, std::size_t N>
-struct IsVec<Vec<T, N>>
+struct IsVec<Vec<T, N>> : std::true_type
 {
-  static constexpr bool value = true;
 };
+
 }
 
 #include "ez/Vec.tcc"

@@ -7,8 +7,7 @@ namespace ez
 template <typename TPrimitive>
 Octree<TPrimitive>::Octree(const Span<TPrimitive>& inPrimitives, const std::size_t inLeafNodesMaxCapacity)
 {
-  OctreeBuilder<TPrimitive> octree_builder;
-  *this = octree_builder.Build(inPrimitives, inLeafNodesMaxCapacity);
+  *this = OctreeBuilder<TPrimitive>::Build(inPrimitives, inLeafNodesMaxCapacity);
 }
 
 template <typename TPrimitive>
@@ -18,22 +17,24 @@ void Octree<TPrimitive>::ForEach(const ForEachFunction& inForEachFunction)
 }
 
 template <typename TPrimitive>
-Octree<TPrimitive>::AACube Octree<TPrimitive>::GetChildCube(const Octree::ChildMultiIndex01 inChildIndex) const
+Octree<TPrimitive>::AACubeType Octree<TPrimitive>::GetChildAACube(const Octree::ChildMultiIndex01 inChildIndex) const
 {
-  return {}; // TODO
+  const auto child_cube_size = (mAACube.GetSize() / static_cast<ValueType>(2));
+  const auto child_cube_size_indexed = (child_cube_size * Vec3<ValueType>(inChildIndex));
+  return AACube<ValueType>(mAACube.GetMin() + child_cube_size_indexed, mAACube.GetCenter() + child_cube_size_indexed);
 }
 
 template <typename TPrimitive>
-Octree<TPrimitive>::AACube Octree<TPrimitive>::GetChildCube(
+Octree<TPrimitive>::AACubeType Octree<TPrimitive>::GetChildAACube(
     const typename Octree<TPrimitive>::InternalIndex inInternalIndex) const
 {
-  return {}; // TODO
+  return GetChildAACube(MakeBinaryIndex<3>(inInternalIndex));
 }
 
 template <typename TPrimitive>
 Octree<TPrimitive>* Octree<TPrimitive>::GetChildOctree(const Octree::ChildMultiIndex01 inChildIndex)
 {
-  return mChildren[GetInternalIndex(inChildIndex)];
+  return mChildren[MakeSequentialIndex(inChildIndex)];
 }
 
 template <typename TPrimitive>
@@ -45,57 +46,55 @@ const Octree<TPrimitive>* Octree<TPrimitive>::GetChildOctree(const Octree::Child
 template <typename TPrimitive>
 Octree<TPrimitive>* Octree<TPrimitive>::GetChildOctree(const typename Octree<TPrimitive>::InternalIndex inInternalIndex)
 {
-  return mChildren.at(inInternalIndex);
+  EXPECTS(inInternalIndex < mChildren.size());
+  return mChildren.at(inInternalIndex).get();
 }
 
 template <typename TPrimitive>
 const Octree<TPrimitive>* Octree<TPrimitive>::GetChildOctree(
     const Octree<TPrimitive>::InternalIndex inInternalIndex) const
 {
-  return mChildren.at(inInternalIndex);
-}
-template <typename TPrimitive>
-constexpr Octree<TPrimitive>::ChildMultiIndex01 Octree<TPrimitive>::GetChildMultiIndex01(
-    const InternalIndex inInternalIndex)
-{
-  return ChildMultiIndex01 { (inChildIndex[0] % 8u) / 4u, (inChildIndex[1] % 4u) / 2u, (inChildIndex[2] % 2u) / 1u };
-}
-
-template <typename TPrimitive>
-constexpr typename Octree<TPrimitive>::InternalIndex Octree<TPrimitive>::GetInternalIndex(
-    const Octree::ChildMultiIndex01 inChildIndex)
-{
-  return inChildIndex[0] * 4 + inChildIndex[1] * 2 + inChildIndex[2] * 1;
+  return const_cast<Octree&>(*this).GetChildOctree(inInternalIndex);
 }
 
 template <typename TPrimitive>
 template <bool IsConst>
 Octree<TPrimitive>::GIterator<IsConst>::GIterator(OctreeType& ioOctree, const InternalIndex inBeginIndex)
-    : mOctree { ioOctree }, mBeginIndex(inBeginIndex)
+    : mOctree { ioOctree }, mCurrentIndex(inBeginIndex)
 {
+  if (mCurrentIndex < 8
+      && !mOctree.GetChildOctree(mCurrentIndex)) // Advance until the first valid index (or end() if there isnt)
+    ++(*this);
 }
 
 template <typename TPrimitive>
 template <bool IsConst>
-typename Octree<TPrimitive>::GIterator<IsConst>& Octree<TPrimitive>::GIterator<IsConst>::operator++()
+typename Octree<TPrimitive>::template GIterator<IsConst>& Octree<TPrimitive>::GIterator<IsConst>::operator++()
 {
-  EXPECTS(mCurrentIndex < 7);
+  EXPECTS(mCurrentIndex < 8);
 
-  do
+  while (true)
   {
     ++mCurrentIndex;
-  } while (mCurrentIndex < 7 && mCurrentOctree.GetChildOctree(mCurrentIndex) == nullptr);
 
-  ENSURES(mCurrentIndex < 8);
+    if (mCurrentIndex == 8)
+      break;
+
+    if (mOctree.GetChildOctree(mCurrentIndex) != nullptr)
+      break;
+  }
+
+  ENSURES(mCurrentIndex <= 8);
 
   return *this;
 }
 
 template <typename TPrimitive>
 template <bool IsConst>
-typename Octree<TPrimitive>::GIterator<IsConst>::OctreeType& Octree<TPrimitive>::GIterator<IsConst>::operator*()
+typename Octree<TPrimitive>::template GIterator<IsConst>::OctreeType&
+    Octree<TPrimitive>::GIterator<IsConst>::operator*()
 {
-  const auto current_octree = mCurrentOctree.GetChildOctree(mCurrentIndex);
+  const auto current_octree = mOctree.GetChildOctree(mCurrentIndex);
   EXPECTS(current_octree);
   return *current_octree;
 }
@@ -104,39 +103,37 @@ template <typename TPrimitive>
 Octree<TPrimitive> OctreeBuilder<TPrimitive>::Build(const Span<TPrimitive>& inPrimitives,
     const std::size_t inLeafNodesMaxCapacity)
 {
-  const auto bounding_cube = BoundingHyperRectangle(inPrimitives);
-  return BuildRecursive(bounding_cube, inPrimitives, inLeafNodesMaxCapacity);
+  const auto bounding_aa_cube = BoundingAACube(inPrimitives);
+  return BuildRecursive(bounding_aa_cube, inPrimitives, inLeafNodesMaxCapacity);
 }
 
 template <typename TPrimitive>
 Octree<TPrimitive> OctreeBuilder<TPrimitive>::BuildRecursive(
-    const typename Octree<TPrimitive>::AACube& inAABoundingCube,
+    const typename Octree<TPrimitive>::AACubeType& inAABoundingCube,
     const Span<TPrimitive>& inPrimitives,
     const std::size_t inLeafNodesMaxCapacity)
 {
-  if (inPrimitives.GetNumberOfElements() > inLeafNodesMaxCapacity) {}
-  else // Base case
+  Octree<TPrimitive> octree;
+  octree.mAACube = inAABoundingCube;
+  octree.mPrimitives.reserve(inPrimitives.GetNumberOfElements() / 8);
+  std::copy_if(inPrimitives.cbegin(),
+      inPrimitives.cend(),
+      std::back_inserter(octree.mPrimitives),
+      [&](const auto& inPrimitive) { return Intersect(inAABoundingCube, inPrimitive); });
+
+  if (octree.mPrimitives.size() > inLeafNodesMaxCapacity)
   {
-    for (int x = 0; x <= 1; ++x)
+    for (std::size_t i = 0; i < 8; ++i)
     {
-      for (int y = 0; y <= 1; ++y)
+      const auto child_bounding_aa_cube = octree.GetChildAACube(i);
+      auto built_child = BuildRecursive(child_bounding_aa_cube, MakeSpan(octree.mPrimitives), inLeafNodesMaxCapacity);
+      if (!built_child.IsEmpty())
       {
-        for (int z = 0; z <= 1; ++z)
-        {
-          auto child_octree = std::make_unique<Octree<TPrimitive>>();
-          octree.mPrimitives.reserve(inPrimitives.GetNumberOfElements() / 8);
-          for (const auto& primitive : inPrimitives)
-          {
-            if (Contains(inAABoundingCube, primitive))
-            {
-              inPrimitives.push_back(primitive);
-            }
-          }
-          child_octree->Build(inPrimitives, inLeafNodesMaxCapacity);
-        }
+        octree.mChildren[i] = std::make_unique<Octree<TPrimitive>>(std::move(built_child));
       }
     }
-    octree.mPrimitives = inPrimitives;
   }
+
+  return octree;
 }
 }

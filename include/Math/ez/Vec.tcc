@@ -17,6 +17,15 @@ constexpr Vec<T, N>::Vec(TArgs&&... inArgs) noexcept : mComponents { std::forwar
 }
 
 template <typename T, std::size_t N>
+template <typename TOther>
+constexpr Vec<T, N>::Vec(const Vec<TOther, N>& inOther) noexcept
+{
+  Vec<T, N> vec;
+  for (std::size_t i = 0; i < N; ++i) { vec[i] = static_cast<T>(inOther[i]); }
+  *this = vec;
+}
+
+template <typename T, std::size_t N>
 T* Vec<T, N>::Data()
 {
   return &mComponents[0];
@@ -100,13 +109,23 @@ constexpr bool Vec<T, N>::operator>=(const Vec& inRHS) const
 template <typename T, std::size_t N>
 constexpr bool Vec<T, N>::operator<(const Vec& inRHS) const
 {
-  return !(*this >= inRHS);
+  for (std::size_t i = 0; i < N; ++i)
+  {
+    if (!(mComponents[i] < inRHS[i]))
+      return false;
+  }
+  return true;
 }
 
 template <typename T, std::size_t N>
 constexpr bool Vec<T, N>::operator<=(const Vec& inRHS) const
 {
-  return !(*this > inRHS);
+  for (std::size_t i = 0; i < N; ++i)
+  {
+    if (!(mComponents[i] <= inRHS[i]))
+      return false;
+  }
+  return true;
 }
 
 template <typename T, std::size_t N>

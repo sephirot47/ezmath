@@ -2,6 +2,7 @@
 
 #include "ez/MathInitializers.h"
 #include "ez/MathTypeTraits.h"
+#include <array>
 #include <cmath>
 #include <limits>
 
@@ -18,7 +19,7 @@ constexpr T MathMultiComponentGenerated(TExtraArgs&&... inExtraArgs)
   {
     T result;
     constexpr auto SplitExtraArgs = (std::is_same_v<std::decay_t<T>, std::decay_t<TExtraArgs>> && ...);
-    for (std::size_t i = 0; i < T::NumComponents; ++i)
+    for (std::size_t i = 0; i < (result.cend() - result.cbegin()); ++i)
     {
       auto& v = result[i];
       if constexpr (SplitExtraArgs)
@@ -47,7 +48,7 @@ constexpr T MathMultiComponentApplied(const T& inValue, TExtraArgs&&... inExtraA
   {
     auto result = inValue;
     constexpr auto SplitExtraArgs = (std::is_same_v<std::decay_t<T>, std::decay_t<TExtraArgs>> && ...);
-    for (std::size_t i = 0; i < T::NumComponents; ++i)
+    for (std::size_t i = 0; i < (result.cend() - result.cbegin()); ++i)
     {
       auto& v = result[i];
       if constexpr (SplitExtraArgs)
@@ -187,7 +188,7 @@ constexpr auto Min(const T& inValue)
 template <typename T>
 constexpr auto Min()
 {
-  return All<T>(std::numeric_limits<ValueType_t<T>>::min());
+  return All<T>(std::numeric_limits<ValueType_t<T>>::lowest());
 }
 
 template <typename T>
