@@ -24,7 +24,9 @@ public:
   using InternalIndex = std::size_t;
 
   Octree() = default;
-  Octree(const Span<TPrimitive>& inPrimitives, const std::size_t inLeafNodesMaxCapacity = 8);
+  Octree(const Span<TPrimitive>& inPrimitives,
+      const std::size_t inLeafNodesMaxCapacity = 8,
+      const std::size_t inMaxDepth = 8);
   Octree(const Octree&) = delete;
   Octree& operator=(const Octree&) = delete;
   Octree(Octree&&) = default;
@@ -47,6 +49,7 @@ public:
   Octree* GetChildOctree(const InternalIndex inInternalIndex);
   const Octree* GetChildOctree(const InternalIndex inInternalIndex) const;
   bool IsEmpty() const { return mPrimitives.empty(); }
+  bool IsLeaf() const;
 
   template <bool IsConst>
   class GIterator final
@@ -100,12 +103,16 @@ class OctreeBuilder final
 public:
   OctreeBuilder() = delete;
 
-  static Octree<TPrimitive> Build(const Span<TPrimitive>& inPrimitives, const std::size_t inLeafNodesMaxCapacity = 8);
+  static Octree<TPrimitive> Build(const Span<TPrimitive>& inPrimitives,
+      const std::size_t inLeafNodesMaxCapacity = 8,
+      const std::size_t inMaxDepth = 8);
 
 private:
   static Octree<TPrimitive> BuildRecursive(const typename Octree<TPrimitive>::AACubeType& inAABoundingCube,
       const Span<TPrimitive>& inPrimitives,
-      const std::size_t inLeafNodesMaxCapacity);
+      const std::size_t inLeafNodesMaxCapacity,
+      const std::size_t inMaxDepth,
+      const std::size_t inCurrentDepth);
 };
 }
 

@@ -7,7 +7,7 @@ namespace ez
 {
 // IsVec. Template specialization for Vec is in "Vec.h"
 template <typename T>
-struct IsVec final: std::false_type
+struct IsVec final : std::false_type
 {
 };
 template <typename T>
@@ -15,7 +15,7 @@ constexpr bool IsVec_v = IsVec<T>::value;
 
 // IsMat. Template specialization for Mat is in "Mat.h"
 template <typename T>
-struct IsMat final: std::false_type
+struct IsMat final : std::false_type
 {
 };
 template <typename T>
@@ -31,7 +31,7 @@ inline constexpr bool IsQuat_v = IsQuat<T>::value;
 
 // IsAAHyperRectangle. Template specialization for AAHyperRectangle is in "AAHyperRectangle.h"
 template <typename T>
-struct IsAAHyperRectangle final: std::false_type
+struct IsAAHyperRectangle final : std::false_type
 {
 };
 template <typename T>
@@ -46,16 +46,17 @@ template <typename T>
 constexpr auto IsVecOrMat_v = IsVec_v<T> || IsMat_v<T>;
 
 template <typename T>
-std::enable_if_t<!IsNumber_v<T>, typename T::ValueType> _GetValueType()
+auto _GetValueType()
 {
-  return typename T::ValueType {};
-};
-
-template <typename T>
-std::enable_if_t<IsNumber_v<T>, T> _GetValueType()
-{
-  return T {};
-};
+  if constexpr (IsNumber_v<T>)
+  {
+    return T {};
+  }
+  else
+  {
+    return typename T::ValueType {};
+  }
+}
 
 template <typename T>
 using ValueType_t = decltype(_GetValueType<T>());

@@ -49,6 +49,12 @@ constexpr T QuarterCircleRads()
   return FullCircleRads<T>() / 4;
 }
 
+template <typename T = float>
+constexpr T Infinity()
+{
+  return std::numeric_limits<T>::infinity();
+}
+
 template <typename T>
 constexpr auto All(const ValueType_t<T>& inAllValue)
 {

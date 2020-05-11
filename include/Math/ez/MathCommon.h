@@ -52,7 +52,7 @@ template <typename T>
 constexpr auto SqDistance(const T& inLHS, const T& inRHS)
 {
   const auto diff = (inRHS - inLHS);
-  return SqLength(diff, diff);
+  return SqLength(diff);
 }
 
 template <typename T>

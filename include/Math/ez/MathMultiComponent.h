@@ -19,8 +19,9 @@ constexpr T MathMultiComponentGenerated(TExtraArgs&&... inExtraArgs)
   {
     T result;
     constexpr auto SplitExtraArgs = (std::is_same_v<std::decay_t<T>, std::decay_t<TExtraArgs>> && ...);
-    for (std::size_t i = 0; i < (result.cend() - result.cbegin()); ++i)
+    for (auto it = result.cbegin(); it != result.cend(); ++it)
     {
+      const auto i = (it - result.cbegin());
       auto& v = result[i];
       if constexpr (SplitExtraArgs)
       {
@@ -48,8 +49,9 @@ constexpr T MathMultiComponentApplied(const T& inValue, TExtraArgs&&... inExtraA
   {
     auto result = inValue;
     constexpr auto SplitExtraArgs = (std::is_same_v<std::decay_t<T>, std::decay_t<TExtraArgs>> && ...);
-    for (std::size_t i = 0; i < (result.cend() - result.cbegin()); ++i)
+    for (auto it = result.cbegin(); it != result.cend(); ++it)
     {
+      const auto i = (it - result.cbegin());
       auto& v = result[i];
       if constexpr (SplitExtraArgs)
       {
@@ -106,19 +108,6 @@ constexpr auto Pow(const T& inValue, const T& inPower)
 }
 
 template <typename T>
-constexpr auto Cos(const T& inValue)
-{
-  if constexpr (IsNumber_v<T>)
-  {
-    return std::cos(inValue);
-  }
-  else
-  {
-    return MathMultiComponentApplied<T, Cos<ValueType_t<T>>>(inValue);
-  }
-}
-
-template <typename T>
 constexpr auto Sin(const T& inValue)
 {
   if constexpr (IsNumber_v<T>)
@@ -132,6 +121,19 @@ constexpr auto Sin(const T& inValue)
 }
 
 template <typename T>
+constexpr auto Cos(const T& inValue)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return std::cos(inValue);
+  }
+  else
+  {
+    return MathMultiComponentApplied<T, Cos<ValueType_t<T>>>(inValue);
+  }
+}
+
+template <typename T>
 constexpr auto Tan(const T& inValue)
 {
   if constexpr (IsNumber_v<T>)
@@ -141,6 +143,45 @@ constexpr auto Tan(const T& inValue)
   else
   {
     return MathMultiComponentApplied<T, Tan<ValueType_t<T>>>(inValue);
+  }
+}
+
+template <typename T>
+constexpr auto ASin(const T& inValue)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return std::asin(inValue);
+  }
+  else
+  {
+    return MathMultiComponentApplied<T, ASin<ValueType_t<T>>>(inValue);
+  }
+}
+
+template <typename T>
+constexpr auto ACos(const T& inValue)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return std::acos(inValue);
+  }
+  else
+  {
+    return MathMultiComponentApplied<T, ACos<ValueType_t<T>>>(inValue);
+  }
+}
+
+template <typename T>
+constexpr auto ATan(const T& inValue)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return std::atan(inValue);
+  }
+  else
+  {
+    return MathMultiComponentApplied<T, ATan<ValueType_t<T>>>(inValue);
   }
 }
 

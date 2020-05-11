@@ -4,6 +4,8 @@
 #include "ez/AACube.h"
 #include "ez/AARect.h"
 #include "ez/Geometry.h"
+#include "ez/Plane.h"
+#include "ez/Ray.h"
 #include "ez/Triangle.h"
 #include "ez/Vec.h"
 #include <functional>
@@ -13,6 +15,37 @@ using namespace std::placeholders;
 
 namespace ez
 {
+// Ray intersections
+template <typename T>
+std::optional<T> Intersect(const Ray3<T>& inRay, const Plane<T>& inPlane)
+{
+  const auto ray_dir_dot_plane_normal = Dot(inRay.GetDirection(), -inPlane.GetNormal());
+  const auto is_very_parallel_to_plane = IsVeryEqual(ray_dir_dot_plane_normal, static_cast<T>(0));
+  if (is_very_parallel_to_plane)
+    return std::nullopt;
+
+  const auto& ray_dir_plane_normal_angle_cos = ray_dir_dot_plane_normal;
+  const auto ray_origin_distance_to_plane = Distance(inRay.GetOrigin(), inPlane);
+  const auto intersect_distance_from_ray_origin = (ray_origin_distance_to_plane / ray_dir_plane_normal_angle_cos);
+  return std::make_optional(intersect_distance_from_ray_origin);
+}
+
+template <typename T>
+std::optional<T> Intersect(const Ray3<T>& inRay, const Triangle3<T>& inTriangle)
+{
+  const auto ray_plane_intersection_distance = Intersect(inRay, GetPlane(inTriangle));
+  if (!ray_plane_intersection_distance)
+    return std::nullopt;
+
+  const auto ray_plane_intersection_point = inRay.GetPoint(*ray_plane_intersection_distance);
+  const auto barycentric_coordinates = BarycentricCoordinates(inTriangle, ray_plane_intersection_point);
+  const auto intersection_point_is_in_triangle = IsBetween(barycentric_coordinates, Zero<Vec3<T>>(), One<Vec3<T>>());
+  if (!intersection_point_is_in_triangle)
+    return std::nullopt;
+
+  return ray_plane_intersection_distance;
+}
+
 // SAT Normals
 template <typename T>
 auto GetSATNormals(const AACube<T>&)
@@ -122,6 +155,24 @@ bool Intersect(const TLHSConvexObject& inLHS, const TRHSConvexObject& inRHS)
   }
 
   return true;
+}
+
+template <typename T, std::size_t N, typename TRHSConvexObject>
+bool Intersect(const Vec<T, N>& inPoint, const TRHSConvexObject& inRHS)
+{
+  return Contains(inRHS, inPoint);
+}
+
+template <typename T, std::size_t N, typename TLHSConvexObject>
+bool Intersect(const TLHSConvexObject& inLHS, const Vec<T, N>& inPoint)
+{
+  return Intersect(inPoint, inLHS);
+}
+
+template <typename T, std::size_t N>
+bool Intersect(const Plane<T>& inPlane, const Ray<T, 3>& inRay)
+{
+  return IntersectRay(inPlane, inRay).has_value();
 }
 
 template <typename T, std::size_t N>

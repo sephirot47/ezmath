@@ -19,7 +19,7 @@ public:
   Plane(const Plane&) = default;
   Plane& operator=(const Plane&) = default;
   Plane(Plane&&) = default;
-  Plane&& operator=(Plane&&) = default;
+  Plane& operator=(Plane&&) = default;
   ~Plane() = default;
 
   void SetNormal(const Vec3<T>& inNormal);
@@ -33,6 +33,9 @@ private:
   Vec3<T> mNormal = Forward<Vec3<T>>();      // A, B, C
   T mDistanceFromOrigin = static_cast<T>(0); // Distance from origin i-n the direction of the normal (D)
 };
+
+using Planef = Plane<float>;
+using Planed = Plane<double>;
 }
 
 #include "ez/Plane.tcc"
