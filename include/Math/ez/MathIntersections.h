@@ -15,37 +15,6 @@ using namespace std::placeholders;
 
 namespace ez
 {
-// Ray intersections
-template <typename T>
-std::optional<T> Intersect(const Ray3<T>& inRay, const Plane<T>& inPlane)
-{
-  const auto ray_dir_dot_plane_normal = Dot(inRay.GetDirection(), -inPlane.GetNormal());
-  const auto is_very_parallel_to_plane = IsVeryEqual(ray_dir_dot_plane_normal, static_cast<T>(0));
-  if (is_very_parallel_to_plane)
-    return std::nullopt;
-
-  const auto& ray_dir_plane_normal_angle_cos = ray_dir_dot_plane_normal;
-  const auto ray_origin_distance_to_plane = Distance(inRay.GetOrigin(), inPlane);
-  const auto intersect_distance_from_ray_origin = (ray_origin_distance_to_plane / ray_dir_plane_normal_angle_cos);
-  return std::make_optional(intersect_distance_from_ray_origin);
-}
-
-template <typename T>
-std::optional<T> Intersect(const Ray3<T>& inRay, const Triangle3<T>& inTriangle)
-{
-  const auto ray_plane_intersection_distance = Intersect(inRay, GetPlane(inTriangle));
-  if (!ray_plane_intersection_distance)
-    return std::nullopt;
-
-  const auto ray_plane_intersection_point = inRay.GetPoint(*ray_plane_intersection_distance);
-  const auto barycentric_coordinates = BarycentricCoordinates(inTriangle, ray_plane_intersection_point);
-  const auto intersection_point_is_in_triangle = IsBetween(barycentric_coordinates, Zero<Vec3<T>>(), One<Vec3<T>>());
-  if (!intersection_point_is_in_triangle)
-    return std::nullopt;
-
-  return ray_plane_intersection_distance;
-}
-
 // SAT Normals
 template <typename T>
 auto GetSATNormals(const AACube<T>&)
@@ -155,6 +124,100 @@ bool Intersect(const TLHSConvexObject& inLHS, const TRHSConvexObject& inRHS)
   }
 
   return true;
+}
+
+template <typename T>
+std::optional<T> Intersect(const Ray3<T>& inRay, const Plane<T>& inPlane)
+{
+  const auto ray_dir_dot_plane_normal = Dot(inRay.GetDirection(), -inPlane.GetNormal());
+  const auto is_very_parallel_to_plane = IsVeryEqual(ray_dir_dot_plane_normal, static_cast<T>(0));
+  if (is_very_parallel_to_plane)
+    return std::nullopt;
+
+  const auto& ray_dir_plane_normal_angle_cos = ray_dir_dot_plane_normal;
+  const auto ray_origin_distance_to_plane = Distance(inRay.GetOrigin(), inPlane);
+  const auto intersect_distance_from_ray_origin = (ray_origin_distance_to_plane / ray_dir_plane_normal_angle_cos);
+  return std::make_optional(intersect_distance_from_ray_origin);
+}
+
+template <typename T>
+std::optional<T> Intersect(const Ray3<T>& inRay, const Triangle3<T>& inTriangle)
+{
+  const auto ray_plane_intersection_distance = Intersect(inRay, GetPlane(inTriangle));
+  if (!ray_plane_intersection_distance)
+    return std::nullopt;
+
+  const auto ray_plane_intersection_point = inRay.GetPoint(*ray_plane_intersection_distance);
+  const auto barycentric_coordinates = BarycentricCoordinates(inTriangle, ray_plane_intersection_point);
+  const auto intersection_point_is_in_triangle = IsBetween(barycentric_coordinates, Zero<Vec3<T>>(), One<Vec3<T>>());
+  if (!intersection_point_is_in_triangle)
+    return std::nullopt;
+
+  return ray_plane_intersection_distance;
+}
+
+template <typename T>
+auto Intersect(const Triangle3<T>& inTriangle, const Ray3<T>& inRay)
+{
+  return Intersect(inRay, inTriangle);
+}
+
+template <typename T>
+std::array<std::optional<T>, 2> Intersect(const Ray3<T>& inRay, const AACube<T>& inAACube)
+{
+  constexpr std::array CubeFaceNormals = {
+    // Order important for loop below.
+    Left<Vec3<T>>(),
+    Down<Vec3<T>>(),
+    Forward<Vec3<T>>(),
+    Right<Vec3<T>>(),
+    Up<Vec3<T>>(),
+    Back<Vec3<T>>(),
+  };
+
+  const auto aacube_size = inAACube.GetSize();
+
+  auto intersections_found = 0;
+  std::array<std::optional<T>, 2> intersection_distances;
+  for (std::size_t i = 0; i < CubeFaceNormals.size(); ++i) // For each cube face
+  {
+    // Check whether it intersects the plane
+    const auto& aacube_face_normal = CubeFaceNormals[i];
+    const auto& aacube_face_point = (i < 3) ? inAACube.GetMin() : inAACube.GetMax();
+    const auto aacube_face_plane = Planef(aacube_face_normal, aacube_face_point);
+    if (const auto intersection_distance = Intersect(inRay, aacube_face_plane))
+    {
+      // If it intersects the plane, then check if the intersection point is inside the cube
+      const auto intersection_point = inRay.GetPoint(*intersection_distance);
+
+      auto aacube_face_normal_projector = One<Vec3<T>>();
+      aacube_face_normal_projector[i % 3] = static_cast<T>(0);
+
+      const auto reprojected_intersection_point = aacube_face_normal_projector * intersection_point;
+      const auto reprojected_cube_face_min = aacube_face_normal_projector * inAACube.GetMin();
+      const auto reprojected_cube_face_max = aacube_face_normal_projector * inAACube.GetMax();
+
+      const auto intersection_point_contained_in_aacube_face
+          = IsBetween(reprojected_intersection_point, reprojected_cube_face_min, reprojected_cube_face_max);
+
+      if (intersection_point_contained_in_aacube_face)
+      {
+        intersection_distances[intersections_found] = intersection_distance;
+
+        ++intersections_found;
+        if (intersections_found == 2)
+          break;
+      }
+    }
+  }
+
+  return intersection_distances;
+}
+
+template <typename T>
+auto Intersect(const AACube<T>& inAACube, const Ray3<T>& inRay)
+{
+  return Intersect(inRay, inAACube);
 }
 
 template <typename T, std::size_t N, typename TRHSConvexObject>

@@ -13,9 +13,45 @@ Octree<TPrimitive>::Octree(const Span<TPrimitive>& inPrimitives,
 }
 
 template <typename TPrimitive>
-void Octree<TPrimitive>::ForEach(const ForEachFunction& inForEachFunction)
+std::vector<typename Octree<TPrimitive>::ValueType> Octree<TPrimitive>::IntersectAll(const Ray3<ValueType>& inRay) const
 {
-  for (const auto& child_multi_index : Octree::AllChildMultiIndices01) { inForEachFunction(child_multi_index); }
+  std::vector<ValueType> intersections;
+  IntersectAllRecursive(inRay, intersections);
+  return intersections;
+}
+
+template <typename TPrimitive>
+void Octree<TPrimitive>::IntersectAllRecursive(const Ray3<ValueType>& inRay,
+    std::vector<ValueType>& ioIntersections) const
+{
+  if (IsLeaf())
+  {
+    for (const auto& primitive : mPrimitives)
+    {
+      const auto intersection_result = Intersect(primitive, inRay);
+      if constexpr (IsArray_v<decltype(intersection_result)>)
+      {
+        for (const auto& intersection_subresult : intersection_result)
+        {
+          if (intersection_subresult)
+            ioIntersections.push_back(*intersection_subresult);
+        }
+      }
+      else
+      {
+        if (intersection_result)
+          ioIntersections.push_back(*intersection_result);
+      }
+    }
+  }
+  else
+  {
+    const auto cube_intersections = Intersect(inRay, mAACube);
+    if (cube_intersections[0] || cube_intersections[1])
+    {
+      for (const auto& child_octree : *this) { child_octree.IntersectAllRecursive(inRay, ioIntersections); }
+    }
+  }
 }
 
 template <typename TPrimitive>

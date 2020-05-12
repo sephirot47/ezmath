@@ -39,4 +39,19 @@ constexpr std::size_t MakeSequentialIndex(const BinaryIndex<N>& inBinaryIndex)
   return sequential_index;
 }
 
+template <std::size_t N>
+constexpr auto _ComputeAllBinaryIndices()
+{
+  std::array<BinaryIndex<N>, static_cast<std::size_t>(std::pow(static_cast<std::size_t>(2), N))> all_binary_indices;
+  for (std::size_t i = 0; i < all_binary_indices.size(); ++i) { all_binary_indices[i] = MakeBinaryIndex<N>(i); }
+  return all_binary_indices;
+}
+
+template <std::size_t N>
+const auto AllBinaryIndices()
+{
+  static const auto all_binary_indices = _ComputeAllBinaryIndices<N>();
+  return all_binary_indices;
+}
+
 }

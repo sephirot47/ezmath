@@ -295,6 +295,18 @@ Map(const T& inValue, const T& inSourceBegin, const T& inSourceEnd, const T& inT
   return (source_progress * target_range) + inTargetBegin;
 }
 
+template <typename T>
+constexpr T Map01ToNeg1Pos1(const T& inValue)
+{
+  return Map(inValue, All<T>(0), All<T>(1), All<T>(-1), All<T>(1));
+}
+
+template <typename T>
+constexpr T MapNeg1Pos1To01(const T& inValue)
+{
+  return Map(inValue, All<T>(-1), All<T>(1), All<T>(0), All<T>(1));
+}
+
 template <typename T, typename TInterpolationFactor>
 constexpr T Lerp(const T& inFrom, const T& inTo, const TInterpolationFactor& t)
 {

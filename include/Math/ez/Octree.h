@@ -32,14 +32,9 @@ public:
   Octree(Octree&&) = default;
   Octree& operator=(Octree&&) = default;
 
-  using ForEachFunction = std::function<void(const Octree::ChildMultiIndex01 inChildIndex, Octree& ioChildOctree)>;
-  void ForEach(const ForEachFunction& inForEachFunction);
+  std::vector<ValueType> IntersectAll(const Ray3<ValueType>& inRay) const;
 
-  using ForEachFunctionConst
-      = std::function<void(const Octree::ChildMultiIndex01 inChildIndex, const Octree& inChildOctree)>;
-  void ForEach(const ForEachFunctionConst& inForEachFunctionConst) const;
-
-  const AACubef& GetAACube() const { return mAACube; }
+  const AACube<ValueType>& GetAACube() const { return mAACube; }
   const std::vector<TPrimitive>& GetPrimitives() const { return mPrimitives; }
   const std::array<std::unique_ptr<Octree>, 8>& GetChildren() const { return mChildren; }
   AACubeType GetChildAACube(const Octree::ChildMultiIndex01 inChildIndex) const;
@@ -79,20 +74,11 @@ public:
   Octree::ConstIterator cend() const { return ConstIterator(*this, 8); }
 
 private:
-  static inline constexpr std::array<ChildMultiIndex01, 8> AllChildMultiIndices01 = {
-    MakeBinaryIndex<3>(0),
-    MakeBinaryIndex<3>(1),
-    MakeBinaryIndex<3>(2),
-    MakeBinaryIndex<3>(3),
-    MakeBinaryIndex<3>(4),
-    MakeBinaryIndex<3>(5),
-    MakeBinaryIndex<3>(6),
-    MakeBinaryIndex<3>(7),
-  };
-
   AACube<ValueType> mAACube;
   std::vector<TPrimitive> mPrimitives;
   std::array<std::unique_ptr<Octree>, 8> mChildren;
+
+  void IntersectAllRecursive(const Ray3<ValueType>& inRay, std::vector<ValueType>& ioIntersections) const;
 
   friend class OctreeBuilder<TPrimitive>;
 };
