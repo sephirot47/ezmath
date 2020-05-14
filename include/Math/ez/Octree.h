@@ -74,40 +74,51 @@ public:
   Octree::ConstIterator cend() const { return ConstIterator(*this, 8); }
 
 private:
-  enum class EOctreePlaneId
+  enum class EExternalOctreePlaneId
   {
-    // The order matters (see IntersectAllRecursive)
+    // Order matters
     LEFT,   // X-
     RIGHT,  // X+
     BOTTOM, // Y-
     TOP,    // Y+
     FRONT,  // Z-
     BACK,   // Z+
-    MID_X,  // XM
-    MID_Y,  // YM
-    MID_Z   // ZM
   };
-  constexpr static bool IsExternalPlane(const EOctreePlaneId& inPlaneId) { return static_cast<int>(inPlaneId) < 6; }
-  constexpr static bool IsMidPlane(const EOctreePlaneId& inPlaneId) { return !IsExternalPlane(inPlaneId); }
 
-  static constexpr auto OctreePlaneNormals = std::array {
-    // The order must match EOctreePlaneId
+  enum class EInternalOctreePlaneId
+  {
+    // Order matters
+    MID_X,
+    MID_Y,
+    MID_Z
+  };
+
+  static constexpr auto ExternalOctreePlaneNormals = std::array {
+    // The order must match EExternalOctreePlaneId
     Left<Vec3<ValueType>>(),    // LEFT: 0
     Right<Vec3<ValueType>>(),   // RIGHT: 1
     Down<Vec3<ValueType>>(),    // BOTTOM: 2
     Up<Vec3<ValueType>>(),      // TOP: 3
     Forward<Vec3<ValueType>>(), // FRONT: 4
     Back<Vec3<ValueType>>(),    // BACK: 5
-    Right<Vec3<ValueType>>(),   // MID_X: 6
-    Up<Vec3<ValueType>>(),      // MID_Y: 7
-    Back<Vec3<ValueType>>(),    // MID_Z: 8
+  };
+
+  static constexpr auto InternalOctreePlaneNormals = std::array {
+    // The order must match EInternalOctreePlaneId
+    Right<Vec3<ValueType>>(), // MID_X: 0
+    Up<Vec3<ValueType>>(),    // MID_Y: 1
+    Back<Vec3<ValueType>>(),  // MID_Z: 2
   };
 
   AACube<ValueType> mAACube;
   std::vector<TPrimitive> mPrimitives;
   std::array<std::unique_ptr<Octree>, 8> mChildren;
 
-  std::optional<ChildSequentialIndex> GetNextChildOctreeIndexToExplore(const EOctreePlaneId& inOctreePlaneId,
+  std::optional<ChildSequentialIndex> GetNextChildOctreeIndexToExplore(
+      const EExternalOctreePlaneId& inExternalOctreePlaneId,
+      const Vec3<ValueType>& inIntersectionPoint) const;
+  std::optional<ChildSequentialIndex> GetNextChildOctreeIndexToExplore(
+      const EInternalOctreePlaneId& inInternalOctreePlaneId,
       const Vec3<ValueType>& inRayDirection,
       const Vec3<ValueType>& inIntersectionPoint) const;
   void IntersectAllRecursive(const Ray3<ValueType>& inRay, std::vector<ValueType>& ioIntersections) const;

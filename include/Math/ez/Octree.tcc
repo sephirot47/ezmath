@@ -55,7 +55,7 @@ void Octree<TPrimitive>::IntersectAllRecursive(const Ray3<ValueType>& inRay,
     // Determine entry intersection in the octree by looking at external planes
     for (int external_plane_i = 0; external_plane_i < 6; ++external_plane_i)
     {
-      const auto& external_plane_normal = OctreePlaneNormals.at(external_plane_i);
+      const auto& external_plane_normal = ExternalOctreePlaneNormals.at(external_plane_i);
       if (Dot(inRay.GetDirection(), external_plane_normal) > 0) // Only consider planes from which it can enter
         continue;
 
@@ -66,59 +66,58 @@ void Octree<TPrimitive>::IntersectAllRecursive(const Ray3<ValueType>& inRay,
       if (!ray_plane_intersection_distance)
         continue;
 
-      const auto octree_plane_id = static_cast<EOctreePlaneId>(external_plane_i);
-      const auto first_child_octree_id_to_explore = GetNextChildOctreeIndexToExplore(octree_plane_id,
-          inRay.GetDirection(),
-          inRay.GetPoint(*ray_plane_intersection_distance));
+      const auto external_plane_id = static_cast<EExternalOctreePlaneId>(external_plane_i);
+      const auto first_child_octree_id_to_explore
+          = GetNextChildOctreeIndexToExplore(external_plane_id, inRay.GetPoint(*ray_plane_intersection_distance));
       if (!first_child_octree_id_to_explore) // We have hit the plane but not the octree, keep looking
         continue;
 
       child_octree_indices_to_explore_in_order[0] = first_child_octree_id_to_explore;
-      break; // We can only enter to the octree from one of its faces
+      break; // We can only enter to the octree from one of its faces, so as soon as we find it, break
     }
 
     // Determine which octree children to explore by looking at the intersection with the 3 inner planes
-    auto mid_plane_intersection_distances = std::array {
+    auto internal_plane_intersection_distances = std::array {
       std::make_tuple(std::optional<ChildSequentialIndex>(), Infinity<ValueType>()), // MID_X
       std::make_tuple(std::optional<ChildSequentialIndex>(), Infinity<ValueType>()), // MID_Y
       std::make_tuple(std::optional<ChildSequentialIndex>(), Infinity<ValueType>()), // MID_Z
     };
 
-    for (int mid_plane_i = 0; mid_plane_i < 3; ++mid_plane_i)
+    for (int internal_plane_i = 0; internal_plane_i < 3; ++internal_plane_i)
     {
-      const auto mid_plane_id = static_cast<EOctreePlaneId>(mid_plane_i + 6);
-      const auto& mid_plane_normal = OctreePlaneNormals.at(static_cast<int>(mid_plane_id));
-      const auto mid_plane_point = mAACube.GetCenter();
-      const auto mid_plane = Plane<ValueType>(mid_plane_normal, mid_plane_point);
-      const auto ray_plane_intersection_distance = Intersect(inRay, mid_plane);
+      const auto& internal_plane_normal = InternalOctreePlaneNormals.at(internal_plane_i);
+      const auto internal_plane_point = mAACube.GetCenter();
+      const auto internal_plane = Plane<ValueType>(internal_plane_normal, internal_plane_point);
+      const auto ray_plane_intersection_distance = Intersect(inRay, internal_plane);
       if (!ray_plane_intersection_distance)
         continue;
 
-      const auto next_child_octree_id_to_explore = GetNextChildOctreeIndexToExplore(mid_plane_id,
+      const auto internal_plane_id = static_cast<EInternalOctreePlaneId>(internal_plane_i);
+      const auto next_child_octree_id_to_explore = GetNextChildOctreeIndexToExplore(internal_plane_id,
           inRay.GetDirection(),
           inRay.GetPoint(*ray_plane_intersection_distance));
       if (!next_child_octree_id_to_explore)
         continue;
 
-      mid_plane_intersection_distances[mid_plane_i]
+      internal_plane_intersection_distances[internal_plane_i]
           = std::make_tuple(next_child_octree_id_to_explore, *ray_plane_intersection_distance);
     }
 
     /*
-    std::sort(mid_plane_intersection_distances.begin(),
-        mid_plane_intersection_distances.end(),
+    std::sort(internal_plane_intersection_distances.begin(),
+        internal_plane_intersection_distances.end(),
         [](auto& inLHS, auto& inRHS) { return std::get<1>(inLHS) < std::get<1>(inRHS); });
     */
 
-    child_octree_indices_to_explore_in_order[1] = std::get<0>(mid_plane_intersection_distances[0]);
-    child_octree_indices_to_explore_in_order[2] = std::get<0>(mid_plane_intersection_distances[1]);
-    child_octree_indices_to_explore_in_order[3] = std::get<0>(mid_plane_intersection_distances[2]);
+    child_octree_indices_to_explore_in_order[1] = std::get<0>(internal_plane_intersection_distances[0]);
+    child_octree_indices_to_explore_in_order[2] = std::get<0>(internal_plane_intersection_distances[1]);
+    child_octree_indices_to_explore_in_order[3] = std::get<0>(internal_plane_intersection_distances[2]);
 
     // Recursive calls to explore up to 4 children
     for (const auto child_octree_index : child_octree_indices_to_explore_in_order)
     {
       if (!child_octree_index)
-        continue; // break;
+        continue;
 
       const auto child_octree_to_explore = GetChildOctree(*child_octree_index);
       if (!child_octree_to_explore)
@@ -212,29 +211,40 @@ typename Octree<TPrimitive>::template GIterator<IsConst>& Octree<TPrimitive>::GI
 
 template <typename TPrimitive>
 std::optional<typename Octree<TPrimitive>::ChildSequentialIndex> Octree<TPrimitive>::GetNextChildOctreeIndexToExplore(
-    const EOctreePlaneId& inOctreePlaneId,
-    const Vec3<ValueType>& inRayDirection,
+    const EExternalOctreePlaneId& inExternalOctreePlaneId,
     const Vec3<ValueType>& inIntersectionPoint) const
 {
-  const auto is_external_plane = IsExternalPlane(inOctreePlaneId);
-  const auto plane_i = static_cast<int>(inOctreePlaneId);
-  const auto plane_coordinate_i = (is_external_plane ? (plane_i / 2) : (plane_i % 3));
-  const auto min_to_point = (inIntersectionPoint - mAACube.GetMin());
-  const auto aacube_size = mAACube.GetSize();
-  const auto min_to_point_scaled = (min_to_point / aacube_size);
+  // For external planes, we assume we are entering (not exiting) the Octree
+  const auto plane_i = static_cast<int>(inExternalOctreePlaneId);
+  const auto plane_coordinate_i = (plane_i / 2);
+  const auto min_to_point_scaled = (inIntersectionPoint - mAACube.GetMin()) / mAACube.GetSize();
   auto min_to_point_scaled_safe = min_to_point_scaled;
   min_to_point_scaled_safe[plane_coordinate_i] = static_cast<ValueType>(0.5); // To avoid IsBetween deal with epsilons
 
   if (!IsBetween(min_to_point_scaled_safe, Zero<Vec3<ValueType>>(), One<Vec3<ValueType>>()))
     return std::nullopt; // Intersection point is outside octree cube. No next child octree to explore.
 
-  // Compute binary index of the next child we should explore
-  // We assume we are entering (not exiting) the Octree for planes LEFT, RIGHT, BOTTOM, TOP, FRONT and BACK
   auto binary_index = BinaryIndex<3>(Round(min_to_point_scaled_safe));
-  if (is_external_plane)
-    binary_index[plane_coordinate_i] = (plane_i % 2);
-  else
-    binary_index[plane_coordinate_i] = (inRayDirection[plane_coordinate_i] < 0 ? 0 : 1);
+  binary_index[plane_coordinate_i] = (plane_i % 2);
+  return MakeSequentialIndex(binary_index);
+}
+
+template <typename TPrimitive>
+std::optional<typename Octree<TPrimitive>::ChildSequentialIndex> Octree<TPrimitive>::GetNextChildOctreeIndexToExplore(
+    const EInternalOctreePlaneId& inInternalOctreePlaneId,
+    const Vec3<ValueType>& inRayDirection,
+    const Vec3<ValueType>& inIntersectionPoint) const
+{
+  const auto plane_i = static_cast<int>(inInternalOctreePlaneId);
+  const auto min_to_point_scaled = (inIntersectionPoint - mAACube.GetMin()) / mAACube.GetSize();
+  auto min_to_point_scaled_safe = min_to_point_scaled;
+  min_to_point_scaled_safe[plane_i] = static_cast<ValueType>(0.5); // To avoid IsBetween deal with epsilons
+
+  if (!IsBetween(min_to_point_scaled_safe, Zero<Vec3<ValueType>>(), One<Vec3<ValueType>>()))
+    return std::nullopt; // Intersection point is outside octree cube. No next child octree to explore.
+
+  auto binary_index = BinaryIndex<3>(Round(min_to_point_scaled_safe));
+  binary_index[plane_i] = (inRayDirection[plane_i] < 0 ? 0 : 1);
   return MakeSequentialIndex(binary_index);
 }
 
