@@ -82,6 +82,45 @@ constexpr auto Abs(const T& inValue)
 }
 
 template <typename T>
+constexpr auto Round(const T& inValue)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return std::round(inValue);
+  }
+  else
+  {
+    return MathMultiComponentApplied<T, Round<ValueType_t<T>>>(inValue);
+  }
+}
+
+template <typename T>
+constexpr auto Ceil(const T& inValue)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return std::ceil(inValue);
+  }
+  else
+  {
+    return MathMultiComponentApplied<T, Ceil<ValueType_t<T>>>(inValue);
+  }
+}
+
+template <typename T>
+constexpr auto Floor(const T& inValue)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return std::floor(inValue);
+  }
+  else
+  {
+    return MathMultiComponentApplied<T, Floor<ValueType_t<T>>>(inValue);
+  }
+}
+
+template <typename T>
 constexpr auto Sqrt(const T& inValue)
 {
   if constexpr (IsNumber_v<T>)

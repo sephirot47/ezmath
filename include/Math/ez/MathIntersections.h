@@ -137,7 +137,10 @@ std::optional<T> Intersect(const Ray3<T>& inRay, const Plane<T>& inPlane)
   const auto& ray_dir_plane_normal_angle_cos = ray_dir_dot_plane_normal;
   const auto ray_origin_distance_to_plane = Distance(inRay.GetOrigin(), inPlane);
   const auto intersect_distance_from_ray_origin = (ray_origin_distance_to_plane / ray_dir_plane_normal_angle_cos);
-  return std::make_optional(intersect_distance_from_ray_origin);
+  if (intersect_distance_from_ray_origin < static_cast<T>(0))
+    return std::nullopt;
+
+  return intersect_distance_from_ray_origin;
 }
 
 template <typename T>
@@ -165,7 +168,7 @@ auto Intersect(const Triangle3<T>& inTriangle, const Ray3<T>& inRay)
 template <typename T>
 std::array<std::optional<T>, 2> Intersect(const Ray3<T>& inRay, const AACube<T>& inAACube)
 {
-  constexpr std::array CubeFaceNormals = {
+  constexpr auto CubeFaceNormals = std::array {
     // Order important for loop below.
     Left<Vec3<T>>(),
     Down<Vec3<T>>(),
@@ -235,7 +238,7 @@ bool Intersect(const TLHSConvexObject& inLHS, const Vec<T, N>& inPoint)
 template <typename T, std::size_t N>
 bool Intersect(const Plane<T>& inPlane, const Ray<T, 3>& inRay)
 {
-  return IntersectRay(inPlane, inRay).has_value();
+  return Intersect(inPlane, inRay).has_value();
 }
 
 template <typename T, std::size_t N>
