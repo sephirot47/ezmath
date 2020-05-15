@@ -2,6 +2,7 @@
 
 #include "ez/AACube.h"
 #include "ez/BinaryIndex.h"
+#include "ez/Flags.h"
 #include "ez/MathTypeTraits.h"
 #include "ez/Span.h"
 #include <array>
@@ -14,6 +15,14 @@ namespace ez
 template <typename TPrimitive>
 class OctreeBuilder;
 
+enum class EOctreeIntersectFlags
+{
+  NONE = 0b0,
+  STOP_AT_FIRST_INTERSECTION = 0b1,
+  SORT_RESULTS = 0b10
+};
+DECLARE_FLAGS(EOctreeIntersectFlags);
+
 template <typename TPrimitive>
 class Octree final
 {
@@ -22,6 +31,13 @@ public:
   using ValueType = ValueType_t<TPrimitive>;
   using AACubeType = AACube<ValueType>;
   using ChildSequentialIndex = std::size_t;
+  using PrimitiveIndex = std::size_t;
+
+  struct Intersection
+  {
+    ValueType mDistance = Infinity<ValueType>();
+    PrimitiveIndex mPrimitiveIndex = Max<PrimitiveIndex>();
+  };
 
   Octree() = default;
   Octree(const Span<TPrimitive>& inPrimitives,
@@ -32,10 +48,13 @@ public:
   Octree(Octree&&) = default;
   Octree& operator=(Octree&&) = default;
 
-  std::vector<ValueType> IntersectAll(const Ray3<ValueType>& inRay) const;
+  template <EOctreeIntersectFlags TIntersectionMode = EOctreeIntersectFlags::NONE>
+  std::vector<Octree::Intersection> Intersect(const Ray3<ValueType>& inRay,
+      const ValueType inMaxDistance = Infinity<ValueType>()) const;
 
   const AACube<ValueType>& GetAACube() const { return mAACube; }
-  const std::vector<TPrimitive>& GetPrimitives() const { return mPrimitives; }
+  const std::vector<TPrimitive>& GetPrimitivesPool() const; // Only available in top Octree
+  const std::vector<PrimitiveIndex>& GetPrimitivesIndices() const { return mPrimitivesIndices; }
   const std::array<std::unique_ptr<Octree>, 8>& GetChildren() const { return mChildren; }
   AACubeType GetChildAACube(const Octree::ChildMultiIndex01 inChildIndex) const;
   AACubeType GetChildAACube(const ChildSequentialIndex inChildSequentialIndex) const;
@@ -43,7 +62,7 @@ public:
   const Octree* GetChildOctree(const Octree::ChildMultiIndex01 inChildIndex) const;
   Octree* GetChildOctree(const ChildSequentialIndex inChildSequentialIndex);
   const Octree* GetChildOctree(const ChildSequentialIndex inChildSequentialIndex) const;
-  bool IsEmpty() const { return mPrimitives.empty(); }
+  bool IsEmpty() const { return mPrimitivesIndices.empty(); }
   bool IsLeaf() const;
 
   template <bool IsConst>
@@ -111,7 +130,8 @@ private:
   };
 
   AACube<ValueType> mAACube;
-  std::vector<TPrimitive> mPrimitives;
+  std::optional<std::vector<TPrimitive>> mPrimitivesPool; // Only filled in top Octree
+  std::vector<std::size_t> mPrimitivesIndices;
   std::array<std::unique_ptr<Octree>, 8> mChildren;
 
   std::optional<ChildSequentialIndex> GetNextChildOctreeIndexToExplore(
@@ -121,7 +141,11 @@ private:
       const EInternalOctreePlaneId& inInternalOctreePlaneId,
       const Vec3<ValueType>& inRayDirection,
       const Vec3<ValueType>& inIntersectionPoint) const;
-  void IntersectAllRecursive(const Ray3<ValueType>& inRay, std::vector<ValueType>& ioIntersections) const;
+  template <EOctreeIntersectFlags TIntersectionMode>
+  void IntersectRecursive(const Ray3<ValueType>& inRay,
+      const ValueType inMaxDistance,
+      const std::vector<TPrimitive>& inPrimitivesPool,
+      std::vector<Octree::Intersection>& ioIntersections) const;
 
   friend class OctreeBuilder<TPrimitive>;
 };
@@ -137,8 +161,9 @@ public:
       const std::size_t inMaxDepth = 8);
 
 private:
-  static Octree<TPrimitive> BuildRecursive(const typename Octree<TPrimitive>::AACubeType& inAABoundingCube,
-      const Span<TPrimitive>& inPrimitives,
+  static Octree<TPrimitive> BuildRecursive(const typename Octree<TPrimitive>::AACubeType& inBoundingAACube,
+      const Span<TPrimitive>& inTopOctreePrimitivesPool,
+      const Span<typename Octree<TPrimitive>::PrimitiveIndex>& inParentPrimitivesIndices,
       const std::size_t inLeafNodesMaxCapacity,
       const std::size_t inMaxDepth,
       const std::size_t inCurrentDepth);

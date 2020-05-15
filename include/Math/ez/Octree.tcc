@@ -1,6 +1,7 @@
 #include "Math.h"
 #include "Octree.h"
 #include <algorithm>
+#include <numeric>
 
 namespace ez
 {
@@ -13,46 +14,94 @@ Octree<TPrimitive>::Octree(const Span<TPrimitive>& inPrimitives,
 }
 
 template <typename TPrimitive>
-std::vector<typename Octree<TPrimitive>::ValueType> Octree<TPrimitive>::IntersectAll(const Ray3<ValueType>& inRay) const
+template <EOctreeIntersectFlags TIntersectionMode>
+std::vector<typename Octree<TPrimitive>::Intersection> Octree<TPrimitive>::Intersect(const Ray3<ValueType>& inRay,
+    const ValueType inMaxDistance) const
 {
-  std::vector<ValueType> intersections;
-  IntersectAllRecursive(inRay, intersections);
+  EXPECTS(mPrimitivesPool);
+
+  constexpr auto StopAtFirstIntersection
+      = IsFlagOn(TIntersectionMode, EOctreeIntersectFlags::STOP_AT_FIRST_INTERSECTION);
+  constexpr auto SortResults = IsFlagOn(TIntersectionMode, EOctreeIntersectFlags::SORT_RESULTS);
+
+  std::vector<Intersection> intersections;
+  IntersectRecursive<TIntersectionMode>(inRay, inMaxDistance, *mPrimitivesPool, intersections);
+
+  // Sort if needed
+  if constexpr (SortResults)
+  {
+    std::sort(intersections.begin(), intersections.end(), [](const auto& inLHS, const auto& inRHS) {
+      return inLHS.mDistance < inRHS.mDistance;
+    });
+  }
+
+  if constexpr (StopAtFirstIntersection)
+    ENSURES(intersections.size() <= 1);
+
   return intersections;
 }
 
 template <typename TPrimitive>
-void Octree<TPrimitive>::IntersectAllRecursive(const Ray3<ValueType>& inRay,
-    std::vector<ValueType>& ioIntersections) const
+template <EOctreeIntersectFlags TIntersectionMode>
+void Octree<TPrimitive>::IntersectRecursive(const Ray3<ValueType>& inRay,
+    const ValueType inMaxDistance,
+    const std::vector<TPrimitive>& inPrimitivesPool,
+    std::vector<Intersection>& ioIntersections) const
 {
+  constexpr auto StopAtFirstIntersection
+      = IsFlagOn(TIntersectionMode, EOctreeIntersectFlags::STOP_AT_FIRST_INTERSECTION);
+
+  const auto aacube_size = mAACube.GetSize();
+  const auto aacube_half_size = (aacube_size / static_cast<ValueType>(2));
+
+  // If STOP_AT_FIRST_INTERSECTION, check whether this AACube needs to be checked because of max distance or not
+  if constexpr (StopAtFirstIntersection)
+  {
+    const auto max_cube_half_size = Max(aacube_half_size);
+    const auto max_distance_and_max_cube_half_size = inMaxDistance + max_cube_half_size;
+    const auto sq_max_distance_and_max_cube_half_size
+        = max_distance_and_max_cube_half_size * max_distance_and_max_cube_half_size;
+    const auto sq_dist_ray_origin_to_aacube_center = SqDistance(inRay.GetOrigin(), mAACube.GetCenter());
+    if (sq_dist_ray_origin_to_aacube_center > sq_max_distance_and_max_cube_half_size)
+      return;
+  }
+
   if (IsLeaf())
   {
-    for (const auto& primitive : mPrimitives)
+    // Base case, linear search through its contained primitives
+    for (const auto& primitive_index : mPrimitivesIndices)
     {
-      const auto intersection_result = Intersect(primitive, inRay);
-      if constexpr (IsArray_v<decltype(intersection_result)>)
-      {
-        for (const auto& intersection_subresult : intersection_result)
+      const auto& primitive = inPrimitivesPool.at(primitive_index);
+      const auto PushResultIfNeeded = [&](const auto& inIntersectionResultDistance) {
+        if (inIntersectionResultDistance && *inIntersectionResultDistance < inMaxDistance)
         {
-          if (intersection_subresult)
-            ioIntersections.push_back(*intersection_subresult);
+          Intersection intersection;
+          intersection.mDistance = *inIntersectionResultDistance;
+          intersection.mPrimitiveIndex = primitive_index;
+          ioIntersections.push_back(std::move(intersection));
         }
-      }
+      };
+
+      const auto intersection_result = ::ez::Intersect(inRay, primitive);
+      if constexpr (IsArray_v<decltype(intersection_result)>)
+        std::for_each(intersection_result.begin(), intersection_result.end(), PushResultIfNeeded);
       else
+        PushResultIfNeeded(intersection_result);
+
+      if constexpr (StopAtFirstIntersection)
       {
-        if (intersection_result)
-          ioIntersections.push_back(*intersection_result);
+        if (ioIntersections.size() == 1)
+          break;
       }
     }
   }
   else
   {
-    const auto aacube_size = mAACube.GetSize();
-    const auto aacube_half_size = aacube_size / static_cast<ValueType>(2);
+    // Recursive case, check which children octrees the ray intersects
+    std::array<std::optional<ChildSequentialIndex>, 4> child_octree_indices_to_explore;
 
-    // Entry intersection point
-    std::array<std::optional<ChildSequentialIndex>, 4> child_octree_indices_to_explore_in_order;
-
-    // Determine entry intersection in the octree by looking at external planes
+    // Determine entry intersection in the octree by looking at external planes.
+    // This will give us the first child octree to explore.
     for (int external_plane_i = 0; external_plane_i < 6; ++external_plane_i)
     {
       const auto& external_plane_normal = ExternalOctreePlaneNormals.at(external_plane_i);
@@ -62,7 +111,7 @@ void Octree<TPrimitive>::IntersectAllRecursive(const Ray3<ValueType>& inRay,
       const auto remapped_external_plane_normal = Max(external_plane_normal, Zero<Vec3<ValueType>>());
       const auto external_plane_point = mAACube.GetMin() + remapped_external_plane_normal * aacube_size;
       const auto external_plane = Plane<ValueType>(external_plane_normal, external_plane_point);
-      const auto ray_plane_intersection_distance = Intersect(inRay, external_plane);
+      const auto ray_plane_intersection_distance = ::ez::Intersect(inRay, external_plane);
       if (!ray_plane_intersection_distance)
         continue;
 
@@ -72,11 +121,11 @@ void Octree<TPrimitive>::IntersectAllRecursive(const Ray3<ValueType>& inRay,
       if (!first_child_octree_id_to_explore) // We have hit the plane but not the octree, keep looking
         continue;
 
-      child_octree_indices_to_explore_in_order[0] = first_child_octree_id_to_explore;
+      child_octree_indices_to_explore[0] = first_child_octree_id_to_explore;
       break; // We can only enter to the octree from one of its faces, so as soon as we find it, break
     }
 
-    // Determine which octree children to explore by looking at the intersection with the 3 inner planes
+    // Determine which octree children to explore by looking at the intersection with the 3 internal planes
     auto internal_plane_intersection_distances = std::array {
       std::make_tuple(std::optional<ChildSequentialIndex>(), Infinity<ValueType>()), // MID_X
       std::make_tuple(std::optional<ChildSequentialIndex>(), Infinity<ValueType>()), // MID_Y
@@ -88,7 +137,7 @@ void Octree<TPrimitive>::IntersectAllRecursive(const Ray3<ValueType>& inRay,
       const auto& internal_plane_normal = InternalOctreePlaneNormals.at(internal_plane_i);
       const auto internal_plane_point = mAACube.GetCenter();
       const auto internal_plane = Plane<ValueType>(internal_plane_normal, internal_plane_point);
-      const auto ray_plane_intersection_distance = Intersect(inRay, internal_plane);
+      const auto ray_plane_intersection_distance = ::ez::Intersect(inRay, internal_plane);
       if (!ray_plane_intersection_distance)
         continue;
 
@@ -103,18 +152,21 @@ void Octree<TPrimitive>::IntersectAllRecursive(const Ray3<ValueType>& inRay,
           = std::make_tuple(next_child_octree_id_to_explore, *ray_plane_intersection_distance);
     }
 
-    /*
-    std::sort(internal_plane_intersection_distances.begin(),
-        internal_plane_intersection_distances.end(),
-        [](auto& inLHS, auto& inRHS) { return std::get<1>(inLHS) < std::get<1>(inRHS); });
-    */
+    // If we want to stop at first hit, order child octrees based on intersection distance
+    // so that we explore them in order and we can early out asap
+    if constexpr (StopAtFirstIntersection)
+    {
+      std::sort(internal_plane_intersection_distances.begin(),
+          internal_plane_intersection_distances.end(),
+          [](auto& inLHS, auto& inRHS) { return std::get<1>(inLHS) < std::get<1>(inRHS); });
+    }
 
-    child_octree_indices_to_explore_in_order[1] = std::get<0>(internal_plane_intersection_distances[0]);
-    child_octree_indices_to_explore_in_order[2] = std::get<0>(internal_plane_intersection_distances[1]);
-    child_octree_indices_to_explore_in_order[3] = std::get<0>(internal_plane_intersection_distances[2]);
+    child_octree_indices_to_explore[1] = std::get<0>(internal_plane_intersection_distances[0]);
+    child_octree_indices_to_explore[2] = std::get<0>(internal_plane_intersection_distances[1]);
+    child_octree_indices_to_explore[3] = std::get<0>(internal_plane_intersection_distances[2]);
 
     // Recursive calls to explore up to 4 children
-    for (const auto child_octree_index : child_octree_indices_to_explore_in_order)
+    for (const auto child_octree_index : child_octree_indices_to_explore)
     {
       if (!child_octree_index)
         continue;
@@ -123,9 +175,24 @@ void Octree<TPrimitive>::IntersectAllRecursive(const Ray3<ValueType>& inRay,
       if (!child_octree_to_explore)
         continue;
 
-      child_octree_to_explore->IntersectAllRecursive(inRay, ioIntersections);
+      child_octree_to_explore->template IntersectRecursive<TIntersectionMode>(inRay,
+          inMaxDistance,
+          inPrimitivesPool,
+          ioIntersections);
+      if constexpr (StopAtFirstIntersection)
+      {
+        if (ioIntersections.size() == 1)
+          break;
+      }
     }
   }
+}
+
+template <typename TPrimitive>
+const std::vector<TPrimitive>& Octree<TPrimitive>::GetPrimitivesPool() const
+{
+  EXPECTS(mPrimitivesPool);
+  return *mPrimitivesPool;
 }
 
 template <typename TPrimitive>
@@ -264,41 +331,68 @@ Octree<TPrimitive> OctreeBuilder<TPrimitive>::Build(const Span<TPrimitive>& inPr
     const std::size_t inMaxDepth)
 {
   const auto bounding_aa_cube = BoundingAACube(inPrimitives);
-  return BuildRecursive(bounding_aa_cube, inPrimitives, inLeafNodesMaxCapacity, inMaxDepth, 0);
+  return BuildRecursive(bounding_aa_cube,
+      inPrimitives,
+      MakeSpan<typename Octree<TPrimitive>::PrimitiveIndex>({}),
+      inLeafNodesMaxCapacity,
+      inMaxDepth,
+      0);
 }
 
 template <typename TPrimitive>
 Octree<TPrimitive> OctreeBuilder<TPrimitive>::BuildRecursive(
-    const typename Octree<TPrimitive>::AACubeType& inAABoundingCube,
-    const Span<TPrimitive>& inPrimitives,
+    const typename Octree<TPrimitive>::AACubeType& inBoundingAACube,
+    const Span<TPrimitive>& inPrimitivesPool,
+    const Span<typename Octree<TPrimitive>::PrimitiveIndex>& inParentPrimitivesIndices,
     const std::size_t inLeafNodesMaxCapacity,
     const std::size_t inMaxDepth,
     const std::size_t inCurrentDepth)
 {
+  if (inCurrentDepth > inMaxDepth)
+    return {};
+
+  // Create octree
   Octree<TPrimitive> octree;
-  octree.mAACube = inAABoundingCube;
-  octree.mPrimitives.reserve(inPrimitives.GetNumberOfElements() / 8);
-  std::copy_if(inPrimitives.cbegin(),
-      inPrimitives.cend(),
-      std::back_inserter(octree.mPrimitives),
-      [&](const auto& inPrimitive) { return Intersect(inAABoundingCube, inPrimitive); });
+  octree.mAACube = inBoundingAACube;
 
-  if (octree.mPrimitives.size() > inLeafNodesMaxCapacity && inCurrentDepth < inMaxDepth)
+  if (inCurrentDepth == 0)
   {
-    for (std::size_t i = 0; i < 8; ++i)
-    {
-      const auto child_bounding_aa_cube = octree.GetChildAACube(i);
-      auto built_child = BuildRecursive(child_bounding_aa_cube,
-          MakeSpan(octree.mPrimitives),
-          inLeafNodesMaxCapacity,
-          inMaxDepth,
-          inCurrentDepth + 1);
+    // Octree global primitives pool
+    octree.mPrimitivesPool = std::make_optional<std::vector<TPrimitive>>();
+    octree.mPrimitivesPool->reserve(inPrimitivesPool.GetNumberOfElements());
+    std::copy(inPrimitivesPool.cbegin(), inPrimitivesPool.cend(), std::back_inserter(*octree.mPrimitivesPool));
 
-      if (!built_child.IsEmpty())
-      {
-        octree.mChildren[i] = std::make_unique<Octree<TPrimitive>>(std::move(built_child));
-      }
-    }
+    // Octree primitives indices 0,1,2,...,N
+    octree.mPrimitivesIndices.resize(octree.mPrimitivesPool->size());
+    std::iota(octree.mPrimitivesIndices.begin(), octree.mPrimitivesIndices.end(), 0);
+  }
+  else
+  {
+    // Copy only primitive indices that intersect this Octree bounding cube
+    octree.mPrimitivesIndices.reserve(inParentPrimitivesIndices.GetNumberOfElements() / 8);
+    std::copy_if(inParentPrimitivesIndices.cbegin(),
+        inParentPrimitivesIndices.cend(),
+        std::back_inserter(octree.mPrimitivesIndices),
+        [&](const auto& inPrimitiveIndex) {
+          return Intersect(inBoundingAACube, inPrimitivesPool.at(inPrimitiveIndex));
+        });
+  }
+
+  if (octree.mPrimitivesIndices.size() <= inLeafNodesMaxCapacity)
+    return octree;
+
+  for (std::size_t i = 0; i < 8; ++i)
+  {
+    const auto child_bounding_aa_cube = octree.GetChildAACube(i);
+    auto built_child = BuildRecursive(child_bounding_aa_cube,
+        inPrimitivesPool,
+        MakeSpan(octree.mPrimitivesIndices),
+        inLeafNodesMaxCapacity,
+        inMaxDepth,
+        inCurrentDepth + 1);
+
+    if (!built_child.IsEmpty())
+      octree.mChildren[i] = std::make_unique<Octree<TPrimitive>>(std::move(built_child));
   }
 
   return octree;
