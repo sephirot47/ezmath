@@ -56,7 +56,6 @@ public:
   const std::vector<TPrimitive>& GetPrimitivesPool() const; // Only available in top Octree
   const std::vector<PrimitiveIndex>& GetPrimitivesIndices() const { return mPrimitivesIndices; }
   const std::array<std::unique_ptr<Octree>, 8>& GetChildren() const { return mChildren; }
-  AACubeType GetChildAACube(const Octree::ChildMultiIndex01 inChildIndex) const;
   AACubeType GetChildAACube(const ChildSequentialIndex inChildSequentialIndex) const;
   Octree* GetChildOctree(const Octree::ChildMultiIndex01 inChildIndex);
   const Octree* GetChildOctree(const Octree::ChildMultiIndex01 inChildIndex) const;

@@ -1,5 +1,6 @@
-#include "Math.h"
-#include "Octree.h"
+#include "ez/Math.h"
+#include "ez/Octree.h"
+#include "ez/Sphere.h"
 #include <algorithm>
 #include <numeric>
 
@@ -54,44 +55,44 @@ void Octree<TPrimitive>::IntersectRecursive(const Ray3<ValueType>& inRay,
   const auto aacube_size = mAACube.GetSize();
   const auto aacube_half_size = (aacube_size / static_cast<ValueType>(2));
 
-  // If STOP_AT_FIRST_INTERSECTION, check whether this AACube needs to be checked because of max distance or not
-  if constexpr (StopAtFirstIntersection)
+  // Check whether this AACube needs to be checked because of max distance or not
+  if (inMaxDistance != Infinity<ValueType>())
   {
     const auto max_cube_half_size = Max(aacube_half_size);
-    const auto max_distance_and_max_cube_half_size = inMaxDistance + max_cube_half_size;
-    const auto sq_max_distance_and_max_cube_half_size
-        = max_distance_and_max_cube_half_size * max_distance_and_max_cube_half_size;
-    const auto sq_dist_ray_origin_to_aacube_center = SqDistance(inRay.GetOrigin(), mAACube.GetCenter());
-    if (sq_dist_ray_origin_to_aacube_center > sq_max_distance_and_max_cube_half_size)
+    const auto aacube_sphere = Sphere<ValueType>(mAACube.GetCenter(), max_cube_half_size);
+    const auto ray_max_distance_sphere = Sphere<ValueType>(inRay.GetOrigin(), inMaxDistance);
+    if (!::ez::Intersect(aacube_sphere, ray_max_distance_sphere))
       return;
   }
 
   if (IsLeaf())
   {
     // Base case, linear search through its contained primitives
+    auto closest_intersection_distance = Infinity<ValueType>();
     for (const auto& primitive_index : mPrimitivesIndices)
     {
       const auto& primitive = inPrimitivesPool.at(primitive_index);
-      const auto PushResultIfNeeded = [&](const auto& inIntersectionResultDistance) {
-        if (inIntersectionResultDistance && *inIntersectionResultDistance < inMaxDistance)
-        {
-          Intersection intersection;
-          intersection.mDistance = *inIntersectionResultDistance;
-          intersection.mPrimitiveIndex = primitive_index;
-          ioIntersections.push_back(std::move(intersection));
-        }
-      };
 
       const auto intersection_result = ::ez::Intersect(inRay, primitive);
-      if constexpr (IsArray_v<decltype(intersection_result)>)
-        std::for_each(intersection_result.begin(), intersection_result.end(), PushResultIfNeeded);
-      else
-        PushResultIfNeeded(intersection_result);
-
-      if constexpr (StopAtFirstIntersection)
+      if (intersection_result && *intersection_result < inMaxDistance)
       {
-        if (ioIntersections.size() == 1)
-          break;
+        Intersection intersection;
+        intersection.mDistance = *intersection_result;
+        intersection.mPrimitiveIndex = primitive_index;
+
+        if constexpr (StopAtFirstIntersection)
+        {
+          if (intersection.mDistance < closest_intersection_distance)
+          {
+            ioIntersections.resize(0);
+            closest_intersection_distance = intersection.mDistance;
+            ioIntersections.push_back(std::move(intersection));
+          }
+        }
+        else
+        {
+          ioIntersections.push_back(std::move(intersection));
+        }
       }
     }
   }
@@ -113,6 +114,9 @@ void Octree<TPrimitive>::IntersectRecursive(const Ray3<ValueType>& inRay,
       const auto external_plane = Plane<ValueType>(external_plane_normal, external_plane_point);
       const auto ray_plane_intersection_distance = ::ez::Intersect(inRay, external_plane);
       if (!ray_plane_intersection_distance)
+        continue;
+
+      if (*ray_plane_intersection_distance > inMaxDistance)
         continue;
 
       const auto external_plane_id = static_cast<EExternalOctreePlaneId>(external_plane_i);
@@ -139,6 +143,9 @@ void Octree<TPrimitive>::IntersectRecursive(const Ray3<ValueType>& inRay,
       const auto internal_plane = Plane<ValueType>(internal_plane_normal, internal_plane_point);
       const auto ray_plane_intersection_distance = ::ez::Intersect(inRay, internal_plane);
       if (!ray_plane_intersection_distance)
+        continue;
+
+      if (*ray_plane_intersection_distance > inMaxDistance)
         continue;
 
       const auto internal_plane_id = static_cast<EInternalOctreePlaneId>(internal_plane_i);
@@ -179,6 +186,7 @@ void Octree<TPrimitive>::IntersectRecursive(const Ray3<ValueType>& inRay,
           inMaxDistance,
           inPrimitivesPool,
           ioIntersections);
+
       if constexpr (StopAtFirstIntersection)
       {
         if (ioIntersections.size() == 1)
@@ -196,20 +204,16 @@ const std::vector<TPrimitive>& Octree<TPrimitive>::GetPrimitivesPool() const
 }
 
 template <typename TPrimitive>
-Octree<TPrimitive>::AACubeType Octree<TPrimitive>::GetChildAACube(const Octree::ChildMultiIndex01 inChildIndex) const
-{
-  const auto child_aacube_size = (mAACube.GetSize() / static_cast<ValueType>(2));
-  const auto child_aacube_size_indexed = (child_aacube_size * Vec3<ValueType>(inChildIndex));
-  const auto child_aacube_min = mAACube.GetMin() + child_aacube_size_indexed;
-  const auto child_aacube_max = child_aacube_min + child_aacube_size;
-  return AACube<ValueType>(child_aacube_min, child_aacube_max);
-}
-
-template <typename TPrimitive>
 Octree<TPrimitive>::AACubeType Octree<TPrimitive>::GetChildAACube(
     const typename Octree<TPrimitive>::ChildSequentialIndex inInternalIndex) const
 {
-  return GetChildAACube(MakeBinaryIndex<3>(inInternalIndex));
+  using ValueType = ValueType_t<TPrimitive>;
+  const auto child_multi_index = MakeBinaryIndex<3, ValueType>(inInternalIndex);
+  const auto child_aacube_size = (mAACube.GetSize() / static_cast<ValueType>(2));
+  const auto child_aacube_size_indexed = (child_aacube_size * child_multi_index);
+  const auto child_aacube_min = mAACube.GetMin() + child_aacube_size_indexed;
+  const auto child_aacube_max = child_aacube_min + child_aacube_size;
+  return AACube<ValueType>(child_aacube_min, child_aacube_max);
 }
 
 template <typename TPrimitive>

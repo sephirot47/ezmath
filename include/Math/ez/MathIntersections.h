@@ -4,6 +4,7 @@
 #include "ez/AACube.h"
 #include "ez/AARect.h"
 #include "ez/Geometry.h"
+#include "ez/HyperSphere.h"
 #include "ez/Plane.h"
 #include "ez/Ray.h"
 #include "ez/Triangle.h"
@@ -17,13 +18,13 @@ namespace ez
 {
 // SAT Normals
 template <typename T>
-auto GetSATNormals(const AACube<T>&)
+constexpr auto GetSATNormals(const AACube<T>&)
 {
   return std::array { Right<Vec3<T>>(), Up<Vec3<T>>(), Forward<Vec3<T>>() };
 }
 
 template <typename T>
-auto GetSATNormals(const AARect<T>&)
+constexpr auto GetSATNormals(const AARect<T>&)
 {
   return std::array { Right<Vec3<T>>(), Up<Vec3<T>>() };
 }
@@ -35,20 +36,20 @@ auto GetSATNormals(const Triangle3<T>& inTriangle)
 }
 
 template <typename T>
-auto GetSATNormals(const Triangle2<T>&)
+constexpr auto GetSATNormals(const Triangle2<T>&)
 {
   return std::array<Vec2<T>, 0> {};
 }
 
 // SAT Edges
 template <typename T>
-auto GetSATEdges(const AACube<T>&)
+constexpr auto GetSATEdges(const AACube<T>&)
 {
   return std::array { Right<Vec3<T>>(), Up<Vec3<T>>(), Forward<Vec3<T>>() };
 }
 
 template <typename T>
-auto GetSATEdges(const AARect<T>&)
+constexpr auto GetSATEdges(const AARect<T>&)
 {
   return std::array { Right<Vec2<T>>(), Up<Vec2<T>>() };
 }
@@ -56,10 +57,9 @@ auto GetSATEdges(const AARect<T>&)
 template <typename T, std::size_t N>
 auto GetSATEdges(const Triangle<T, N>& inTriangle)
 {
-  // TODO: Does it need to be normalized???
-  return std::array { NormalizedSafe(inTriangle[0] - inTriangle[1]),
-    NormalizedSafe(inTriangle[0] - inTriangle[2]),
-    NormalizedSafe(inTriangle[1] - inTriangle[2]) };
+  return std::array { (inTriangle[0] - inTriangle[1]),
+    (inTriangle[0] - inTriangle[2]),
+    (inTriangle[1] - inTriangle[2]) };
 }
 
 template <typename TLHSConvexObject, typename TRHSConvexObject>
@@ -159,6 +159,18 @@ std::optional<T> Intersect(const Ray3<T>& inRay, const Triangle3<T>& inTriangle)
   return ray_plane_intersection_distance;
 }
 
+template <typename T, std::size_t N>
+bool Intersect(const HyperSphere<T, N>& inLHS, const HyperSphere<T, N>& inRHS)
+{
+  return SqDistance(inLHS.GetCenter(), inRHS.GetCenter()) <= Sq(inLHS.GetRadius() + inRHS.GetRadius());
+}
+
+template <typename T, std::size_t N>
+bool Contains(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inPoint)
+{
+  return SqDistance(inPoint, inHyperSphere.GetCenter()) <= Sq(inHyperSphere.GetRadius());
+}
+
 template <typename T>
 auto Intersect(const Triangle3<T>& inTriangle, const Ray3<T>& inRay)
 {
@@ -215,6 +227,12 @@ std::array<std::optional<T>, 2> Intersect(const Ray3<T>& inRay, const AACube<T>&
   }
 
   return intersection_distances;
+}
+
+template <typename T>
+auto Intersect(const AACube<T>& inLHS, const AACube<T>& inRHS)
+{
+  return inLHS.GetMin() <= inRHS.GetMax() || inRHS.GetMin() <= inLHS.GetMax();
 }
 
 template <typename T>

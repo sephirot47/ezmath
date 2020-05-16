@@ -49,6 +49,11 @@ constexpr auto Length(const T& inV)
   return std::sqrt(SqLength(inV));
 }
 template <typename T>
+constexpr auto Sq(const T& inV)
+{
+  return inV * inV;
+}
+template <typename T>
 constexpr auto SqDistance(const T& inLHS, const T& inRHS)
 {
   const auto diff = (inRHS - inLHS);
@@ -277,6 +282,10 @@ constexpr auto BoundingAAHyperRectangle(const T& inThingToBound)
     BoundingAAHyperRectangleType bounding_aa_hyper_rectangle;
     bounding_aa_hyper_rectangle.Wrap(inThingToBound);
     return bounding_aa_hyper_rectangle;
+  }
+  else if constexpr (IsAAHyperRectangle_v<T>)
+  {
+    return inThingToBound;
   }
   else
   {

@@ -113,8 +113,8 @@ template <bool IsConst>
 typename AAHyperRectangle<T, N>::template GPointsIterator<IsConst>::VecType
     AAHyperRectangle<T, N>::GPointsIterator<IsConst>::operator*() const
 {
-  const auto current_binary_index = MakeBinaryIndex<N>(mCurrentIndex);
-  const auto point = mAAHyperRectangle.GetMin() + mAAHyperRectangle.GetSize() * VecType(current_binary_index);
+  const auto current_binary_index = MakeBinaryIndex<N, T>(mCurrentIndex);
+  const auto point = mAAHyperRectangle.GetMin() + mAAHyperRectangle.GetSize() * current_binary_index;
   return point;
 }
 
