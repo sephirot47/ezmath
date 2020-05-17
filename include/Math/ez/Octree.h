@@ -2,7 +2,7 @@
 
 #include "ez/AACube.h"
 #include "ez/BinaryIndex.h"
-#include "ez/Flags.h"
+#include "ez/IntersectMode.h"
 #include "ez/MathTypeTraits.h"
 #include "ez/Span.h"
 #include <array>
@@ -14,14 +14,6 @@ namespace ez
 
 template <typename TPrimitive>
 class OctreeBuilder;
-
-enum class EOctreeIntersectFlags
-{
-  NONE = 0b0,
-  STOP_AT_FIRST_INTERSECTION = 0b1,
-  SORT_RESULTS = 0b10
-};
-DECLARE_FLAGS(EOctreeIntersectFlags);
 
 template <typename TPrimitive>
 class Octree final
@@ -35,8 +27,8 @@ public:
 
   struct Intersection
   {
-    ValueType mDistance = Infinity<ValueType>();
-    PrimitiveIndex mPrimitiveIndex = Max<PrimitiveIndex>();
+    ValueType mDistance { Infinity<ValueType>() };            // The distance to the intersection
+    PrimitiveIndex mPrimitiveIndex { Max<PrimitiveIndex>() }; // The intersected primitive index in the primitive pool
   };
 
   Octree() = default;
@@ -47,10 +39,6 @@ public:
   Octree& operator=(const Octree&) = delete;
   Octree(Octree&&) = default;
   Octree& operator=(Octree&&) = default;
-
-  template <EOctreeIntersectFlags TIntersectionMode = EOctreeIntersectFlags::NONE>
-  std::vector<Octree::Intersection> Intersect(const Ray3<ValueType>& inRay,
-      const ValueType inMaxDistance = Infinity<ValueType>()) const;
 
   const AACube<ValueType>& GetAACube() const { return mAACube; }
   const std::vector<TPrimitive>& GetPrimitivesPool() const; // Only available in top Octree
@@ -140,13 +128,9 @@ private:
       const EInternalOctreePlaneId& inInternalOctreePlaneId,
       const Vec3<ValueType>& inRayDirection,
       const Vec3<ValueType>& inIntersectionPoint) const;
-  template <EOctreeIntersectFlags TIntersectionMode>
-  void IntersectRecursive(const Ray3<ValueType>& inRay,
-      const ValueType inMaxDistance,
-      const std::vector<TPrimitive>& inPrimitivesPool,
-      std::vector<Octree::Intersection>& ioIntersections) const;
 
   friend class OctreeBuilder<TPrimitive>;
+  friend class IntersectHelperStruct;
 };
 
 template <typename TPrimitive>
