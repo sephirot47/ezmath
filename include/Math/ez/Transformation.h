@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ez/Mat.h"
+#include "ez/MathForward.h"
 #include "ez/MathInitializers.h"
 #include "ez/Quat.h"
 #include "ez/Vec.h"
@@ -44,14 +45,7 @@ private:
   Vec<T, N> mScale = One<Vec<T, N>>();
 };
 
-template <typename T>
-using Transformation2 = Transformation<T, 2>;
-using Transformation2f = Transformation2<float>;
-
-template <typename T>
-using Transformation3 = Transformation<T, 3>;
-using Transformation3f = Transformation3<float>;
-
+// Traits
 // clang-format off
 template <typename T> struct TransformationRotationType<Transformation2<T>> { using Type = T; };
 template <typename T> struct TransformationRotationType<Transformation3<T>> { using Type = Quat<T>; };

@@ -8,7 +8,7 @@
 namespace ez
 {
 template <typename T, std::size_t N>
-class HyperSphere
+class HyperSphere final
 {
 public:
   using ValueType = T;

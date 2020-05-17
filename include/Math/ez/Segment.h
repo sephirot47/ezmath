@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ez/MathForward.h"
 #include "ez/Vec.h"
 #include <cstdint>
 
@@ -29,22 +30,8 @@ private:
   Vec<T, N> mToPoint = Vec<T, N> { 0 };
 };
 
-template <typename T>
-using Segment2 = Segment<T, 2>;
-using Segment2b = Segment2<bool>;
-using Segment2i = Segment2<int32_t>;
-using Segment2u = Segment2<uint32_t>;
-using Segment2f = Segment2<float>;
-using Segment2d = Segment2<double>;
-
-template <typename T>
-using Segment3 = Segment<T, 3>;
-using Segment3b = Segment3<bool>;
-using Segment3i = Segment3<int32_t>;
-using Segment3u = Segment3<uint32_t>;
-using Segment3f = Segment3<float>;
-using Segment3d = Segment3<double>;
-
+template <typename T, std::size_t N>
+constexpr Vec3<T> Direction(const Segment<T, N>& inSegment);
 }
 
 #include "ez/Segment.tcc"

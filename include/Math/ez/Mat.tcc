@@ -1,4 +1,5 @@
 #include "ez/Mat.h"
+#include "ez/MathInitializers.h"
 #include "ez/StreamOperators.h"
 #include "ez/VariadicRepeat.h"
 #include <cmath>
@@ -257,4 +258,201 @@ inline std::ostream& operator<<(std::ostream& inLHS, const Mat<T, NRows, NCols>&
   inLHS << ")";
   return inLHS;
 }
+
+template <typename T, std::size_t N>
+constexpr SquareMat<T, N> Transposed(const SquareMat<T, N>& inMat)
+{
+  SquareMat<T, N> transposed;
+  for (std::size_t row = 0; row < N; ++row)
+  {
+    for (std::size_t col = 0; col < N; ++col) { transposed[row][col] = inMat[col][row]; }
+  }
+  return transposed;
+}
+
+template <typename T, std::size_t N>
+constexpr SquareMat<T, N - 1>
+Cofactor(const SquareMat<T, N>& inMat, const std::size_t inRowToRemove, const std::size_t inColumnToRemove)
+{
+  std::size_t cofactor_matrix_row = 0;
+  std::size_t cofactor_matrix_col = 0;
+  SquareMat<T, N - 1> cofactor_matrix;
+  for (std::size_t row = 0; row < N; row++)
+  {
+    if (row == inRowToRemove)
+      continue;
+
+    for (std::size_t col = 0; col < N; col++)
+    {
+      if (col == inColumnToRemove)
+        continue;
+
+      cofactor_matrix[cofactor_matrix_row][cofactor_matrix_col] = inMat[row][col];
+
+      ++cofactor_matrix_col;
+      if (cofactor_matrix_col == N - 1)
+      {
+        ++cofactor_matrix_row;
+        cofactor_matrix_col = 0;
+      }
+    }
+  }
+  return cofactor_matrix;
+}
+
+template <typename T, std::size_t N>
+constexpr SquareMat<T, N> Adjoint(const SquareMat<T, N>& inMat)
+{
+  if (N == 1)
+    return All<SquareMat<T, N>>(static_cast<T>(1));
+
+  SquareMat<T, N> adjoint;
+  for (std::size_t row = 0; row < N; row++)
+  {
+    for (std::size_t col = 0; col < N; col++)
+    {
+      const auto cofactor = Cofactor(inMat, row, col);
+      const auto sign = static_cast<T>(((row + col) % 2 == 0) ? 1 : -1);
+      adjoint[col][row] = sign * Determinant(cofactor);
+    }
+  }
+  return adjoint;
+}
+
+template <typename T, std::size_t N>
+constexpr T Determinant(const SquareMat<T, N>& inMat)
+{
+  if constexpr (N == 1)
+    return inMat[0][0];
+  else
+  {
+    auto sign = static_cast<T>(1);
+    auto determinant = static_cast<T>(0);
+    for (std::size_t f = 0; f < N; f++)
+    {
+      const auto cofactor = Cofactor(inMat, 0, f);
+      determinant += sign * inMat[0][f] * Determinant(cofactor);
+      sign = -sign;
+    }
+    return determinant;
+  }
+}
+
+template <typename T>
+constexpr auto Inverted(const T& inValue)
+{
+  const auto determinant = Determinant(inValue);
+  if (determinant == 0)
+    THROW_EXCEPTION("Singular matrix (determinant is 0), can not compute its inverse");
+
+  const auto adjoint = Adjoint(inValue);
+
+  const auto inverse = adjoint / determinant;
+  return inverse;
+}
+
+template <typename T, std::size_t N>
+constexpr SquareMat<T, N> NormalMat(const SquareMat<T, N>& inModelViewMatrix)
+{
+  return Transposed(Inverted(inModelViewMatrix));
+}
+
+template <typename T, std::size_t N>
+constexpr SquareMat<T, N + 1> TranslationMat(const Vec<T, N>& inTranslation)
+{
+  auto translation_matrix = Identity<SquareMat<T, N + 1>>();
+  for (std::size_t i = 0; i < N; ++i) { translation_matrix[i][N] = inTranslation[i]; }
+  return translation_matrix;
+}
+
+template <typename T>
+constexpr std::enable_if_t<IsNumber_v<T>, SquareMat<T, 3>> RotationMat(const T inAngle)
+{
+  return SquareMat<T, 3> { Vec3<T> { std::cos(inAngle), -std::sin(inAngle), static_cast<T>(0) },
+    Vec3<T> { std::sin(inAngle), std::cos(inAngle), static_cast<T>(0) },
+    Vec3<T> { static_cast<T>(0), static_cast<T>(0), static_cast<T>(1) } };
+}
+
+template <typename T>
+constexpr SquareMat<T, 4> RotationMat(const Quat<T>& inRotation)
+{
+  const auto& q = inRotation;
+  const auto qxx { q[0] * q[0] };
+  const auto qyy { q[1] * q[1] };
+  const auto qzz { q[2] * q[2] };
+  const auto qxz { q[0] * q[2] };
+  const auto qxy { q[0] * q[1] };
+  const auto qyz { q[1] * q[2] };
+  const auto qwx { q[3] * q[0] };
+  const auto qwy { q[3] * q[1] };
+  const auto qwz { q[3] * q[2] };
+
+  return Mat4<T> { Vec4<T> { static_cast<T>(1 - 2 * (qyy + qzz)),
+                       static_cast<T>(2 * (qxy - qwz)),
+                       static_cast<T>(2 * (qxz + qwy)),
+                       static_cast<T>(0) },
+    Vec4<T> { static_cast<T>(2 * (qxy + qwz)),
+        static_cast<T>(1 - 2 * (qxx + qzz)),
+        static_cast<T>(2 * (qyz - qwx)),
+        static_cast<T>(0) },
+    Vec4<T> { static_cast<T>(2 * (qxz - qwy)),
+        static_cast<T>(2 * (qyz + qwx)),
+        static_cast<T>(1 - 2 * (qxx + qyy)),
+        static_cast<T>(0) },
+    Vec4<T> { static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(1) } };
+}
+
+template <typename T, std::size_t N>
+constexpr SquareMat<T, N + 1> ScaleMat(const Vec<T, N>& inScale)
+{
+  auto scale_matrix = Identity<SquareMat<T, N + 1>>();
+  for (std::size_t i = 0; i < N; ++i) { scale_matrix[i][i] = inScale[i]; }
+  scale_matrix[N][N] = static_cast<T>(1);
+  return scale_matrix;
+}
+
+template <typename T>
+constexpr Mat4<T> PerspectiveMat(const T inAngleOfViewRads, const T inAspectRatio, const T inZNear, const T inZFar)
+{
+  const T tanHalfFovy = std::tan(inAngleOfViewRads / static_cast<T>(2));
+
+  Mat4<T> perspective_matrix = {};
+  perspective_matrix[0][0] = static_cast<T>(1) / (inAspectRatio * tanHalfFovy);
+  perspective_matrix[1][1] = static_cast<T>(1) / (tanHalfFovy);
+  perspective_matrix[2][2] = -(inZFar + inZNear) / (inZFar - inZNear);
+  perspective_matrix[3][2] = -static_cast<T>(1);
+  perspective_matrix[2][3] = -(static_cast<T>(2) * inZFar * inZNear) / (inZFar - inZNear);
+  return perspective_matrix;
+}
+
+template <typename T, std::size_t N>
+constexpr SquareMat<T, N + 1> OrthographicMat(const Vec<T, N>& inMin, const Vec<T, N>& inMax)
+{
+  SquareMat<T, N + 1> orthographic_matrix;
+  for (std::size_t i = 0; i < N; ++i)
+  {
+    orthographic_matrix[i][i] = static_cast<T>(2) / (inMax[i] - inMin[i]);
+    orthographic_matrix[i][N] = -static_cast<T>(inMax[i] + inMin[i]) / static_cast<T>(inMax[i] - inMin[i]);
+  }
+  orthographic_matrix[N][N] = static_cast<T>(1);
+  return orthographic_matrix;
+}
+
+template <typename T>
+constexpr T Diagonal(const ValueType_t<T>& inDiagonalValue)
+{
+  if constexpr (IsMat_v<T>)
+  {
+    static_assert(T::NumRows == T::NumCols, "Diagonal only supported for square matrices.");
+
+    T diagonal_matrix = All<T>(static_cast<ValueType_t<T>>(0));
+    for (std::size_t i = 0; i < T::NumRows; ++i) { diagonal_matrix[i][i] = inDiagonalValue; }
+    return diagonal_matrix;
+  }
+  else
+  {
+    static_assert(!std::is_same_v<T, T>, "Not implemented for this type.");
+  }
+}
+
 }

@@ -25,4 +25,12 @@ Vec<T, N> Segment<T, N>::GetVector() const
 {
   return (mToPoint - mFromPoint);
 }
+
+template <typename T, std::size_t N>
+constexpr Vec3<T> Direction(const Segment<T, N>& inSegment)
+{
+  const auto direction = NormalizedSafe(inSegment.GetVector());
+  return direction;
+}
+
 }

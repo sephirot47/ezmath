@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ez/MathForward.h"
 #include "ez/MathInitializerTokens.h"
 #include "ez/MathTypeTraits.h"
 #include "ez/VariadicRepeat.h"
@@ -96,35 +97,48 @@ inline constexpr Vec<T, N> operator/(const T& inLHS, const Vec<T, N>& inRHS);
 template <typename T, std::size_t N>
 inline std::ostream& operator<<(std::ostream& inLHS, const Vec<T, N>& inRHS);
 
-template <typename T>
-using Vec2 = Vec<T, 2>;
-using Vec2b = Vec2<bool>;
-using Vec2i = Vec2<int32_t>;
-using Vec2u = Vec2<uint32_t>;
-using Vec2f = Vec2<float>;
-using Vec2d = Vec2<double>;
-
-template <typename T>
-using Vec3 = Vec<T, 3>;
-using Vec3b = Vec3<bool>;
-using Vec3i = Vec3<int32_t>;
-using Vec3u = Vec3<uint32_t>;
-using Vec3f = Vec3<float>;
-using Vec3d = Vec3<double>;
-
-template <typename T>
-using Vec4 = Vec<T, 4>;
-using Vec4b = Vec4<bool>;
-using Vec4i = Vec4<int32_t>;
-using Vec4u = Vec4<uint32_t>;
-using Vec4f = Vec4<float>;
-using Vec4d = Vec4<double>;
-
+// Traits
 template <typename T, std::size_t N>
 struct IsVec<Vec<T, N>> : std::true_type
 {
 };
 
+template <typename T, std::size_t N>
+constexpr Vec<T, N> FromTo(const Vec<T, N>& inFrom, const Vec<T, N>& inTo);
+
+template <typename T>
+constexpr bool IsVeryParallel(const Vec3<T>& inDirection0, const Vec3<T>& inDirection1);
+
+template <typename T>
+constexpr bool IsVeryPerpendicular(const Vec3<T>& inDirection0, const Vec3<T>& inDirection1);
+
+template <typename T, std::size_t N>
+constexpr auto Inverted(const Vec<T, N>& inValue);
+
+template <typename T>
+constexpr std::tuple<Vec3<T>, Vec3<T>, Vec3<T>> Axes(const Vec3<T>& inForwardVectorNormalized,
+    const Vec3<T>& inUpVectorNormalized);
+
+template <typename T>
+constexpr Vec3<T> Cross(const Vec3<T>& inLHS, const Vec3<T>& inRHS);
+
+template <typename T>
+constexpr auto Right();
+
+template <typename T>
+constexpr auto Up();
+
+template <typename T>
+constexpr auto Forward();
+
+template <typename T>
+constexpr T Left();
+
+template <typename T>
+constexpr T Down();
+
+template <typename T>
+constexpr T Back();
 }
 
 #include "ez/Vec.tcc"

@@ -25,7 +25,7 @@ public:
   using ChildSequentialIndex = std::size_t;
   using PrimitiveIndex = std::size_t;
 
-  struct Intersection
+  struct Intersection final
   {
     ValueType mDistance { Infinity<ValueType>() };            // The distance to the intersection
     PrimitiveIndex mPrimitiveIndex { Max<PrimitiveIndex>() }; // The intersected primitive index in the primitive pool

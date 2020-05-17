@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ez/MathForward.h"
 #include "ez/MathInitializerTokens.h"
 #include "ez/MathTypeTraits.h"
 #include "ez/VariadicRepeat.h"
@@ -71,32 +72,51 @@ private:
 template <typename T, std::size_t NRows, std::size_t NCols>
 inline std::ostream& operator<<(std::ostream& inLHS, const Mat<T, NRows, NCols>& inRHS);
 
-template <typename T, std::size_t N>
-using SquareMat = Mat<T, N, N>;
-
-template <typename T>
-using Mat2 = Mat<T, 2, 2>;
-using Mat2f = Mat2<float>;
-using Mat2d = Mat2<double>;
-using Mat2i = Mat2<int32_t>;
-
-template <typename T>
-using Mat3 = Mat<T, 3, 3>;
-using Mat3f = Mat3<float>;
-using Mat3d = Mat3<double>;
-using Mat3i = Mat3<int32_t>;
-
-template <typename T>
-using Mat4 = Mat<T, 4, 4>;
-using Mat4f = Mat4<float>;
-using Mat4d = Mat4<double>;
-using Mat4i = Mat4<int32_t>;
-
+// Traits
 template <typename T, std::size_t N>
 struct IsMat<Mat<T, N, N>> final : std::true_type
 {
 };
 
+template <typename T, std::size_t N>
+constexpr SquareMat<T, N> Transposed(const SquareMat<T, N>& inMat);
+
+template <typename T, std::size_t N>
+constexpr SquareMat<T, N - 1>
+Cofactor(const SquareMat<T, N>& inMat, const std::size_t inRowToRemove, const std::size_t inColumnToRemove);
+
+template <typename T, std::size_t N>
+constexpr SquareMat<T, N> Adjoint(const SquareMat<T, N>& inMat);
+
+template <typename T, std::size_t N>
+constexpr T Determinant(const SquareMat<T, N>& inMat);
+
+template <typename T>
+constexpr auto Inverted(const T& inValue);
+
+template <typename T, std::size_t N>
+constexpr SquareMat<T, N> NormalMat(const SquareMat<T, N>& inModelViewMatrix);
+
+template <typename T, std::size_t N>
+constexpr SquareMat<T, N + 1> TranslationMat(const Vec<T, N>& inTranslation);
+
+template <typename T>
+constexpr std::enable_if_t<IsNumber_v<T>, SquareMat<T, 3>> RotationMat(const T inAngle);
+
+template <typename T>
+constexpr SquareMat<T, 4> RotationMat(const Quat<T>& inRotation);
+
+template <typename T, std::size_t N>
+constexpr SquareMat<T, N + 1> ScaleMat(const Vec<T, N>& inScale);
+
+template <typename T>
+constexpr Mat4<T> PerspectiveMat(const T inAngleOfViewRads, const T inAspectRatio, const T inZNear, const T inZFar);
+
+template <typename T, std::size_t N>
+constexpr SquareMat<T, N + 1> OrthographicMat(const Vec<T, N>& inMin, const Vec<T, N>& inMax);
+
+template <typename T>
+constexpr T Diagonal(const ValueType_t<T>& inDiagonalValue);
 }
 
 #include "ez/Mat.tcc"

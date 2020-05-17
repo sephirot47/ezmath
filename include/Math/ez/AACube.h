@@ -7,13 +7,6 @@
 
 namespace ez
 {
-template <typename T>
-using AACube = AAHyperRectangle<T, 3>;
-
-using AACubei = AACube<int>;
-using AACubef = AACube<float>;
-using AACubed = AACube<double>;
-
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Ray<T, 3>& inRay, const AACube<T>& inAACube)
@@ -110,4 +103,12 @@ constexpr auto GetSATEdges(const AACube<T>&)
 {
   return std::array { Right<Vec3<T>>(), Up<Vec3<T>>(), Forward<Vec3<T>>() };
 }
+
+template <typename T>
+constexpr auto BoundingAACube(const T& inThingToBound)
+{
+  static_assert(NumDimensions_v<T> == 3);
+  return BoundingAAHyperRectangle(inThingToBound);
+}
+
 };

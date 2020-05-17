@@ -1,11 +1,13 @@
 #pragma once
 
 #include "ez/Mat.h"
+#include "ez/MathForward.h"
 #include "ez/MathInitializerTokens.h"
 #include "ez/MathTypeTraits.h"
 #include "ez/Vec.h"
 #include <array>
 #include <ostream>
+#include <tuple>
 
 namespace ez
 {
@@ -54,6 +56,7 @@ private:
   std::array<T, 4> mComponents; // x, y, z, w
 };
 
+// Operators
 template <typename T>
 Quat<T> operator*(const T& a, const Quat<T>& inRHS);
 
@@ -63,14 +66,63 @@ Quat<T> operator/(const T& a, const Quat<T>& inRHS);
 template <typename T>
 std::ostream& operator<<(std::ostream& log, const Quat<T>& q);
 
-using Quati = Quat<int>;
-using Quatf = Quat<float>;
-using Quatd = Quat<double>;
-
+// Traits
 template <typename T>
 struct IsQuat<Quat<T>> : std::true_type
 {
 };
+
+// Math functions
+template <typename T>
+constexpr Quat<T> ToQuaternion(const Mat4<T>& inRotationMat);
+
+template <typename T>
+constexpr Vec3<T> Direction(const Quat<T>& inQuat);
+
+template <typename T>
+constexpr T Pitch(const Quat<T>& inQuat);
+
+template <typename T>
+constexpr T Yaw(const Quat<T>& inQuat);
+
+template <typename T>
+constexpr T Roll(const Quat<T>& inQuat);
+
+template <typename T>
+constexpr Vec3<T> AngleAxis(const Quat<T>& inQuat);
+
+template <typename T>
+constexpr Quat<T> Conjugated(const Quat<T>& inQuat);
+
+template <typename T>
+constexpr Vec3<T> Forward(const Quat<T>& inQuat);
+
+template <typename T>
+constexpr Quat<T> AngleAxis(const T& inAngleRads, const Vec3<T>& inAxisNormalized);
+
+template <typename T>
+constexpr Quat<T> FromEulerAngles(const Vec3<T>& inEulerAnglesRads);
+
+template <typename T>
+constexpr Quat<T> FromTo(const Vec3<T>& inFromNormalized, const Vec3<T>& inToNormalized);
+
+template <typename T>
+constexpr Quat<T> LookInDirection(const Vec3<T>& inForwardNormalized, const Vec3<T>& inUpNormalized = Up<Vec3<T>>());
+
+template <typename T>
+constexpr std::tuple<Vec3<T>, Vec3<T>, Vec3<T>> Axes(const Quat<T>& inOrientation);
+
+template <typename T>
+constexpr Vec2<T> Rotated(const Vec2<T>& inVec, const AngleRads inAngle);
+
+template <typename T>
+constexpr Vec3<T> Rotated(const Vec3<T>& inVec, const Quat<T>& inRotation);
+
+template <typename T, typename TQuat>
+constexpr TQuat SLerp(const TQuat& inFrom, const TQuat& inTo, const T& inT);
+
+template <typename T>
+constexpr auto Inverted(const Quat<T>& inValue);
 }
 
 #include "ez/Quat.tcc"

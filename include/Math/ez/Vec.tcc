@@ -1,3 +1,5 @@
+#include "ez/MathCommon.h"
+#include "ez/MathInitializers.h"
 #include "ez/Vec.h"
 #include <cmath>
 
@@ -295,5 +297,119 @@ inline std::ostream& operator<<(std::ostream& inLHS, const Vec<T, N>& inRHS)
   for (std::size_t i = 0; i < N; ++i) inLHS << inRHS[i] << (i < N - 1 ? ", " : "");
   inLHS << ")";
   return inLHS;
+}
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> FromTo(const Vec<T, N>& inFrom, const Vec<T, N>& inTo)
+{
+  return (inTo - inFrom);
+}
+
+template <typename T>
+constexpr bool IsVeryParallel(const Vec3<T>& inDirection0, const Vec3<T>& inDirection1)
+{
+  return IsVeryEqual(Abs(Dot(inDirection0, inDirection1)), static_cast<T>(1));
+}
+
+template <typename T>
+constexpr bool IsVeryPerpendicular(const Vec3<T>& inDirection0, const Vec3<T>& inDirection1)
+{
+  return IsVeryEqual(Abs(Dot(inDirection0, inDirection1)), static_cast<T>(0));
+}
+
+template <typename T, std::size_t N>
+constexpr auto Inverted(const Vec<T, N>& inValue)
+{
+  return -inValue;
+}
+
+template <typename T>
+constexpr std::tuple<Vec3<T>, Vec3<T>, Vec3<T>> Axes(const Vec3<T>& inForwardVectorNormalized,
+    const Vec3<T>& inUpVectorNormalized)
+{
+  EXPECTS(IsNormalized(inForwardVectorNormalized));
+  EXPECTS(IsNormalized(inUpVectorNormalized));
+
+  const auto forward_vector = inForwardVectorNormalized;
+
+  auto up_vector = inUpVectorNormalized;
+  auto right_vector = Zero<Vec3f>();
+  if (IsVeryParallel(forward_vector, up_vector))
+  {
+    right_vector = Right<Vec3f>();
+    if (IsVeryParallel(right_vector, forward_vector))
+      right_vector = Normalized(Vec3f(0.5f, 0.5f, 0.0f));
+
+    up_vector = Normalized(Cross(right_vector, forward_vector));
+    right_vector = Cross(forward_vector, up_vector);
+  }
+  else
+  {
+    right_vector = Normalized(Cross(forward_vector, up_vector));
+    up_vector = Cross(right_vector, forward_vector);
+  }
+
+  ENSURES(IsNormalized(forward_vector));
+  ENSURES(IsNormalized(up_vector));
+  ENSURES(IsNormalized(right_vector));
+
+  ENSURES(IsVeryPerpendicular(forward_vector, up_vector));
+  ENSURES(IsVeryPerpendicular(forward_vector, right_vector));
+  ENSURES(IsVeryPerpendicular(up_vector, right_vector));
+
+  return { right_vector, up_vector, forward_vector };
+}
+
+template <typename T>
+constexpr Vec3<T> Cross(const Vec3<T>& inLHS, const Vec3<T>& inRHS)
+{
+  return Vec3<T> { inLHS[1] * inRHS[2] - inLHS[2] * inRHS[1],
+    inLHS[2] * inRHS[0] - inLHS[0] * inRHS[2],
+    inLHS[0] * inRHS[1] - inLHS[1] * inRHS[0] };
+}
+
+template <typename T>
+constexpr auto Right()
+{
+  static_assert(T::NumComponents >= 1);
+  T result = All<T>(static_cast<typename T::ValueType>(0));
+  result[0] = static_cast<typename T::ValueType>(1);
+  return result;
+}
+
+template <typename T>
+constexpr auto Up()
+{
+  static_assert(T::NumComponents >= 2);
+  T result = All<T>(static_cast<typename T::ValueType>(0));
+  result[1] = static_cast<typename T::ValueType>(1);
+  return result;
+}
+
+template <typename T>
+constexpr auto Forward()
+{
+  static_assert(T::NumComponents >= 3);
+  T result = All<T>(static_cast<typename T::ValueType>(0));
+  result[2] = static_cast<typename T::ValueType>(-1);
+  return result;
+}
+
+template <typename T>
+constexpr T Left()
+{
+  return -Right<T>();
+}
+
+template <typename T>
+constexpr T Down()
+{
+  return -Up<T>();
+}
+
+template <typename T>
+constexpr T Back()
+{
+  return -Forward<T>();
 }
 }

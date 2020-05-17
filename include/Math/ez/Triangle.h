@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ez/IntersectMode.h"
+#include "ez/MathForward.h"
 #include "ez/Vec.h"
 #include <array>
 
@@ -42,17 +43,6 @@ public:
 private:
   std::array<Vec<T, N>, 3> mPoints;
 };
-
-template <typename T>
-using Triangle2 = Triangle<T, 2>;
-using Triangle2f = Triangle2<float>;
-
-template <typename T>
-using Triangle3 = Triangle<T, 3>;
-using Triangle3f = Triangle3<float>;
-
-template <typename T, std::size_t N>
-class Ray;
 
 // Intersection functions
 template <typename T>

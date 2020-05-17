@@ -1,6 +1,6 @@
+#include "ez/HyperSphere.h"
 #include "ez/Math.h"
 #include "ez/Octree.h"
-#include "ez/Sphere.h"
 #include <algorithm>
 #include <numeric>
 

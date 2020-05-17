@@ -1,8 +1,7 @@
 #pragma once
 
 #include "ez/MathCommon.h"
-#include "ez/Plane.h"
-#include "ez/Triangle.h"
+#include "ez/MathForward.h"
 
 namespace ez
 {

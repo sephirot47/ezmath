@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ez/MathForward.h"
 #include "ez/IntersectMode.h"
 #include "ez/Macros.h"
 #include "ez/MathInitializers.h"
@@ -34,9 +35,6 @@ private:
   Vec3<T> mNormal = Forward<Vec3<T>>();      // A, B, C
   T mDistanceFromOrigin = static_cast<T>(0); // Distance from origin i-n the direction of the normal (D)
 };
-
-using Planef = Plane<float>;
-using Planed = Plane<double>;
 
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T>

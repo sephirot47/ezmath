@@ -118,4 +118,35 @@ typename AAHyperRectangle<T, N>::template GPointsIterator<IsConst>::VecType
   return point;
 }
 
+template <typename T>
+constexpr auto BoundingAAHyperRectangle(const T& inThingToBound)
+{
+  if constexpr (IsVec_v<T>)
+  {
+    using BoundingAAHyperRectangleType = AAHyperRectangle<ValueType_t<T>, NumDimensions_v<T>>;
+    BoundingAAHyperRectangleType bounding_aa_hyper_rectangle;
+    bounding_aa_hyper_rectangle.Wrap(inThingToBound);
+    return bounding_aa_hyper_rectangle;
+  }
+  else if constexpr (IsAAHyperRectangle_v<T>)
+  {
+    return inThingToBound;
+  }
+  else
+  {
+    using BoundingAAHyperRectangleType = decltype(BoundingAAHyperRectangle(*inThingToBound.begin()));
+    BoundingAAHyperRectangleType bounding_aa_hyper_rectangle;
+    if constexpr (IsAAHyperRectangle_v<T>) // Efficiency overloads
+    {
+      bounding_aa_hyper_rectangle.Wrap(inThingToBound.GetMin());
+      bounding_aa_hyper_rectangle.Wrap(inThingToBound.GetMax());
+    }
+    else
+    {
+      for (const auto subthing_to_bound : inThingToBound)
+      { bounding_aa_hyper_rectangle.Wrap(BoundingAAHyperRectangle(subthing_to_bound)); }
+    }
+    return bounding_aa_hyper_rectangle;
+  }
+}
 }

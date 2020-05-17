@@ -84,9 +84,6 @@ private:
   std::array<Vec<T, N>, 2> mMinMax = { Max<Vec<T, N>>(), Min<Vec<T, N>>() }; // Init with invalid
 };
 
-template <typename T, std::size_t N>
-class Ray;
-
 // Traits
 template <typename T, std::size_t N>
 struct IsAAHyperRectangle<AAHyperRectangle<T, N>> : std::true_type
@@ -107,6 +104,8 @@ bool Contains(const AAHyperRectangle<T, N>& inAAHyperRectangle, const Vec<T, N>&
   return inPoint >= inAAHyperRectangle.GetMin() && inPoint <= inAAHyperRectangle.GetMax();
 }
 
+template <typename T>
+constexpr auto BoundingAAHyperRectangle(const T& inThingToBound);
 }
 
 #include "ez/AAHyperRectangle.tcc"
