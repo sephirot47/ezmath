@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ez/IntersectMode.h"
 #include "ez/Vec.h"
 #include <array>
 
@@ -49,4 +50,68 @@ using Triangle2f = Triangle2<float>;
 template <typename T>
 using Triangle3 = Triangle<T, 3>;
 using Triangle3f = Triangle3<float>;
+
+template <typename T, std::size_t N>
+class Ray;
+
+// Intersection functions
+template <typename T>
+auto GetSATNormals(const Triangle3<T>& inTriangle)
+{
+  return std::array { Normal(inTriangle) };
+}
+
+template <typename T>
+constexpr auto GetSATNormals(const Triangle2<T>&)
+{
+  return std::array<Vec2<T>, 0> {};
+}
+
+template <typename T, std::size_t N>
+auto GetSATEdges(const Triangle<T, N>& inTriangle)
+{
+  return std::array { (inTriangle[0] - inTriangle[1]),
+    (inTriangle[0] - inTriangle[2]),
+    (inTriangle[1] - inTriangle[2]) };
+}
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Ray<T, 3>& inRay, const Triangle3<T>& inTriangle)
+{
+  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
+          || TIntersectMode == EIntersectMode::ONLY_CHECK,
+      "Unsupported EIntersectMode.");
+
+  const auto ray_plane_intersection_distance = IntersectClosest(inRay, GetPlane(inTriangle));
+  if (!ray_plane_intersection_distance)
+  {
+    if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+    {
+      return false;
+    }
+    else
+    {
+      return std::optional<T>();
+    }
+  }
+
+  const auto ray_plane_intersection_point = inRay.GetPoint(*ray_plane_intersection_distance);
+  const auto barycentric_coordinates = BarycentricCoordinates(inTriangle, ray_plane_intersection_point);
+  const auto intersection_point_is_in_triangle = IsBetween(barycentric_coordinates, Zero<Vec3<T>>(), One<Vec3<T>>());
+  if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+  {
+    return intersection_point_is_in_triangle;
+  }
+  else
+  {
+    return intersection_point_is_in_triangle ? ray_plane_intersection_distance : std::optional<T>();
+  }
+}
+
+template <typename T>
+auto Intersect(const Triangle3<T>& inTriangle, const Ray<T, 3>& inRay)
+{
+  return Intersect(inRay, inTriangle);
+}
+
 }

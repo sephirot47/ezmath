@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ez/IntersectMode.h"
 #include "ez/MathMultiComponent.h"
 #include "ez/Vec.h"
 
@@ -84,9 +85,27 @@ private:
 };
 
 template <typename T, std::size_t N>
+class Ray;
+
+// Traits
+template <typename T, std::size_t N>
 struct IsAAHyperRectangle<AAHyperRectangle<T, N>> : std::true_type
 {
 };
+
+// Intersection functions
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const AAHyperRectangle<T, N>& inLHS, const AAHyperRectangle<T, N>& inRHS)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return inLHS.GetMin() <= inRHS.GetMax() || inRHS.GetMin() <= inLHS.GetMax();
+}
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperRectangle<T, N>& inAAHyperRectangle, const Vec<T, N>& inPoint)
+{
+  return inPoint >= inAAHyperRectangle.GetMin() && inPoint <= inAAHyperRectangle.GetMax();
+}
 
 }
 
