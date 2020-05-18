@@ -44,9 +44,11 @@ bool DoProjectionsOverlap(const TLHSConvexObject& inLHS,
   return there_is_projection_overlap;
 }
 
-template <typename TLHSConvexObject, typename TRHSConvexObject>
+template <EIntersectMode TIntersectMode, typename TLHSConvexObject, typename TRHSConvexObject>
 bool Intersect(const TLHSConvexObject& inLHS, const TRHSConvexObject& inRHS)
 {
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode");
+
   const auto ProjectionsOverlap = std::bind(DoProjectionsOverlap<TLHSConvexObject, TRHSConvexObject>, inLHS, inRHS, _1);
   const auto AxisSeparatesObjects = [&](const auto& inAxis) { return !ProjectionsOverlap(inAxis); };
 
@@ -79,13 +81,15 @@ bool Intersect(const TLHSConvexObject& inLHS, const TRHSConvexObject& inRHS)
 template <EIntersectMode TIntersectMode, typename T, std::size_t N, typename TRHSConvexObject>
 auto Intersect(const Vec<T, N>& inPoint, const TRHSConvexObject& inRHS)
 {
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode");
   return Contains(inRHS, inPoint);
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N, typename TLHSConvexObject>
 auto Intersect(const TLHSConvexObject& inLHS, const Vec<T, N>& inPoint)
 {
-  return Intersect(inPoint, inLHS);
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode");
+  return Intersect<TIntersectMode>(inPoint, inLHS);
 }
 
 // Generic contains

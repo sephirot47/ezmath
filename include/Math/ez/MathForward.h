@@ -105,25 +105,25 @@ using Sphere = HyperSphere<T, 3>;
 using Spheref = Sphere<float>;
 using Sphered = Sphere<double>;
 
-// AAHyperRectangle
+// AAHyperBox
 template <typename T, std::size_t N>
-class AAHyperRectangle;
+class AAHyperBox;
 
 // AARect
 template <typename T>
-using AARect = AAHyperRectangle<T, 2>;
+using AARect = AAHyperBox<T, 2>;
 
 using AARecti = AARect<int>;
 using AARectf = AARect<float>;
 using AARectd = AARect<double>;
 
-// AACube
+// AABox
 template <typename T>
-using AACube = AAHyperRectangle<T, 3>;
+using AABox = AAHyperBox<T, 3>;
 
-using AACubei = AACube<int>;
-using AACubef = AACube<float>;
-using AACubed = AACube<double>;
+using AABoxi = AABox<int>;
+using AABoxf = AABox<float>;
+using AABoxd = AABox<double>;
 
 // Octree
 template <typename TPrimitive>

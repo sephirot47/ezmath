@@ -1,8 +1,8 @@
 #pragma once
 
+#include "ez/MathForward.h"
 #include "ez/MathInitializerTokens.h"
 #include "ez/MathTypeTraits.h"
-#include "ez/MathForward.h"
 
 namespace ez
 {

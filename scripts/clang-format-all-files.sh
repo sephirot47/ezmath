@@ -7,7 +7,7 @@ cd ..
 # For each code file
 echo ""
 echo "Formatting files... ======"
-for f in $(find src/* -type f | grep -E "\.h$|\.tcc$|\.cpp$")
+for f in $(find include/* -type f | grep -E "\.h$|\.tcc$|\.cpp$")
 do
 	# Format file inplace
 	clang-format --assume-filename=.clang-format -i $f

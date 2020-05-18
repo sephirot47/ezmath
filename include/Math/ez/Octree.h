@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ez/AACube.h"
+#include "ez/AABox.h"
 #include "ez/BinaryIndex.h"
 #include "ez/IntersectMode.h"
 #include "ez/MathTypeTraits.h"
@@ -21,7 +21,7 @@ class Octree final
 public:
   using ChildMultiIndex01 = BinaryIndex<3>;
   using ValueType = ValueType_t<TPrimitive>;
-  using AACubeType = AACube<ValueType>;
+  using AABoxType = AABox<ValueType>;
   using ChildSequentialIndex = std::size_t;
   using PrimitiveIndex = std::size_t;
 
@@ -40,11 +40,11 @@ public:
   Octree(Octree&&) = default;
   Octree& operator=(Octree&&) = default;
 
-  const AACube<ValueType>& GetAACube() const { return mAACube; }
+  const AABox<ValueType>& GetAABox() const { return mAABox; }
   const std::vector<TPrimitive>& GetPrimitivesPool() const; // Only available in top Octree
   const std::vector<PrimitiveIndex>& GetPrimitivesIndices() const { return mPrimitivesIndices; }
   const std::array<std::unique_ptr<Octree>, 8>& GetChildren() const { return mChildren; }
-  AACubeType GetChildAACube(const ChildSequentialIndex inChildSequentialIndex) const;
+  AABoxType GetChildAABox(const ChildSequentialIndex inChildSequentialIndex) const;
   Octree* GetChildOctree(const Octree::ChildMultiIndex01 inChildIndex);
   const Octree* GetChildOctree(const Octree::ChildMultiIndex01 inChildIndex) const;
   Octree* GetChildOctree(const ChildSequentialIndex inChildSequentialIndex);
@@ -116,7 +116,7 @@ private:
     Back<Vec3<ValueType>>(),  // MID_Z: 2
   };
 
-  AACube<ValueType> mAACube;
+  AABox<ValueType> mAABox;
   std::optional<std::vector<TPrimitive>> mPrimitivesPool; // Only filled in top Octree
   std::vector<std::size_t> mPrimitivesIndices;
   std::array<std::unique_ptr<Octree>, 8> mChildren;
@@ -144,7 +144,7 @@ public:
       const std::size_t inMaxDepth = 8);
 
 private:
-  static Octree<TPrimitive> BuildRecursive(const typename Octree<TPrimitive>::AACubeType& inBoundingAACube,
+  static Octree<TPrimitive> BuildRecursive(const typename Octree<TPrimitive>::AABoxType& inBoundingAABox,
       const Span<TPrimitive>& inTopOctreePrimitivesPool,
       const Span<typename Octree<TPrimitive>::PrimitiveIndex>& inParentPrimitivesIndices,
       const std::size_t inLeafNodesMaxCapacity,

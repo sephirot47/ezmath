@@ -22,16 +22,16 @@ const std::vector<TPrimitive>& Octree<TPrimitive>::GetPrimitivesPool() const
 }
 
 template <typename TPrimitive>
-Octree<TPrimitive>::AACubeType Octree<TPrimitive>::GetChildAACube(
+Octree<TPrimitive>::AABoxType Octree<TPrimitive>::GetChildAABox(
     const typename Octree<TPrimitive>::ChildSequentialIndex inInternalIndex) const
 {
   using ValueType = ValueType_t<TPrimitive>;
   const auto child_multi_index = MakeBinaryIndex<3, ValueType>(inInternalIndex);
-  const auto child_aacube_size = (mAACube.GetSize() / static_cast<ValueType>(2));
-  const auto child_aacube_size_indexed = (child_aacube_size * child_multi_index);
-  const auto child_aacube_min = mAACube.GetMin() + child_aacube_size_indexed;
-  const auto child_aacube_max = child_aacube_min + child_aacube_size;
-  return AACube<ValueType>(child_aacube_min, child_aacube_max);
+  const auto child_aabox_size = (mAABox.GetSize() / static_cast<ValueType>(2));
+  const auto child_aabox_size_indexed = (child_aabox_size * child_multi_index);
+  const auto child_aabox_min = mAABox.GetMin() + child_aabox_size_indexed;
+  const auto child_aabox_max = child_aabox_min + child_aabox_size;
+  return AABox<ValueType>(child_aabox_min, child_aabox_max);
 }
 
 template <typename TPrimitive>
@@ -106,12 +106,12 @@ std::optional<typename Octree<TPrimitive>::ChildSequentialIndex> Octree<TPrimiti
   // For external planes, we assume we are entering (not exiting) the Octree
   const auto plane_i = static_cast<int>(inExternalOctreePlaneId);
   const auto plane_coordinate_i = (plane_i / 2);
-  const auto min_to_point_scaled = (inIntersectionPoint - mAACube.GetMin()) / mAACube.GetSize();
+  const auto min_to_point_scaled = (inIntersectionPoint - mAABox.GetMin()) / mAABox.GetSize();
   auto min_to_point_scaled_safe = min_to_point_scaled;
   min_to_point_scaled_safe[plane_coordinate_i] = static_cast<ValueType>(0.5); // To avoid IsBetween deal with epsilons
 
   if (!IsBetween(min_to_point_scaled_safe, Zero<Vec3<ValueType>>(), One<Vec3<ValueType>>()))
-    return std::nullopt; // Intersection point is outside octree cube. No next child octree to explore.
+    return std::nullopt; // Intersection point is outside octree box. No next child octree to explore.
 
   auto binary_index = BinaryIndex<3>(Round(min_to_point_scaled_safe));
   binary_index[plane_coordinate_i] = (plane_i % 2);
@@ -125,12 +125,12 @@ std::optional<typename Octree<TPrimitive>::ChildSequentialIndex> Octree<TPrimiti
     const Vec3<ValueType>& inIntersectionPoint) const
 {
   const auto plane_i = static_cast<int>(inInternalOctreePlaneId);
-  const auto min_to_point_scaled = (inIntersectionPoint - mAACube.GetMin()) / mAACube.GetSize();
+  const auto min_to_point_scaled = (inIntersectionPoint - mAABox.GetMin()) / mAABox.GetSize();
   auto min_to_point_scaled_safe = min_to_point_scaled;
   min_to_point_scaled_safe[plane_i] = static_cast<ValueType>(0.5); // To avoid IsBetween deal with epsilons
 
   if (!IsBetween(min_to_point_scaled_safe, Zero<Vec3<ValueType>>(), One<Vec3<ValueType>>()))
-    return std::nullopt; // Intersection point is outside octree cube. No next child octree to explore.
+    return std::nullopt; // Intersection point is outside octree box. No next child octree to explore.
 
   auto binary_index = BinaryIndex<3>(Round(min_to_point_scaled_safe));
   binary_index[plane_i] = (inRayDirection[plane_i] < 0 ? 0 : 1);
@@ -152,8 +152,8 @@ Octree<TPrimitive> OctreeBuilder<TPrimitive>::Build(const Span<TPrimitive>& inPr
     const std::size_t inLeafNodesMaxCapacity,
     const std::size_t inMaxDepth)
 {
-  const auto bounding_aa_cube = BoundingAACube(inPrimitives);
-  return BuildRecursive(bounding_aa_cube,
+  const auto bounding_aa_box = BoundingAABox(inPrimitives);
+  return BuildRecursive(bounding_aa_box,
       inPrimitives,
       MakeSpan<typename Octree<TPrimitive>::PrimitiveIndex>({}),
       inLeafNodesMaxCapacity,
@@ -163,7 +163,7 @@ Octree<TPrimitive> OctreeBuilder<TPrimitive>::Build(const Span<TPrimitive>& inPr
 
 template <typename TPrimitive>
 Octree<TPrimitive> OctreeBuilder<TPrimitive>::BuildRecursive(
-    const typename Octree<TPrimitive>::AACubeType& inBoundingAACube,
+    const typename Octree<TPrimitive>::AABoxType& inBoundingAABox,
     const Span<TPrimitive>& inPrimitivesPool,
     const Span<typename Octree<TPrimitive>::PrimitiveIndex>& inParentPrimitivesIndices,
     const std::size_t inLeafNodesMaxCapacity,
@@ -175,7 +175,7 @@ Octree<TPrimitive> OctreeBuilder<TPrimitive>::BuildRecursive(
 
   // Create octree
   Octree<TPrimitive> octree;
-  octree.mAACube = inBoundingAACube;
+  octree.mAABox = inBoundingAABox;
 
   if (inCurrentDepth == 0)
   {
@@ -190,13 +190,13 @@ Octree<TPrimitive> OctreeBuilder<TPrimitive>::BuildRecursive(
   }
   else
   {
-    // Copy only primitive indices that intersect this Octree bounding cube
+    // Copy only primitive indices that intersect this Octree bounding box
     octree.mPrimitivesIndices.reserve(inParentPrimitivesIndices.GetNumberOfElements() / 8);
     std::copy_if(inParentPrimitivesIndices.cbegin(),
         inParentPrimitivesIndices.cend(),
         std::back_inserter(octree.mPrimitivesIndices),
         [&](const auto& inPrimitiveIndex) {
-          return Intersect(inBoundingAACube, inPrimitivesPool.at(inPrimitiveIndex));
+          return IntersectCheck(inBoundingAABox, inPrimitivesPool.at(inPrimitiveIndex));
         });
   }
 
@@ -205,8 +205,8 @@ Octree<TPrimitive> OctreeBuilder<TPrimitive>::BuildRecursive(
 
   for (std::size_t i = 0; i < 8; ++i)
   {
-    const auto child_bounding_aa_cube = octree.GetChildAACube(i);
-    auto built_child = BuildRecursive(child_bounding_aa_cube,
+    const auto child_bounding_aa_box = octree.GetChildAABox(i);
+    auto built_child = BuildRecursive(child_bounding_aa_box,
         inPrimitivesPool,
         MakeSpan(octree.mPrimitivesIndices),
         inLeafNodesMaxCapacity,
@@ -275,16 +275,16 @@ struct IntersectHelperStruct
     using ChildSequentialIndexType = typename OctreeType::ChildSequentialIndex;
     using ValueType = ValueType_t<TPrimitive>;
 
-    const auto aacube_size = inOctree.mAACube.GetSize();
-    const auto aacube_half_size = (aacube_size / static_cast<ValueType>(2));
+    const auto aabox_size = inOctree.mAABox.GetSize();
+    const auto aabox_half_size = (aabox_size / static_cast<ValueType>(2));
 
-    // Check whether this AACube needs to be checked because of max distance or not
+    // Check whether this AABox needs to be checked because of max distance or not
     if (inMaxDistance != Infinity<ValueType>())
     {
-      const auto max_cube_half_size = Max(aacube_half_size);
-      const auto aacube_sphere = Sphere<ValueType>(inOctree.mAACube.GetCenter(), max_cube_half_size);
+      const auto max_box_half_size = Max(aabox_half_size);
+      const auto aabox_sphere = Sphere<ValueType>(inOctree.mAABox.GetCenter(), max_box_half_size);
       const auto ray_max_distance_sphere = Sphere<ValueType>(inRay.GetOrigin(), inMaxDistance);
-      if (!::ez::IntersectCheck(aacube_sphere, ray_max_distance_sphere))
+      if (!::ez::IntersectCheck(aabox_sphere, ray_max_distance_sphere))
       {
         if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
         {
@@ -313,10 +313,10 @@ struct IntersectHelperStruct
           if (*inIntersectionDistance > inMaxDistance)
             return; // Do not consider intersections further than the maximum distance
 
-          // Only consider intersections of this primitive inside this cube. To avoid duplicates.
+          // Only consider intersections of this primitive inside this box. To avoid duplicates.
           {
             const auto intersection_point = inRay.GetPoint(*inIntersectionDistance);
-            if (!Contains(inOctree.mAACube, intersection_point))
+            if (!Contains(inOctree.mAABox, intersection_point))
               return;
           }
 
@@ -384,7 +384,7 @@ struct IntersectHelperStruct
           continue;
 
         const auto remapped_external_plane_normal = Max(external_plane_normal, Zero<Vec3<ValueType>>());
-        const auto external_plane_point = inOctree.mAACube.GetMin() + remapped_external_plane_normal * aacube_size;
+        const auto external_plane_point = inOctree.mAABox.GetMin() + remapped_external_plane_normal * aabox_size;
         const auto external_plane = Plane<ValueType>(external_plane_normal, external_plane_point);
         const auto ray_plane_intersection_distance = ::ez::IntersectClosest(inRay, external_plane);
         if (!ray_plane_intersection_distance)
@@ -413,7 +413,7 @@ struct IntersectHelperStruct
       for (int internal_plane_i = 0; internal_plane_i < 3; ++internal_plane_i)
       {
         const auto& internal_plane_normal = OctreeType::InternalOctreePlaneNormals.at(internal_plane_i);
-        const auto internal_plane_point = inOctree.mAACube.GetCenter();
+        const auto internal_plane_point = inOctree.mAABox.GetCenter();
         const auto internal_plane = Plane<ValueType>(internal_plane_normal, internal_plane_point);
         const auto ray_plane_intersection_distance = ::ez::IntersectClosest(inRay, internal_plane);
         if (!ray_plane_intersection_distance)

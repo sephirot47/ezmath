@@ -1,7 +1,7 @@
 #pragma once
 
+#include "ez/AAHyperBox.h"
 #include "ez/MathForward.h"
-#include "ez/AAHyperRectangle.h"
 
 namespace ez
 {
@@ -22,6 +22,6 @@ template <typename T>
 constexpr auto BoundingAARect(const T& inThingToBound)
 {
   static_assert(NumDimensions_v<T> == 2);
-  return BoundingAAHyperRectangle(inThingToBound);
+  return BoundingAAHyperBox(inThingToBound);
 }
 }

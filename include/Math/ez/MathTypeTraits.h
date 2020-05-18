@@ -29,13 +29,13 @@ struct IsQuat final : std::false_type
 template <typename T>
 inline constexpr bool IsQuat_v = IsQuat<T>::value;
 
-// IsAAHyperRectangle. Template specialization for AAHyperRectangle is in "AAHyperRectangle.h"
+// IsAAHyperBox. Template specialization for AAHyperBox is in "AAHyperBox.h"
 template <typename T>
-struct IsAAHyperRectangle final : std::false_type
+struct IsAAHyperBox final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsAAHyperRectangle_v = IsAAHyperRectangle<T>::value;
+constexpr bool IsAAHyperBox_v = IsAAHyperBox<T>::value;
 
 // IsNumber
 template <typename T>

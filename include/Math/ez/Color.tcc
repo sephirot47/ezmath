@@ -109,7 +109,6 @@ Color<T, N> HSVToRGB(const Color<T, N>& inColorHSV)
   return result_rgb;
 }
 
-
 template <typename TColor>
 constexpr TColor Black()
 {
