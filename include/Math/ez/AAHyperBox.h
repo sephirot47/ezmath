@@ -22,6 +22,10 @@ public:
   AAHyperBox& operator=(const AAHyperBox&) = default;
   AAHyperBox(AAHyperBox&&) = default;
   AAHyperBox& operator=(AAHyperBox&&) = default;
+
+  template <typename TOther>
+  explicit AAHyperBox(const AAHyperBox<TOther, N>& inRHS);
+
   ~AAHyperBox() = default;
 
   void SetMin(const Vec<T, N>& inMin);
@@ -47,6 +51,14 @@ public:
   bool operator<=(const Vec<T, N>& inRHS) const { return mMinMax[0] <= inRHS && mMinMax[1] <= inRHS; }
   bool operator>(const Vec<T, N>& inRHS) const { return mMinMax[0] > inRHS && mMinMax[1] > inRHS; }
   bool operator>=(const Vec<T, N>& inRHS) const { return mMinMax[0] >= inRHS && mMinMax[1] >= inRHS; }
+  AAHyperBox operator+(const Vec<T, N>& inRHS);
+  AAHyperBox operator-(const Vec<T, N>& inRHS) { return (*this) + (-inRHS); }
+  AAHyperBox& operator+=(const Vec<T, N>& inRHS);
+  AAHyperBox& operator-=(const Vec<T, N>& inRHS) { return ((*this) += (-inRHS)); }
+  AAHyperBox operator*(const Vec<T, N>& inRHS);
+  AAHyperBox operator/(const Vec<T, N>& inRHS) { return (*this) * (static_cast<T>(1) / inRHS); }
+  AAHyperBox& operator*=(const Vec<T, N>& inRHS);
+  AAHyperBox& operator/=(const Vec<T, N>& inRHS) { return ((*this) *= (static_cast<T>(1) / inRHS)); }
 
   template <bool IsConst>
   class GPointsIterator
@@ -90,6 +102,18 @@ struct IsAAHyperBox<AAHyperBox<T, N>> : std::true_type
 {
 };
 
+template <typename T, std::size_t N>
+const auto MakeAAHyperBoxFromMinSize(const Vec<T, N>& inMin, const Vec<T, N>& inSize)
+{
+  return AAHyperBox<T, N>(inMin, inMin + inSize);
+}
+
+template <typename T, std::size_t N>
+const auto MakeAAHyperBoxFromMinMax(const Vec<T, N>& inMin, const Vec<T, N>& inMax)
+{
+  return AAHyperBox<T, N>(inMin, inMax);
+}
+
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const AAHyperBox<T, N>& inLHS, const AAHyperBox<T, N>& inRHS)
@@ -102,6 +126,13 @@ template <typename T, std::size_t N>
 bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Vec<T, N>& inPoint)
 {
   return inPoint >= inAAHyperBox.GetMin() && inPoint <= inAAHyperBox.GetMax();
+}
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBoxContainer, const AAHyperBox<T, N>& inAAHyperBoxContainee)
+{
+  return Contains(inAAHyperBoxContainer, inAAHyperBoxContainee.GetMin())
+      && Contains(inAAHyperBoxContainer, inAAHyperBoxContainee.GetMax());
 }
 
 template <typename T>

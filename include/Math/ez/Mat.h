@@ -94,6 +94,18 @@ constexpr T Determinant(const SquareMat<T, N>& inMat);
 template <typename T>
 constexpr auto Inverted(const T& inValue);
 
+template <typename T>
+constexpr auto Translation(const SquareMat<T, 3>& inMat);
+
+template <typename T>
+constexpr auto Translation(const SquareMat<T, 4>& inMat);
+
+template <typename T>
+constexpr auto Scale(const SquareMat<T, 3>& inMat);
+
+template <typename T>
+constexpr auto Scale(const SquareMat<T, 4>& inMat);
+
 template <typename T, std::size_t N>
 constexpr SquareMat<T, N> NormalMat(const SquareMat<T, N>& inModelViewMatrix);
 

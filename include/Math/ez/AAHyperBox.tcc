@@ -18,6 +18,13 @@ AAHyperBox<T, N>::AAHyperBox(const Vec<T, N>& inMin, const Vec<T, N>& inMax) : m
 }
 
 template <typename T, std::size_t N>
+template <typename TOther>
+AAHyperBox<T, N>::AAHyperBox(const AAHyperBox<TOther, N>& inRHS)
+    : AAHyperBox(Vec<T, N>(inRHS.GetMin()), Vec<T, N>(inRHS.GetMax()))
+{
+}
+
+template <typename T, std::size_t N>
 void AAHyperBox<T, N>::SetMin(const Vec<T, N>& inMin)
 {
   EXPECTS(inMin <= mMinMax[1]);
@@ -74,6 +81,32 @@ template <typename T, std::size_t N>
 bool AAHyperBox<T, N>::operator>=(const AAHyperBox& inRHS) const
 {
   return mMinMax[0] >= inRHS.mMinMax[0] && mMinMax[1] >= inRHS.mMinMax[1];
+}
+
+template <typename T, std::size_t N>
+AAHyperBox<T, N> AAHyperBox<T, N>::operator+(const Vec<T, N>& inRHS)
+{
+  return AAHyperBox<T, N>(mMinMax[0] + inRHS, mMinMax[1] + inRHS);
+}
+
+template <typename T, std::size_t N>
+AAHyperBox<T, N>& AAHyperBox<T, N>::operator+=(const Vec<T, N>& inRHS)
+{
+  *this = (*this + inRHS);
+  return *this;
+}
+
+template <typename T, std::size_t N>
+AAHyperBox<T, N> AAHyperBox<T, N>::operator*(const Vec<T, N>& inRHS)
+{
+  return AAHyperBox<T, N> { mMinMax[0] * inRHS, mMinMax[1] * inRHS };
+}
+
+template <typename T, std::size_t N>
+AAHyperBox<T, N>& AAHyperBox<T, N>::operator*=(const Vec<T, N>& inRHS)
+{
+  *this = (*this) * inRHS;
+  return *this;
 }
 
 template <typename T, std::size_t N>

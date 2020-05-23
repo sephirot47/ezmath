@@ -46,6 +46,22 @@ template <typename T>
 constexpr auto IsVecOrMat_v = IsVec_v<T> || IsMat_v<T>;
 
 template <typename T>
+constexpr auto _GetNumComponents()
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return 1;
+  }
+  else
+  {
+    return T::NumComponents;
+  }
+}
+
+template <typename T>
+constexpr auto NumComponents_v = _GetNumComponents<T>();
+
+template <typename T>
 auto _GetValueType()
 {
   if constexpr (IsNumber_v<T>)

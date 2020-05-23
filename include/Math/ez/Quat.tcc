@@ -278,6 +278,12 @@ constexpr Quat<T> AngleAxis(const T& inAngleRads, const Vec3<T>& inAxisNormalize
 }
 
 template <typename T>
+constexpr Quat<T> AxisAngle(const Vec3<T>& inAxisNormalized, const T& inAngleRads)
+{
+  return AngleAxis(inAngleRads, inAxisNormalized);
+}
+
+template <typename T>
 constexpr Quat<T> FromEulerAngles(const Vec3<T>& inEulerAnglesRads)
 {
   const auto qx = Quat<T>::AngleAxis(inEulerAnglesRads[0], Right<Vec3<T>>());

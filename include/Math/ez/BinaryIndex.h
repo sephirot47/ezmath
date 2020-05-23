@@ -21,8 +21,8 @@ constexpr GBinaryIndex<T, N> _MakeBinaryIndex(const std::size_t inSequentialInde
   {
     const auto twice_two_to_the_i = two_to_the_i * 2;
     auto& binary_index_comp = binary_index[N - i - 1];
-    binary_index_comp = static_cast<T>(static_cast<std::size_t>(inSequentialIndex) % twice_two_to_the_i) / two_to_the_i;
-    EXPECTS(binary_index_comp >= 0 && binary_index_comp <= 1);
+    binary_index_comp
+        = static_cast<std::size_t>(static_cast<std::size_t>(inSequentialIndex) % twice_two_to_the_i) / two_to_the_i;
     two_to_the_i = twice_two_to_the_i;
   }
   return binary_index;

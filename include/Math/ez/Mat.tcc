@@ -351,6 +351,30 @@ constexpr auto Inverted(const T& inValue)
   return inverse;
 }
 
+template <typename T>
+constexpr auto Translation(const SquareMat<T, 3>& inMat)
+{
+  return Vec<T, 2> { inMat[0][3], inMat[1][3] };
+}
+
+template <typename T>
+constexpr auto Translation(const SquareMat<T, 4>& inMat)
+{
+  return Vec<T, 3> { inMat[0][3], inMat[1][3], inMat[2][3] };
+}
+
+template <typename T>
+constexpr auto Scale(const SquareMat<T, 4>& inMat)
+{
+  return Vec<T, 3> { inMat[0][0], inMat[1][1] };
+}
+
+template <typename T>
+constexpr auto Scale(const SquareMat<T, 3>& inMat)
+{
+  return Vec<T, 3> { inMat[0][0], inMat[1][1], inMat[2][2] };
+}
+
 template <typename T, std::size_t N>
 constexpr SquareMat<T, N> NormalMat(const SquareMat<T, N>& inModelViewMatrix)
 {
