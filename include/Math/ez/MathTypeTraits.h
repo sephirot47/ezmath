@@ -39,7 +39,7 @@ constexpr bool IsAAHyperBox_v = IsAAHyperBox<T>::value;
 
 // IsNumber
 template <typename T>
-constexpr auto IsNumber_v = std::is_arithmetic_v<T>;
+constexpr auto IsNumber_v = std::is_arithmetic_v<std::remove_cvref_t<T>>;
 
 // IsVecOrMat
 template <typename T>
@@ -52,14 +52,26 @@ constexpr auto _GetNumComponents()
   {
     return 1;
   }
-  else
+  else if constexpr (IsVec_v<T>)
   {
     return T::NumComponents;
   }
+  else if constexpr (IsQuat_v<T>)
+  {
+    return T::NumComponents;
+  }
+  else if constexpr (IsMat_v<T>)
+  {
+    return T::NumComponents;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
-template <typename T>
-constexpr auto NumComponents_v = _GetNumComponents<T>();
+template <typename... TArgs>
+constexpr auto NumComponents_v = (_GetNumComponents<std::remove_cvref_t<TArgs>>() + ... + 0);
 
 template <typename T>
 auto _GetValueType()
@@ -75,7 +87,7 @@ auto _GetValueType()
 }
 
 template <typename T>
-using ValueType_t = decltype(_GetValueType<T>());
+using ValueType_t = decltype(_GetValueType<std::remove_cvref_t<T>>());
 
 template <typename T>
 constexpr std::size_t GetNumDimensions()

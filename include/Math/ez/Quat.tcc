@@ -314,7 +314,7 @@ constexpr Quat<T> FromTo(const Vec3<T>& inFromNormalized, const Vec3<T>& inToNor
   const auto s = static_cast<T>(std::sqrt((1 + from_to_dot) * 2));
   const auto inverse_of_s = (static_cast<T>(1.0) / s);
   const auto c = Cross(inFromNormalized, inToNormalized) * inverse_of_s;
-  return Normalized(Vec3<T> { c[0], c[1], c[2], s * 0.5 });
+  return Normalized(Quat<T> { c[0], c[1], c[2], s * 0.5 });
 }
 
 template <typename T>

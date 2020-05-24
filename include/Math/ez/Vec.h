@@ -34,8 +34,10 @@ public:
   template <typename TOther>
   constexpr explicit Vec(const Vec<TOther, N>& inOther) noexcept;
 
-  template <typename... TArgs, typename = std::enable_if_t<sizeof...(TArgs) == N>>
-  constexpr explicit Vec(TArgs&&... inArgs) noexcept;
+  template <typename... TArgs,
+      typename = std::enable_if_t<(
+          (sizeof...(TArgs) >= 2) && (NumComponents_v<TArgs...> == N) && ((IsVec_v<TArgs> || IsNumber_v<TArgs>)&&...))>>
+  constexpr explicit Vec(TArgs&&...) noexcept;
 
   constexpr Vec(const Vec&) noexcept = default;
   constexpr Vec& operator=(const Vec&) noexcept = default;

@@ -12,10 +12,47 @@ constexpr Vec<T, N>::Vec(const MITAll<T>& inMITAll) noexcept
 {
 }
 
+namespace internal
+{
+  template <typename T, std::size_t N, std::size_t Index>
+  constexpr auto MakeVecRec2(Vec<T, N>&) // Base case
+  {
+    static_assert(Index == N);
+  }
+
+  template <typename T, std::size_t N, std::size_t Index, typename TFirstArg, typename... TArgs>
+  constexpr auto MakeVecRec2(Vec<T, N>& ioVec, TFirstArg&& ioFirstArg, TArgs&&... ioArgs)
+  {
+    if constexpr (IsNumber_v<TFirstArg>)
+    {
+      ioVec[Index] = ioFirstArg;
+      internal::MakeVecRec2<T, N, Index + 1>(ioVec, std::forward<TArgs>(ioArgs)...);
+    }
+    else if constexpr (IsVec_v<TFirstArg>)
+    {
+      constexpr auto PartNumComponents = NumComponents_v<TFirstArg>;
+      for (std::size_t i = 0; i < PartNumComponents; ++i) { ioVec[i + Index] = ioFirstArg[i]; }
+      internal::MakeVecRec2<T, N, Index + PartNumComponents>(ioVec, std::forward<TArgs>(ioArgs)...);
+    }
+  }
+
+  template <typename TFirstArg, typename... TArgs>
+  constexpr auto MakeVecRec(TFirstArg&& ioFirstArg, TArgs&&... ioArgs)
+  {
+    using ValueType = ValueType_t<TFirstArg>;
+    constexpr auto N = NumComponents_v<TFirstArg> + (NumComponents_v<TArgs> + ...);
+
+    Vec<ValueType, N> vec;
+    internal::MakeVecRec2<ValueType, N, 0>(vec, std::forward<TFirstArg>(ioFirstArg), std::forward<TArgs>(ioArgs)...);
+    return vec;
+  }
+}
+
 template <typename T, std::size_t N>
 template <typename... TArgs, typename>
-constexpr Vec<T, N>::Vec(TArgs&&... inArgs) noexcept : mComponents { std::forward<TArgs>(inArgs)... }
+constexpr Vec<T, N>::Vec(TArgs&&... ioArgs) noexcept
 {
+  *this = internal::MakeVecRec(std::forward<TArgs>(ioArgs)...);
 }
 
 template <typename T, std::size_t N>
@@ -371,28 +408,19 @@ constexpr Vec3<T> Cross(const Vec3<T>& inLHS, const Vec3<T>& inRHS)
 template <typename T>
 constexpr auto Right()
 {
-  static_assert(T::NumComponents >= 1);
-  T result = All<T>(static_cast<typename T::ValueType>(0));
-  result[0] = static_cast<typename T::ValueType>(1);
-  return result;
+  return WithPart<0, 0>(Zero<T>(), static_cast<ValueType_t<T>>(1));
 }
 
 template <typename T>
 constexpr auto Up()
 {
-  static_assert(T::NumComponents >= 2);
-  T result = All<T>(static_cast<typename T::ValueType>(0));
-  result[1] = static_cast<typename T::ValueType>(1);
-  return result;
+  return WithPart<1, 1>(Zero<T>(), static_cast<ValueType_t<T>>(1));
 }
 
 template <typename T>
 constexpr auto Forward()
 {
-  static_assert(T::NumComponents >= 3);
-  T result = All<T>(static_cast<typename T::ValueType>(0));
-  result[2] = static_cast<typename T::ValueType>(-1);
-  return result;
+  return WithPart<2, 2>(Zero<T>(), static_cast<ValueType_t<T>>(-1));
 }
 
 template <typename T>
