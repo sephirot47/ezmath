@@ -259,6 +259,38 @@ inline std::ostream& operator<<(std::ostream& inLHS, const Mat<T, NRows, NCols>&
   return inLHS;
 }
 
+template <typename T, std::size_t N, std::size_t NCols>
+constexpr Vec<T, N> Column(const Mat<T, N, NCols>& inMat, const std::size_t inColumn)
+{
+  Vec<T, N> column;
+  for (std::size_t i = 0; i < N; ++i) { column[i] = inMat[i][inColumn]; }
+  return column;
+}
+
+template <typename T, std::size_t N, std::size_t NCols>
+constexpr Vec<T, N> Row(const Mat<T, N, NCols>& inMat, const std::size_t inRow)
+{
+  Vec<T, N> row;
+  for (std::size_t i = 0; i < N; ++i) { row[i] = inMat[inRow][i]; }
+  return row;
+}
+
+template <std::size_t IColumn, typename T, std::size_t N, std::size_t NCols>
+constexpr Vec<T, N> Column(const Mat<T, N, NCols>& inMat)
+{
+  Vec<T, N> column;
+  for (std::size_t i = 0; i < N; ++i) { column[i] = inMat[i][IColumn]; }
+  return column;
+}
+
+template <std::size_t IRow, typename T, std::size_t N, std::size_t NCols>
+constexpr Vec<T, N> Row(const Mat<T, N, NCols>& inMat)
+{
+  Vec<T, N> row;
+  for (std::size_t i = 0; i < N; ++i) { row[i] = inMat[IRow][i]; }
+  return row;
+}
+
 template <typename T, std::size_t N>
 constexpr SquareMat<T, N> Transposed(const SquareMat<T, N>& inMat)
 {
@@ -354,13 +386,13 @@ constexpr auto Inverted(const T& inValue)
 template <typename T>
 constexpr auto Translation(const SquareMat<T, 3>& inMat)
 {
-  return Vec<T, 2> { inMat[0][3], inMat[1][3] };
+  return Part<0, 1>(Column<2>(inMat));
 }
 
 template <typename T>
 constexpr auto Translation(const SquareMat<T, 4>& inMat)
 {
-  return Vec<T, 3> { inMat[0][3], inMat[1][3], inMat[2][3] };
+  return Part<0, 2>(Column<3>(inMat));
 }
 
 template <typename T>
@@ -478,5 +510,4 @@ constexpr T Diagonal(const ValueType_t<T>& inDiagonalValue)
     static_assert(!std::is_same_v<T, T>, "Not implemented for this type.");
   }
 }
-
 }

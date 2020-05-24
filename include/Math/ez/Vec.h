@@ -4,6 +4,7 @@
 #include "ez/MathInitializerTokens.h"
 #include "ez/MathTypeTraits.h"
 #include "ez/VariadicRepeat.h"
+#include "ez/VecPart.h"
 #include <array>
 #include <cstdint>
 #include <initializer_list>
@@ -95,7 +96,7 @@ inline constexpr Vec<T, N> operator*(const T& inLHS, const Vec<T, N>& inRHS);
 template <typename T, std::size_t N>
 inline constexpr Vec<T, N> operator/(const T& inLHS, const Vec<T, N>& inRHS);
 template <typename T, std::size_t N>
-inline std::ostream& operator<<(std::ostream& inLHS, const Vec<T, N>& inRHS);
+inline std::ostream& operator<<(std::ostream& ioLHS, const Vec<T, N>& inRHS);
 
 // Traits
 template <typename T, std::size_t N>

@@ -78,6 +78,18 @@ struct IsMat<Mat<T, N, N>> final : std::true_type
 {
 };
 
+template <typename T, std::size_t N, std::size_t NCols>
+constexpr Vec<T, N> Column(const Mat<T, N, NCols>& inMat, const std::size_t inColumn);
+
+template <typename T, std::size_t N, std::size_t NCols>
+constexpr Vec<T, N> Row(const Mat<T, N, NCols>& inMat, const std::size_t inRow);
+
+template <std::size_t IColumn, typename T, std::size_t N, std::size_t NCols>
+constexpr Vec<T, N> Column(const Mat<T, N, NCols>& inMat);
+
+template <std::size_t IRow, typename T, std::size_t N, std::size_t NCols>
+constexpr Vec<T, N> Row(const Mat<T, N, NCols>& inMat);
+
 template <typename T, std::size_t N>
 constexpr SquareMat<T, N> Transposed(const SquareMat<T, N>& inMat);
 
