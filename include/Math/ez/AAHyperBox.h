@@ -2,6 +2,7 @@
 
 #include "ez/IntersectMode.h"
 #include "ez/MathMultiComponent.h"
+#include "ez/MathTypeTraits.h"
 #include "ez/Vec.h"
 
 namespace ez
@@ -87,11 +88,6 @@ public:
   AAHyperBox::PointsConstIterator cbegin() const { return PointsConstIterator(*this, 0); }
   AAHyperBox::PointsConstIterator cend() const { return PointsConstIterator(*this, NumPoints); }
 
-  std::array<Vec<T, N>, 2>::iterator GetTransformIteratorBegin() { return mMinMax.begin(); }
-  std::array<Vec<T, N>, 2>::iterator GetTransformIteratorEnd() { return mMinMax.end(); }
-
-  using TransformIterator = std::array<Vec<T, N>, 2>::iterator;
-
 private:
   std::array<Vec<T, N>, 2> mMinMax = { Max<Vec<T, N>>(), Min<Vec<T, N>>() }; // Init with invalid
 };
@@ -101,6 +97,12 @@ template <typename T, std::size_t N>
 struct IsAAHyperBox<AAHyperBox<T, N>> : std::true_type
 {
 };
+
+template <typename T, std::size_t N>
+const auto MakeAAHyperBoxFromCenterHalfSize(const Vec<T, N>& inCenter, const Vec<T, N>& inHalfSize)
+{
+  return MakeAAHyperBoxFromMinMax(inCenter - inHalfSize, inCenter + inHalfSize);
+}
 
 template <typename T, std::size_t N>
 const auto MakeAAHyperBoxFromMinSize(const Vec<T, N>& inMin, const Vec<T, N>& inSize)
@@ -114,12 +116,24 @@ const auto MakeAAHyperBoxFromMinMax(const Vec<T, N>& inMin, const Vec<T, N>& inM
   return AAHyperBox<T, N>(inMin, inMax);
 }
 
+template <typename T, std::size_t N>
+std::ostream& operator<<(std::ostream& ioLHS, const AAHyperBox<T, N>& inAAHyperBox)
+{
+  ioLHS << "(" << inAAHyperBox.GetMin() << ", " << inAAHyperBox.GetMax() << ")";
+  return ioLHS;
+}
+
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const AAHyperBox<T, N>& inLHS, const AAHyperBox<T, N>& inRHS)
 {
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
-  return inLHS.GetMin() <= inRHS.GetMax() || inRHS.GetMin() <= inLHS.GetMax();
+  for (std::size_t i = 0; i < N; ++i)
+  {
+    if ((inLHS.GetMin()[i] > inRHS.GetMax()[i]) || (inRHS.GetMin()[i] > inLHS.GetMax()[i]))
+      return false;
+  }
+  return true;
 }
 
 template <typename T, std::size_t N>
@@ -131,12 +145,32 @@ bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Vec<T, N>& inPoint)
 template <typename T, std::size_t N>
 bool Contains(const AAHyperBox<T, N>& inAAHyperBoxContainer, const AAHyperBox<T, N>& inAAHyperBoxContainee)
 {
-  return Contains(inAAHyperBoxContainer, inAAHyperBoxContainee.GetMin())
-      && Contains(inAAHyperBoxContainer, inAAHyperBoxContainee.GetMax());
+  return inAAHyperBoxContainee.GetMin() >= inAAHyperBoxContainer.GetMin()
+      && inAAHyperBoxContainee.GetMax() <= inAAHyperBoxContainer.GetMax();
 }
 
-template <typename T>
-constexpr auto BoundingAAHyperBox(const T& inThingToBound);
+template <typename T, std::size_t N>
+constexpr auto BoundingAAHyperBox(const AAHyperBox<T, N>& inAAHyperBox);
+
+template <typename T, std::size_t N>
+constexpr auto BoundingAAHyperBoxTransformed(const AAHyperBox<T, N>& inAAHyperBox,
+    const Transformation<T, N>& inTransformation);
+
+template <typename T, std::size_t N>
+constexpr auto BoundingAAHyperBoxInverseTransformed(const AAHyperBox<T, N>& inAAHyperBox,
+    const Transformation<T, N>& inTransformation);
+
+template <typename T, std::size_t N>
+void Transform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const SquareMat<T, N>& inTransformMatrix);
+
+template <typename T, std::size_t N>
+void Transform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const SquareMat<T, N + 1>& inTransformMatrix);
+
+template <typename T, std::size_t N>
+void Transform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const Transformation<T, N>& inTransformation);
+
+template <typename T, std::size_t N>
+void InverseTransform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const Transformation<T, N>& inTransformation);
 }
 
 #include "ez/AAHyperBox.tcc"

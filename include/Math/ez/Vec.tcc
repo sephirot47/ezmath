@@ -25,25 +25,24 @@ namespace internal
   {
     if constexpr (IsNumber_v<TFirstArg>)
     {
-      ioVec[Index] = ioFirstArg;
+      ioVec[Index] = static_cast<T>(ioFirstArg);
       internal::MakeVecRec2<T, N, Index + 1>(ioVec, std::forward<TArgs>(ioArgs)...);
     }
     else if constexpr (IsVec_v<TFirstArg>)
     {
       constexpr auto PartNumComponents = NumComponents_v<TFirstArg>;
-      for (std::size_t i = 0; i < PartNumComponents; ++i) { ioVec[i + Index] = ioFirstArg[i]; }
+      for (std::size_t i = 0; i < PartNumComponents; ++i) { ioVec[i + Index] = static_cast<T>(ioFirstArg[i]); }
       internal::MakeVecRec2<T, N, Index + PartNumComponents>(ioVec, std::forward<TArgs>(ioArgs)...);
     }
   }
 
-  template <typename TFirstArg, typename... TArgs>
+  template <typename T, typename TFirstArg, typename... TArgs>
   constexpr auto MakeVecRec(TFirstArg&& ioFirstArg, TArgs&&... ioArgs)
   {
-    using ValueType = ValueType_t<TFirstArg>;
     constexpr auto N = NumComponents_v<TFirstArg> + (NumComponents_v<TArgs> + ...);
 
-    Vec<ValueType, N> vec;
-    internal::MakeVecRec2<ValueType, N, 0>(vec, std::forward<TFirstArg>(ioFirstArg), std::forward<TArgs>(ioArgs)...);
+    Vec<T, N> vec;
+    internal::MakeVecRec2<T, N, 0>(vec, std::forward<TFirstArg>(ioFirstArg), std::forward<TArgs>(ioArgs)...);
     return vec;
   }
 }
@@ -52,7 +51,7 @@ template <typename T, std::size_t N>
 template <typename... TArgs, typename>
 constexpr Vec<T, N>::Vec(TArgs&&... ioArgs) noexcept
 {
-  *this = internal::MakeVecRec(std::forward<TArgs>(ioArgs)...);
+  *this = internal::MakeVecRec<T>(std::forward<TArgs>(ioArgs)...);
 }
 
 template <typename T, std::size_t N>
@@ -440,4 +439,58 @@ constexpr T Back()
 {
   return -Forward<T>();
 }
+
+template <typename T, std::size_t N>
+void Transform(Vec<T, N>& ioPoint, const Transformation<T, N>& inTransformation)
+{
+  ioPoint = inTransformation.TransformedPoint(ioPoint);
+}
+
+template <typename T, std::size_t N>
+void Transform(Vec<T, N>& ioPoint, const SquareMat<T, N>& inTransformMatrix)
+{
+  ioPoint = (inTransformMatrix * ioPoint);
+}
+
+template <typename T, std::size_t N>
+void Transform(Vec<T, N>& ioPoint, const SquareMat<T, N + 1>& inTransformMatrix)
+{
+  // If the point has one less dimension than the transform matrix, convert the point to one
+  // more dimension by adding a 1 at the end, and then retrieve it from the result
+
+  Vec<T, N + 1> point_and_1;
+  for (std::size_t i = 0; i < N; ++i) { point_and_1[i] = ioPoint[i]; }
+  point_and_1[N] = static_cast<T>(1);
+
+  const auto transformed_point_and_1 = Transformed(point_and_1, inTransformMatrix);
+  for (std::size_t i = 0; i < N; ++i) { ioPoint[i] = transformed_point_and_1[i]; }
+}
+
+template <typename T, std::size_t N>
+void InverseTransform(Vec<T, N>& ioPoint, const Transformation<ValueType_t<T>, N>& inTransformation)
+{
+  ioPoint = inTransformation.InverseTransformedPoint(ioPoint);
+}
+
+template <typename T, std::size_t N>
+constexpr auto BoundingAAHyperBox(const Vec<T, N>& inPoint)
+{
+  return AAHyperBox<T, N>(inPoint, inPoint);
+}
+
+template <typename T, std::size_t N>
+constexpr auto BoundingAAHyperBoxTransformed(const Vec<T, N>& inPoint, const Transformation<T, N>& inTransformation)
+{
+  const auto transformed_point = inTransformation.TransformedPoint(inPoint);
+  return BoundingAAHyperBox(transformed_point, transformed_point);
+}
+
+template <typename T, std::size_t N>
+constexpr auto BoundingAAHyperBoxInverseTransformed(const Vec<T, N>& inPoint,
+    const Transformation<T, N>& inTransformation)
+{
+  const auto inverse_transformed_point = inTransformation.InverseTransformedPoint(inPoint);
+  return BoundingAAHyperBox(inverse_transformed_point, inverse_transformed_point);
+}
+
 }

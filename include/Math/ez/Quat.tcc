@@ -356,6 +356,18 @@ constexpr Vec3<T> Rotated(const Vec3<T>& inVec, const Quat<T>& inRotation)
   return inRotation * inVec;
 }
 
+template <typename T>
+constexpr AngleRads Rotated(const AngleRads inLHS, const AngleRads inRHS)
+{
+  return inLHS + inRHS;
+}
+
+template <typename T>
+constexpr Quat<T> Rotated(const Quat<T>& inLHS, const Quat<T>& inRHS)
+{
+  return inLHS * inRHS;
+}
+
 template <typename T, typename TQuat>
 constexpr TQuat SLerp(const TQuat& inFrom, const TQuat& inTo, const T& inT)
 {

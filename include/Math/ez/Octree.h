@@ -29,6 +29,12 @@ public:
   {
     ValueType mDistance { Infinity<ValueType>() };            // The distance to the intersection
     PrimitiveIndex mPrimitiveIndex { Max<PrimitiveIndex>() }; // The intersected primitive index in the primitive pool
+
+    Intersection() = default;
+    Intersection(const ValueType& inDistance, const PrimitiveIndex& inPrimitiveIndex)
+        : mDistance { inDistance }, mPrimitiveIndex { inPrimitiveIndex }
+    {
+    }
   };
 
   Octree() = default;

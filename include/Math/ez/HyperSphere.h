@@ -119,4 +119,13 @@ bool Contains(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inPoint)
 {
   return SqDistance(inPoint, inHyperSphere.GetCenter()) <= Sq(inHyperSphere.GetRadius());
 }
+
+template <typename T, std::size_t N>
+AAHyperBox<T, N> BoundingAAHyperBox(const HyperSphere<T, N>& inHyperSphere)
+{
+  return MakeAAHyperBoxFromCenterHalfSize(inHyperSphere.GetCenter(), All<Vec<T, N>>(inHyperSphere.GetRadius()));
 }
+
+}
+
+#include "ez/HyperSphere.tcc"

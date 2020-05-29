@@ -33,6 +33,18 @@ private:
   Vec<T, N> mDirection = Right<Vec<T, N>>();
 };
 
+// Transformation specializations
+template <typename T, std::size_t N>
+void Transform(Ray<T, N>& ioRayToTransform, const Transformation<ValueType_t<T>, N>& inTransformation);
+
+template <typename T, std::size_t N>
+void Transform(Ray<T, N>& ioRayToTransform, const SquareMat<ValueType_t<T>, N>& inTransformMatrix);
+
+template <typename T, std::size_t N>
+void Transform(Ray<T, N>& ioRayToTransform, const SquareMat<T, N + 1>& inTransformMatrix);
+
+template <typename T, std::size_t N>
+void InverseTransform(Ray<T, N>& ioRayToTransform, const Transformation<ValueType_t<T>, N>& inTransformation);
 }
 
 #include "ez/Ray.tcc"

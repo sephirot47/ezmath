@@ -142,6 +142,30 @@ constexpr T Down();
 
 template <typename T>
 constexpr T Back();
+
+// Transformation specializations. These are point transformations (not directions!)
+template <typename T, std::size_t N>
+void Transform(Ray<T, N>& ioRayToTransform, const Transformation<ValueType_t<T>, N>& inTransformation);
+
+template <typename T, std::size_t N>
+void Transform(Vec<T, N>& ioPoint, const SquareMat<T, N>& inTransformation);
+
+template <typename T, std::size_t N>
+void Transform(Vec<T, N>& ioPoint, const SquareMat<T, N + 1>& inTransformMatrix);
+
+template <typename T, std::size_t N>
+void InverseTransform(Vec<T, N>& ioPoint, const Transformation<ValueType_t<T>, N>& inTransformation);
+
+template <typename T, std::size_t N>
+constexpr auto BoundingAAHyperBox(const Vec<T, N>& inPoint);
+
+template <typename T, std::size_t N>
+constexpr auto BoundingAAHyperBoxTransformed(const Vec<T, N>& inPoint, const Transformation<T, N>& inTransformation);
+
+template <typename T, std::size_t N>
+constexpr auto BoundingAAHyperBoxInverseTransformed(const Vec<T, N>& inPoint,
+    const Transformation<T, N>& inTransformation);
+
 }
 
 #include "ez/Vec.tcc"

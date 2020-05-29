@@ -2,6 +2,7 @@
 
 #include "ez/AAHyperBox.h"
 #include "ez/IntersectMode.h"
+#include "ez/Plane.h"
 #include <array>
 #include <optional>
 
@@ -78,7 +79,7 @@ auto Intersect(const Ray<T, 3>& inRay, const AABox<T>& inAABox)
   }
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
   {
-    return std::nullopt;
+    return std::optional<float> {};
   }
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
   {
@@ -89,7 +90,7 @@ auto Intersect(const Ray<T, 3>& inRay, const AABox<T>& inAABox)
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const AABox<T>& inAABox, const Ray<T, 3>& inRay)
 {
-  return Intersect(inRay, inAABox);
+  return Intersect<TIntersectMode>(inRay, inAABox);
 }
 
 template <typename T>
@@ -109,6 +110,22 @@ constexpr auto BoundingAABox(const T& inThingToBound)
 {
   static_assert(NumDimensions_v<T> == 3);
   return BoundingAAHyperBox(inThingToBound);
+}
+
+template <typename T>
+constexpr auto BoundingAABoxTransformed(const T& inThingToBound,
+    const Transformation<ValueType_t<T>, NumDimensions_v<T>>& inTransformation)
+{
+  static_assert(NumDimensions_v<T> == 3);
+  return BoundingAAHyperBoxTransformed(inThingToBound, inTransformation);
+}
+
+template <typename T>
+constexpr auto BoundingAABoxInverseTransformed(const T& inThingToBound,
+    const Transformation<ValueType_t<T>, NumDimensions_v<T>>& inTransformation)
+{
+  static_assert(NumDimensions_v<T> == 3);
+  return BoundingAAHyperBoxInverseTransformed(inThingToBound, inTransformation);
 }
 
 };

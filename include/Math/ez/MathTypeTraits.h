@@ -37,6 +37,14 @@ struct IsAAHyperBox final : std::false_type
 template <typename T>
 constexpr bool IsAAHyperBox_v = IsAAHyperBox<T>::value;
 
+// IsTransformation. Template specialization for Transformation is in "Transformation.h"
+template <typename T>
+struct IsTransformation final : std::false_type
+{
+};
+template <typename T>
+inline constexpr bool IsTransformation_v = IsTransformation<T>::value;
+
 // IsNumber
 template <typename T>
 constexpr auto IsNumber_v = std::is_arithmetic_v<std::remove_cvref_t<T>>;
@@ -90,7 +98,7 @@ template <typename T>
 using ValueType_t = decltype(_GetValueType<std::remove_cvref_t<T>>());
 
 template <typename T>
-constexpr std::size_t GetNumDimensions()
+constexpr std::size_t _GetNumDimensions()
 {
   if constexpr (IsNumber_v<T>)
   {
@@ -98,7 +106,7 @@ constexpr std::size_t GetNumDimensions()
   }
   else if constexpr (IsSpan_v<T>)
   {
-    return GetNumDimensions<ValueType_t<T>>();
+    return _GetNumDimensions<ValueType_t<T>>();
   }
   else
   {
@@ -106,7 +114,7 @@ constexpr std::size_t GetNumDimensions()
   }
 };
 
-template <typename T>
-static constexpr auto NumDimensions_v = GetNumDimensions<T>();
+template <typename... TArgs>
+static constexpr auto NumDimensions_v = (_GetNumDimensions<std::remove_cvref_t<TArgs>>() + ... + 0);
 
 }
