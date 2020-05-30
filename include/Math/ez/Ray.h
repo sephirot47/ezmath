@@ -33,6 +33,13 @@ private:
   Vec<T, N> mDirection = Right<Vec<T, N>>();
 };
 
+template <typename T, std::size_t N>
+inline std::ostream& operator<<(std::ostream& ioLHS, const Ray<T, N>& inRHS)
+{
+  ioLHS << "(" << inRHS.GetOrigin() << ", " << inRHS.GetDirection() << ")";
+  return ioLHS;
+}
+
 // Transformation specializations
 template <typename T, std::size_t N>
 void Transform(Ray<T, N>& ioRayToTransform, const Transformation<ValueType_t<T>, N>& inTransformation);

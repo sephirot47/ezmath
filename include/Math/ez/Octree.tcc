@@ -299,8 +299,6 @@ struct IntersectHelperStruct
       if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
       {
         const auto intersection_point = inRay.GetPoint(*inIntersectionDistance);
-        if (!Contains(inOctree.mAABox, intersection_point))
-          return; // Only consider intersections of this primitive inside this box. To avoid duplicates.
         ioIntersections.emplace_back(*inIntersectionDistance, inPrimitiveIndex);
       }
       else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
@@ -401,6 +399,40 @@ struct IntersectHelperStruct
     }
     else
     {
+      // If the ray origin is inside the octree, forward the intersection to its children
+      if (Contains(inOctree.mAABox, inRay.GetOrigin()))
+      {
+        if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+        {
+          for (const auto& child_octree : inOctree)
+          {
+            if (IntersectRecursive<TIntersectMode>(child_octree,
+                    inRay,
+                    inMaxDistance,
+                    inPrimitivesPool,
+                    ioIntersections))
+              return true;
+          }
+          return false;
+        }
+        else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+        {
+          for (const auto& child_octree : inOctree)
+          {
+            IntersectRecursive<TIntersectMode>(child_octree, inRay, inMaxDistance, inPrimitivesPool, ioIntersections);
+          }
+          return;
+        }
+        else if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+        {
+          for (const auto& child_octree : inOctree)
+          {
+            IntersectRecursive<TIntersectMode>(child_octree, inRay, inMaxDistance, inPrimitivesPool, ioIntersections);
+          }
+          return;
+        }
+      }
+
       // Recursive case, check which children octrees the ray intersects
       std::array<std::optional<typename OctreeType::ChildSequentialIndex>, 4> child_octree_indices_to_explore;
 

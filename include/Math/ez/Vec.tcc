@@ -441,6 +441,16 @@ constexpr T Back()
 }
 
 template <typename T, std::size_t N>
+constexpr Vec<T, N> Reflect(const Vec<T, N>& inIncomingVectorNormalized, const Vec<T, N>& inNormalNormalized)
+{
+  EXPECTS(IsNormalized(inIncomingVectorNormalized));
+  EXPECTS(IsNormalized(inNormalNormalized));
+  const auto reflected = inIncomingVectorNormalized
+      + static_cast<T>(2) * Dot(inIncomingVectorNormalized, inNormalNormalized) * inNormalNormalized;
+  return reflected;
+}
+
+template <typename T, std::size_t N>
 void Transform(Vec<T, N>& ioPoint, const Transformation<T, N>& inTransformation)
 {
   ioPoint = inTransformation.TransformedPoint(ioPoint);

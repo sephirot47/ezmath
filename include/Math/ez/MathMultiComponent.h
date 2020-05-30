@@ -266,6 +266,25 @@ constexpr auto Min(const T& inValue)
 }
 
 template <typename T>
+constexpr auto MinIndex(const T& inValue)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return 0;
+  }
+  else
+  {
+    auto min_index = 0ul;
+    for (std::size_t i = 0ul; i < NumComponents_v<T>; ++i)
+    {
+      if (inValue[i] > inValue[min_index])
+        min_index = i;
+    }
+    return min_index;
+  }
+}
+
+template <typename T>
 constexpr auto Min()
 {
   return All<T>(std::numeric_limits<ValueType_t<T>>::lowest());
@@ -296,6 +315,25 @@ constexpr auto Max(const T& inValue)
     auto max = std::numeric_limits<ValueType_t<T>>::min();
     for (const auto& component : inValue) { max = std::max(max, Max(component)); }
     return max;
+  }
+}
+
+template <typename T>
+constexpr auto MaxIndex(const T& inValue)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return 0;
+  }
+  else
+  {
+    auto max_index = 0ul;
+    for (std::size_t i = 0ul; i < NumComponents_v<T>; ++i)
+    {
+      if (inValue[i] > inValue[max_index])
+        max_index = i;
+    }
+    return max_index;
   }
 }
 

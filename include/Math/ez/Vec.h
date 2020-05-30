@@ -143,6 +143,9 @@ constexpr T Down();
 template <typename T>
 constexpr T Back();
 
+template <typename T, std::size_t N>
+constexpr Vec<T, N> Reflect(const Vec<T, N> &inIncomingVectorNormalized, const Vec<T, N> &inNormalNormalized);
+
 // Transformation specializations. These are point transformations (not directions!)
 template <typename T, std::size_t N>
 void Transform(Ray<T, N>& ioRayToTransform, const Transformation<ValueType_t<T>, N>& inTransformation);

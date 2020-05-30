@@ -27,6 +27,8 @@ auto Intersect(const Ray<T, 3>& inRay, const AABox<T>& inAABox)
   };
 
   const auto aabox_size = inAABox.GetSize();
+  const auto ray_is_inside = Contains(inAABox, inRay.GetOrigin());
+  UNUSED(ray_is_inside); // To avoid warning
 
   auto intersections_found = 0;
   std::array<std::optional<T>, 2> intersection_distances;
@@ -34,42 +36,51 @@ auto Intersect(const Ray<T, 3>& inRay, const AABox<T>& inAABox)
   {
     // Check whether it intersects the plane
     const auto& aabox_face_normal = BoxFaceNormals[i];
+    if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    {
+      // Only consider enter faces, since that will be the necessarily the closest one in the ray dir.
+      // But if the ray origin is inside, then the first plane it touches will be the closest one in the ray dir.
+      if (!ray_is_inside && Dot(aabox_face_normal, inRay.GetDirection()) > 0)
+        continue;
+    }
+
     const auto& aabox_face_point = (i < 3) ? inAABox.GetMin() : inAABox.GetMax();
     const auto aabox_face_plane = Planef(aabox_face_normal, aabox_face_point);
-    if (const auto intersection_distance = IntersectClosest(inRay, aabox_face_plane))
+    const auto intersection_distance = IntersectClosest(inRay, aabox_face_plane);
+    if (!intersection_distance)
+      continue;
+
+    // If it intersects the plane, then check if the intersection point is inside the box
+    const auto intersection_point = inRay.GetPoint(*intersection_distance);
+
+    auto aabox_face_normal_projector = One<Vec3<T>>();
+    aabox_face_normal_projector[i % 3] = static_cast<T>(0);
+
+    const auto reprojected_intersection_point = aabox_face_normal_projector * intersection_point;
+    const auto reprojected_box_face_min = aabox_face_normal_projector * inAABox.GetMin();
+    const auto reprojected_box_face_max = aabox_face_normal_projector * inAABox.GetMax();
+
+    const auto intersection_point_contained_in_aabox_face
+        = IsBetween(reprojected_intersection_point, reprojected_box_face_min, reprojected_box_face_max);
+
+    if (!intersection_point_contained_in_aabox_face)
+      continue;
+
+    if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
     {
-      // If it intersects the plane, then check if the intersection point is inside the box
-      const auto intersection_point = inRay.GetPoint(*intersection_distance);
+      intersection_distances[intersections_found] = intersection_distance;
 
-      auto aabox_face_normal_projector = One<Vec3<T>>();
-      aabox_face_normal_projector[i % 3] = static_cast<T>(0);
-
-      const auto reprojected_intersection_point = aabox_face_normal_projector * intersection_point;
-      const auto reprojected_box_face_min = aabox_face_normal_projector * inAABox.GetMin();
-      const auto reprojected_box_face_max = aabox_face_normal_projector * inAABox.GetMax();
-
-      const auto intersection_point_contained_in_aabox_face
-          = IsBetween(reprojected_intersection_point, reprojected_box_face_min, reprojected_box_face_max);
-
-      if (intersection_point_contained_in_aabox_face)
-      {
-        if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
-        {
-          intersection_distances[intersections_found] = intersection_distance;
-
-          ++intersections_found;
-          if (intersections_found == 2)
-            break;
-        }
-        else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-        {
-          return intersection_distance;
-        }
-        else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-        {
-          return true;
-        }
-      }
+      ++intersections_found;
+      if (intersections_found == 2)
+        break;
+    }
+    else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    {
+      return intersection_distance;
+    }
+    else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+    {
+      return true;
     }
   }
 
@@ -127,5 +138,4 @@ constexpr auto BoundingAABoxInverseTransformed(const T& inThingToBound,
   static_assert(NumDimensions_v<T> == 3);
   return BoundingAAHyperBoxInverseTransformed(inThingToBound, inTransformation);
 }
-
 };

@@ -183,53 +183,61 @@ template <typename T, std::size_t N>
 constexpr auto BoundingAAHyperBoxTransformed(const AAHyperBox<T, N>& inAAHyperBox,
     const Transformation<T, N>& inTransformation)
 {
-  AAHyperBox<T, N> hyper_box;
+  AAHyperBox<T, N> transformed_hyper_box;
   std::for_each(inAAHyperBox.cbegin(), inAAHyperBox.cend(), [&](const auto& inPoint) {
-    hyper_box.Wrap(Transformed(inPoint, inTransformation));
+    transformed_hyper_box.Wrap(Transformed(inPoint, inTransformation));
   });
-  return hyper_box;
+  return transformed_hyper_box;
 }
 
 template <typename T, std::size_t N>
 constexpr auto BoundingAAHyperBoxInverseTransformed(const AAHyperBox<T, N>& inAAHyperBox,
     const Transformation<T, N>& inTransformation)
 {
-  AAHyperBox<T, N> hyper_box;
+  AAHyperBox<T, N> transformed_hyper_box;
   std::for_each(inAAHyperBox.cbegin(), inAAHyperBox.cend(), [&](const auto& inPoint) {
-    hyper_box.Wrap(InverseTransformed(inPoint, inTransformation));
+    transformed_hyper_box.Wrap(InverseTransformed(inPoint, inTransformation));
   });
-  return hyper_box;
+  return transformed_hyper_box;
 }
 
 template <typename T, std::size_t N>
 void Transform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const SquareMat<T, N>& inTransformMatrix)
 {
-  const auto p0 = Transformed(ioAAHyperBoxToTransform.GetMin(), inTransformMatrix);
-  const auto p1 = Transformed(ioAAHyperBoxToTransform.GetMax(), inTransformMatrix);
-  ioAAHyperBoxToTransform.SetMinMax(Min(p0, p1), Max(p0, p1));
+  AAHyperBox<T, N> transformed_hyper_box;
+  std::for_each(ioAAHyperBoxToTransform.cbegin(), ioAAHyperBoxToTransform.cend(), [&](const auto& inPoint) {
+    transformed_hyper_box.Wrap(InverseTransformed(inPoint, inTransformMatrix));
+  });
+  ioAAHyperBoxToTransform = transformed_hyper_box;
 }
 
 template <typename T, std::size_t N>
 void Transform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const SquareMat<T, N + 1>& inTransformMatrix)
 {
-  const auto p0 = XYZ(Transformed(XYZ1(ioAAHyperBoxToTransform.GetMin()), inTransformMatrix));
-  const auto p1 = XYZ(Transformed(XYZ1(ioAAHyperBoxToTransform.GetMax()), inTransformMatrix));
-  ioAAHyperBoxToTransform.SetMinMax(Min(p0, p1), Max(p0, p1));
+  AAHyperBox<T, N> transformed_hyper_box;
+  std::for_each(ioAAHyperBoxToTransform.cbegin(), ioAAHyperBoxToTransform.cend(), [&](const auto& inPoint) {
+    transformed_hyper_box.Wrap(Transformed(inPoint, inTransformMatrix));
+  });
+  ioAAHyperBoxToTransform = transformed_hyper_box;
 }
 
 template <typename T, std::size_t N>
 void Transform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const Transformation<T, N>& inTransformation)
 {
-  const auto p0 = inTransformation.TransformedPoint(ioAAHyperBoxToTransform.GetMin());
-  const auto p1 = inTransformation.TransformedPoint(ioAAHyperBoxToTransform.GetMax());
-  ioAAHyperBoxToTransform.SetMinMax(Min(p0, p1), Max(p0, p1));
+  AAHyperBox<T, N> transformed_hyper_box;
+  std::for_each(ioAAHyperBoxToTransform.cbegin(), ioAAHyperBoxToTransform.cend(), [&](const auto& inPoint) {
+    transformed_hyper_box.Wrap(Transformed(inPoint, inTransformation));
+  });
+  ioAAHyperBoxToTransform = transformed_hyper_box;
 }
 
 template <typename T, std::size_t N>
 void InverseTransform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const Transformation<T, N>& inTransformation)
 {
-  const auto p0 = inTransformation.InverseTransformedPoint(ioAAHyperBoxToTransform.GetMin());
-  const auto p1 = inTransformation.InverseTransformedPoint(ioAAHyperBoxToTransform.GetMax());
-  ioAAHyperBoxToTransform.SetMinMax(Min(p0, p1), Max(p0, p1));
+  AAHyperBox<T, N> transformed_hyper_box;
+  std::for_each(ioAAHyperBoxToTransform.cbegin(), ioAAHyperBoxToTransform.cend(), [&](const auto& inPoint) {
+    transformed_hyper_box.Wrap(InverseTransformed(inPoint, inTransformation));
+  });
+  ioAAHyperBoxToTransform = transformed_hyper_box;
 }
 }

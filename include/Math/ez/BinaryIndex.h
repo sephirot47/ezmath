@@ -44,7 +44,7 @@ constexpr auto AllBinaryIndices()
 }
 
 template <std::size_t N, typename T = std::size_t>
-constexpr const GBinaryIndex<T, N>& MakeBinaryIndex(const std::size_t inSequentialIndex)
+constexpr GBinaryIndex<T, N> MakeBinaryIndex(const std::size_t inSequentialIndex)
 {
   constexpr auto BinaryIndicesTable = AllBinaryIndices<N, T>();
   return BinaryIndicesTable.at(inSequentialIndex);
