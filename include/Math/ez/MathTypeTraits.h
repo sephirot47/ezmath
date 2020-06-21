@@ -37,6 +37,14 @@ struct IsAAHyperBox final : std::false_type
 template <typename T>
 constexpr bool IsAAHyperBox_v = IsAAHyperBox<T>::value;
 
+// IsAAHyperCube. Template specialization for AAHyperCube is in "AAHyperCube.h"
+template <typename T>
+struct IsAAHyperCube final : std::false_type
+{
+};
+template <typename T>
+constexpr bool IsAAHyperCube_v = IsAAHyperCube<T>::value;
+
 // IsNumber
 template <typename T>
 constexpr auto IsNumber_v = std::is_arithmetic_v<T>;
