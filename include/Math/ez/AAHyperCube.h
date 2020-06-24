@@ -17,14 +17,13 @@ public:
   static constexpr auto NumDimensions = N;
 
   AAHyperCube();
+  template <typename TOther>
+  explicit AAHyperCube(const AAHyperCube<TOther, N>& inRHS);
   AAHyperCube(const Vec<T, N>& inMin, const T& inSize);
   AAHyperCube(const AAHyperCube&) = default;
   AAHyperCube& operator=(const AAHyperCube&) = default;
   AAHyperCube(AAHyperCube&&) = default;
   AAHyperCube& operator=(AAHyperCube&&) = default;
-
-  template <typename TOther>
-  explicit AAHyperCube(const AAHyperCube<TOther, N>& inRHS);
 
   ~AAHyperCube() = default;
 

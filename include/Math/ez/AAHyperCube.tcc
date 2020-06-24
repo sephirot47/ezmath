@@ -12,15 +12,16 @@ AAHyperCube<T, N>::AAHyperCube()
 }
 
 template <typename T, std::size_t N>
-AAHyperCube<T, N>::AAHyperCube(const Vec<T, N>& inMin, const T& inSize) : mMin { inMin }, mSize { inSize }
+template <typename TOther>
+AAHyperCube<T, N>::AAHyperCube(const AAHyperCube<TOther, N>& inRHS)
+    : AAHyperCube(Vec<T, N> { inRHS.GetMin() }, static_cast<T>(inRHS.GetSize()))
 {
-  EXPECTS(mSize >= static_cast<T>(0));
 }
 
 template <typename T, std::size_t N>
-template <typename TOther>
-AAHyperCube<T, N>::AAHyperCube(const AAHyperCube<TOther, N>& inRHS) : AAHyperCube(Vec<T, N>(inRHS.mMin), inRHS.mSize)
+AAHyperCube<T, N>::AAHyperCube(const Vec<T, N>& inMin, const T& inSize) : mMin { inMin }, mSize { inSize }
 {
+  EXPECTS(mSize >= static_cast<T>(0));
 }
 
 template <typename T, std::size_t N>
