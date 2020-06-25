@@ -114,12 +114,33 @@ const auto MakeAAHyperBoxFromMinMax(const Vec<T, N>& inMin, const Vec<T, N>& inM
   return AAHyperBox<T, N>(inMin, inMax);
 }
 
+template <typename T, std::size_t N>
+const auto MakeAAHyperBoxFromAAHyperCube(const AAHyperCube<T, N>& inAAHyperCube)
+{
+  return MakeAAHyperBoxFromMinSize(inAAHyperCube.GetMin(), All<Vec<T, N>>(inAAHyperCube.GetSize()));
+}
+
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const AAHyperBox<T, N>& inLHS, const AAHyperBox<T, N>& inRHS)
 {
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
-  return inLHS.GetMin() <= inRHS.GetMax() || inRHS.GetMin() <= inLHS.GetMax();
+  const auto some_lhs_min_coord_greater_than_max = !(inLHS.GetMin() <= inRHS.GetMax());
+  const auto some_lhs_max_coord_less_than_max = !(inLHS.GetMax() >= inRHS.GetMin());
+  const auto do_not_intersect = (some_lhs_min_coord_greater_than_max || some_lhs_max_coord_less_than_max);
+  return !do_not_intersect;
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const AAHyperCube<T, N>& inLHS, const AAHyperBox<T, N>& inRHS)
+{
+  return Intersect<TIntersectMode>(MakeAAHyperBoxFromAAHyperCube(inLHS), inRHS);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const AAHyperBox<T, N>& inLHS, const AAHyperCube<T, N>& inRHS)
+{
+  return Intersect<TIntersectMode>(inRHS, inLHS);
 }
 
 template <typename T, std::size_t N>
@@ -135,6 +156,17 @@ bool Contains(const AAHyperBox<T, N>& inAAHyperBoxContainer, const AAHyperBox<T,
       && Contains(inAAHyperBoxContainer, inAAHyperBoxContainee.GetMax());
 }
 
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBoxContainer, const AAHyperCube<T, N>& inAAHyperCubeContainee)
+{
+  return Contains(inAAHyperBoxContainer, MakeAAHyperBoxFromAAHyperCube(inAAHyperCubeContainee));
+}
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperCube<T, N>& inAAHyperCubeContainer, const AAHyperBox<T, N>& inAAHyperBoxContainee)
+{
+  return Contains(MakeAAHyperBoxFromAAHyperCube(inAAHyperCubeContainer), inAAHyperBoxContainee);
+}
 template <typename T>
 constexpr auto BoundingAAHyperBox(const T& inThingToBound);
 }

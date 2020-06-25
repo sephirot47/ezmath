@@ -106,6 +106,7 @@ using Circle = HyperSphere<T, 2>;
 
 using Circlef = Circle<float>;
 using Circled = Circle<double>;
+using Circlei = Circle<int32_t>;
 
 // Sphere
 template <typename T>
@@ -113,6 +114,7 @@ using Sphere = HyperSphere<T, 3>;
 
 using Spheref = Sphere<float>;
 using Sphered = Sphere<double>;
+using Spherei = Sphere<int32_t>;
 
 // AAHyperBox
 template <typename T, std::size_t N>

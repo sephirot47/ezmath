@@ -12,10 +12,7 @@ auto Intersect(const Ray<T, 3>& inRay, const AACube<T>& inAACube)
           || TIntersectMode == EIntersectMode::ONLY_CHECK,
       "Unsupported EIntersectMode.");
 
-  const auto aabox_min = Vec3<T> { inAACube.GetMin() };
-  const auto aabox_size = All<Vec3<T>>(static_cast<T>(inAACube.GetSize()));
-  const auto aabox = MakeAAHyperBoxFromMinSize(aabox_min, aabox_size);
-  return Intersect<TIntersectMode, T>(inRay, aabox);
+  return Intersect<TIntersectMode, T>(inRay, MakeAAHyperBoxFromAAHyperCube(inAACube));
 }
 
 template <EIntersectMode TIntersectMode, typename T>
