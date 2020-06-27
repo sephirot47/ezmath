@@ -7,6 +7,7 @@
 #include "ez/Span.h"
 #include <array>
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace ez
@@ -16,7 +17,7 @@ template <typename TPrimitive>
 class OctreeBuilder;
 
 template <typename TPrimitive>
-class Octree final
+class Octree
 {
 public:
   using ChildMultiIndex01 = BinaryIndex<3>;
@@ -37,7 +38,7 @@ public:
     }
   };
 
-  Octree() = default;
+  explicit Octree(const AABoxf& inAABox);
   Octree(const Span<TPrimitive>& inPrimitives,
       const std::size_t inLeafNodesMaxCapacity = 8,
       const std::size_t inMaxDepth = 8);
@@ -46,6 +47,8 @@ public:
   Octree(Octree&&) = default;
   Octree& operator=(Octree&&) = default;
 
+  bool
+  AddPrimitive(const TPrimitive& inPrimitive, const std::size_t inLeafNodesMaxCapacity, const std::size_t inMaxDepth);
   const AABox<ValueType>& GetAABox() const { return mAABox; }
   const std::vector<TPrimitive>& GetPrimitivesPool() const; // Only available in top Octree
   const std::vector<PrimitiveIndex>& GetPrimitivesIndices() const { return mPrimitivesIndices; }
@@ -86,6 +89,8 @@ public:
   Octree::ConstIterator cend() const { return ConstIterator(*this, 8); }
 
 private:
+  Octree() = default;
+
   enum class EExternalOctreePlaneId
   {
     // Order matters
@@ -134,6 +139,14 @@ private:
       const EInternalOctreePlaneId& inInternalOctreePlaneId,
       const Vec3<ValueType>& inRayDirection,
       const Vec3<ValueType>& inIntersectionPoint) const;
+
+  bool AddPrimitiveRecursive(const TPrimitive& inPrimitive,
+      const std::size_t inLeafNodesMaxCapacity,
+      const std::size_t inMaxDepth,
+      const std::size_t inCurrentDepth,
+      const std::size_t inNewPrimitiveIndexIfAdded,
+      std::vector<TPrimitive>& ioPrimitivesPool,
+      const bool inAddPrimitiveToPool);
 
   friend class OctreeBuilder<TPrimitive>;
 

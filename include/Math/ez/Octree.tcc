@@ -3,9 +3,20 @@
 #include "ez/Octree.h"
 #include <algorithm>
 #include <numeric>
+#include <stack>
+#include <tuple>
+#include <utility>
 
 namespace ez
 {
+
+template <typename TPrimitive>
+Octree<TPrimitive>::Octree(const AABoxf& inAABox)
+{
+  mAABox = inAABox;
+  mPrimitivesPool = std::make_optional<std::vector<TPrimitive>>();
+}
+
 template <typename TPrimitive>
 Octree<TPrimitive>::Octree(const Span<TPrimitive>& inPrimitives,
     const std::size_t inLeafNodesMaxCapacity,
@@ -59,6 +70,133 @@ const Octree<TPrimitive>* Octree<TPrimitive>::GetChildOctree(
     const Octree<TPrimitive>::ChildSequentialIndex inInternalIndex) const
 {
   return const_cast<Octree&>(*this).GetChildOctree(inInternalIndex);
+}
+
+template <typename TPrimitive>
+bool Octree<TPrimitive>::AddPrimitive(const TPrimitive& inPrimitive,
+    const std::size_t inLeafNodesMaxCapacity,
+    const std::size_t inMaxDepth)
+{
+  // Adapt octree size if needed(and children's size as well)
+  if (!Contains(mAABox, inPrimitive))
+  {
+    mAABox.Wrap(BoundingAABox(inPrimitive));
+
+    std::stack<std::tuple<Octree*, Octree*, std::size_t>> octree_stack;
+    octree_stack.emplace(this, nullptr, 0ul);
+    while (!octree_stack.empty())
+    {
+      const auto& octree_stack_top = octree_stack.top();
+      const auto octree = std::get<0>(octree_stack_top);
+      const auto parent_octree = std::get<1>(octree_stack_top);
+      const auto octree_index_in_parent = std::get<2>(octree_stack_top);
+      octree_stack.pop();
+
+      for (std::size_t i = 0; i < 8; ++i) // Enqueue children if any
+      {
+        if (const auto octree_child = octree->GetChildOctree(i))
+          octree_stack.emplace(octree_child, octree, i);
+      }
+
+      if (!parent_octree)
+        continue;
+
+      octree->mAABox = parent_octree->GetChildAABox(octree_index_in_parent); // Change size
+    }
+  }
+
+  const auto old_primitives_pool_size = mPrimitivesPool->size();
+  const auto new_primitive_index_if_added = mPrimitivesPool->size();
+  const auto new_primitive_added = AddPrimitiveRecursive(inPrimitive,
+      inLeafNodesMaxCapacity,
+      inMaxDepth,
+      0,
+      new_primitive_index_if_added,
+      *mPrimitivesPool,
+      true);
+
+  if (new_primitive_added)
+    assert(mPrimitivesPool->size() == old_primitives_pool_size + 1);
+  else
+    assert(mPrimitivesPool->size() == old_primitives_pool_size);
+
+  return new_primitive_added;
+}
+
+template <typename TPrimitive>
+bool Octree<TPrimitive>::AddPrimitiveRecursive(const TPrimitive& inPrimitive,
+    const std::size_t inLeafNodesMaxCapacity,
+    const std::size_t inMaxDepth,
+    const std::size_t inCurrentDepth,
+    const std::size_t inNewPrimitiveIndexIfAdded,
+    std::vector<TPrimitive>& ioPrimitivesPool,
+    const bool inAddPrimitiveToPool)
+{
+  if (inCurrentDepth > inMaxDepth)
+    return false;
+
+  if (!IntersectCheck(inPrimitive, mAABox))
+    return false;
+
+  if (mPrimitivesIndices.size() < inLeafNodesMaxCapacity)
+  {
+    mPrimitivesIndices.push_back(inNewPrimitiveIndexIfAdded);
+    if (inAddPrimitiveToPool)
+      ioPrimitivesPool.push_back(inPrimitive);
+    return true;
+  }
+
+  // Not enough room in this level. We have to go one level deeper.
+  const auto AddPrimitiveToChildren
+      = [&](const TPrimitive& inPrimitive, const std::size_t inPrimitiveIndex, const bool inAddPrimitiveToPool) {
+          auto added_to_some_child = false;
+          for (std::size_t i = 0; i < 8; ++i)
+          {
+            const auto child_octree_aabox = GetChildAABox(i);
+            if (!IntersectCheck(inPrimitive, child_octree_aabox))
+              continue;
+
+            auto child_octree = GetChildOctree(i);
+            if (!child_octree)
+            {
+              mChildren.at(i) = std::move(std::make_unique<Octree>(child_octree_aabox));
+              child_octree = mChildren.at(i).get();
+            }
+
+            const auto add_primitive_to_pool = (inAddPrimitiveToPool && !added_to_some_child);
+            const auto added_to_child = child_octree->AddPrimitiveRecursive(inPrimitive,
+                inLeafNodesMaxCapacity,
+                inMaxDepth,
+                inCurrentDepth + 1,
+                inPrimitiveIndex,
+                ioPrimitivesPool,
+                add_primitive_to_pool);
+
+            added_to_some_child |= added_to_child;
+          }
+          return added_to_some_child;
+        };
+
+  // Save a copy of the primitives indices of this node before to reallocate them afterwards
+  const auto old_primitive_indices_copy_to_be_reallocated_in_children = mPrimitivesIndices;
+  mPrimitivesIndices.clear(); // Empty this node because it will no longer be a leaft
+
+  // Also, this node will stop being a leaf, so readd its indices in its children.
+  for (const auto& old_primitive_index_to_be_reallocated_in_children :
+      old_primitive_indices_copy_to_be_reallocated_in_children)
+  {
+    const auto& old_primitive_to_be_reallocated_in_children
+        = ioPrimitivesPool.at(old_primitive_index_to_be_reallocated_in_children);
+    AddPrimitiveToChildren(old_primitive_to_be_reallocated_in_children,
+        old_primitive_index_to_be_reallocated_in_children,
+        false);
+  }
+
+  // Add input primitive
+  const auto input_primitive_added_to_some_child
+      = AddPrimitiveToChildren(inPrimitive, inNewPrimitiveIndexIfAdded, inAddPrimitiveToPool);
+
+  return input_primitive_added_to_some_child;
 }
 
 template <typename TPrimitive>

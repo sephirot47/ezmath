@@ -138,6 +138,30 @@ using AABoxul = AABox<uint64_t>;
 using AABoxf = AABox<float>;
 using AABoxd = AABox<double>;
 
+// AAHyperCube
+template <typename T, std::size_t N>
+class AAHyperCube;
+
+// AASquare
+template <typename T>
+using AASquare = AAHyperCube<T, 2>;
+
+using AASquarei = AASquare<int32_t>;
+using AASquareui = AASquare<uint32_t>;
+using AASquareul = AASquare<uint64_t>;
+using AASquaref = AASquare<float>;
+using AASquared = AASquare<double>;
+
+// AACube
+template <typename T>
+using AACube = AAHyperCube<T, 3>;
+
+using AACubei = AACube<int32_t>;
+using AACubeui = AACube<uint32_t>;
+using AACubeul = AACube<uint64_t>;
+using AACubef = AACube<float>;
+using AACubed = AACube<double>;
+
 // Octree
 template <typename TPrimitive>
 class Octree;
