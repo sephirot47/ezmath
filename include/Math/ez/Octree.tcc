@@ -334,7 +334,8 @@ Octree<TPrimitive> OctreeBuilder<TPrimitive>::BuildRecursive(
         inParentPrimitivesIndices.cend(),
         std::back_inserter(octree.mPrimitivesIndices),
         [&](const auto& inPrimitiveIndex) {
-          return IntersectCheck(inBoundingAABox, inPrimitivesPool.at(inPrimitiveIndex));
+          const auto& inPrimitive = inPrimitivesPool.at(inPrimitiveIndex);
+          return IntersectCheck(inBoundingAABox, inPrimitive);
         });
   }
 
@@ -358,12 +359,20 @@ Octree<TPrimitive> OctreeBuilder<TPrimitive>::BuildRecursive(
   return octree;
 }
 
-struct IntersectHelperStruct
+template <typename TPrimitive>
+struct IntersectHelperStruct final
 {
-  template <EIntersectMode TIntersectMode, typename TPrimitive>
-  static auto Intersect(const Octree<TPrimitive>& inTopOctree,
-      const Ray3<ValueType_t<TPrimitive>>& inRay,
-      const ValueType_t<TPrimitive> inMaxDistance)
+  using ValueType = ValueType_t<TPrimitive>;
+  const Ray3<ValueType> mRay;
+  const ValueType mMaxDistance;
+
+  IntersectHelperStruct(const Ray3<ValueType>& inRay, const ValueType& inMaxDistance)
+      : mRay { inRay }, mMaxDistance { inMaxDistance }
+  {
+  }
+
+  template <EIntersectMode TIntersectMode>
+  auto Intersect(const Octree<TPrimitive>& inTopOctree)
   {
     static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
             || TIntersectMode == EIntersectMode::ONLY_CHECK,
@@ -375,19 +384,11 @@ struct IntersectHelperStruct
 
     if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
     {
-      return IntersectRecursive<TIntersectMode, TPrimitive>(inTopOctree,
-          inRay,
-          inMaxDistance,
-          *inTopOctree.mPrimitivesPool,
-          intersections);
+      return IntersectRecursive<TIntersectMode>(inTopOctree, *inTopOctree.mPrimitivesPool, intersections);
     }
     else
     {
-      IntersectRecursive<TIntersectMode, TPrimitive>(inTopOctree,
-          inRay,
-          inMaxDistance,
-          *inTopOctree.mPrimitivesPool,
-          intersections);
+      IntersectRecursive<TIntersectMode>(inTopOctree, *inTopOctree.mPrimitivesPool, intersections);
 
       if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
       {
@@ -401,27 +402,59 @@ struct IntersectHelperStruct
     }
   }
 
-  template <EIntersectMode TIntersectMode, typename TPrimitive>
-  static auto IntersectRecursive(const Octree<TPrimitive>& inOctree,
-      const Ray3<ValueType_t<TPrimitive>>& inRay,
-      const ValueType_t<TPrimitive> inMaxDistance,
+  template <EIntersectMode TIntersectMode, typename TIntersectionDistances>
+  auto TreatIntersectionResult(const Octree<TPrimitive>& inOctree,
+      const Octree<TPrimitive>::PrimitiveIndex inPrimitiveIndex,
+      const TIntersectionDistances& inIntersectionDistances,
+      std::vector<typename Octree<TPrimitive>::Intersection>& ioIntersections)
+  {
+    assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST);
+
+    if constexpr (IsArray_v<TIntersectionDistances>)
+    {
+      for (const auto& intersection_distance : inIntersectionDistances)
+      { TreatIntersectionResult<TIntersectMode>(inOctree, inPrimitiveIndex, intersection_distance, ioIntersections); }
+    }
+    else
+    {
+      const auto& inIntersectionDistance = inIntersectionDistances;
+      if (!inIntersectionDistance || *inIntersectionDistance > mMaxDistance)
+        return; // Do not consider intersections further than the maximum distance
+
+      if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+      {
+        const auto intersection_point = mRay.GetPoint(*inIntersectionDistance);
+        ioIntersections.emplace_back(*inIntersectionDistance, inPrimitiveIndex);
+      }
+      else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+      {
+        if (ioIntersections.empty() || *inIntersectionDistance < ioIntersections.front().mDistance)
+        {
+          // Only save the closest intersection out of all primitives
+          ioIntersections.resize(0);
+          ioIntersections.emplace_back(*inIntersectionDistance, inPrimitiveIndex);
+        }
+      }
+    }
+  }
+
+  template <EIntersectMode TIntersectMode>
+  auto IntersectRecursive(const Octree<TPrimitive>& inOctree,
       const std::vector<TPrimitive>& inPrimitivesPool,
       std::vector<typename Octree<TPrimitive>::Intersection>& ioIntersections)
   {
     using OctreeType = Octree<TPrimitive>;
-    using IntersectionType = typename Octree<TPrimitive>::Intersection;
     using ChildSequentialIndexType = typename OctreeType::ChildSequentialIndex;
-    using ValueType = ValueType_t<TPrimitive>;
 
     const auto aabox_size = inOctree.mAABox.GetSize();
     const auto aabox_half_size = (aabox_size / static_cast<ValueType>(2));
 
     // Check whether this AABox needs to be checked because of max distance or not
-    if (inMaxDistance != Infinity<ValueType>())
+    if (mMaxDistance != Infinity<ValueType>())
     {
       const auto max_box_half_size = Max(aabox_half_size);
       const auto aabox_sphere = Sphere<ValueType>(inOctree.mAABox.GetCenter(), max_box_half_size);
-      const auto ray_max_distance_sphere = Sphere<ValueType>(inRay.GetOrigin(), inMaxDistance);
+      const auto ray_max_distance_sphere = Sphere<ValueType>(mRay.GetOrigin(), mMaxDistance);
       if (!::ez::IntersectCheck(aabox_sphere, ray_max_distance_sphere))
       {
         if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
@@ -438,47 +471,12 @@ struct IntersectHelperStruct
     if (inOctree.IsLeaf())
     {
       // Base case, linear search through its contained primitives
-      auto closest_intersection_distance = Infinity<ValueType>();
       for (const auto& primitive_index : inOctree.mPrimitivesIndices)
       {
         const auto& primitive = inPrimitivesPool.at(primitive_index);
-        const auto TreatIntersectionResult = [&](const auto& inIntersectionDistance) {
-          assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST);
 
-          if (!inIntersectionDistance)
-            return;
-
-          if (*inIntersectionDistance > inMaxDistance)
-            return; // Do not consider intersections further than the maximum distance
-
-          // Only consider intersections of this primitive inside this box. To avoid duplicates.
-          {
-            const auto intersection_point = inRay.GetPoint(*inIntersectionDistance);
-            if (!Contains(inOctree.mAABox, intersection_point))
-              return;
-          }
-
-          typename Octree<TPrimitive>::Intersection intersection;
-          intersection.mDistance = *inIntersectionDistance;
-          intersection.mPrimitiveIndex = primitive_index;
-
-          if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
-          {
-            ioIntersections.push_back(std::move(intersection));
-          }
-          else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-          {
-            if (intersection.mDistance < closest_intersection_distance)
-            {
-              // Only save the closest intersection amongst all primitives
-              ioIntersections.resize(0);
-              closest_intersection_distance = intersection.mDistance;
-              ioIntersections.push_back(std::move(intersection));
-            }
-          }
-        };
-
-        const auto primitive_intersections = ::ez::Intersect<TIntersectMode>(inRay, primitive);
+        const auto primitive_intersections = ::ez::Intersect<TIntersectMode>(mRay, primitive);
+        // TODO: Put this if/else below into a separate function, as done with TreatIntersectionResult
         if constexpr (IsArray_v<decltype(primitive_intersections)>)
         {
           if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
@@ -490,7 +488,13 @@ struct IntersectHelperStruct
           }
           else
           {
-            std::for_each(primitive_intersections.cbegin(), primitive_intersections.cend(), TreatIntersectionResult);
+            for (const auto& primitive_intersection : primitive_intersections)
+            {
+              TreatIntersectionResult<TIntersectMode>(inOctree,
+                  primitive_index,
+                  primitive_intersection,
+                  ioIntersections);
+            }
           }
         }
         else
@@ -503,13 +507,39 @@ struct IntersectHelperStruct
           }
           else
           {
-            TreatIntersectionResult(primitive_intersection);
+            TreatIntersectionResult<TIntersectMode>(inOctree, primitive_index, primitive_intersection, ioIntersections);
           }
         }
       }
     }
     else
     {
+      // If the ray origin is inside the octree, forward the intersection to its children
+      if (Contains(inOctree.mAABox, mRay.GetOrigin()))
+      {
+        if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+        {
+          for (const auto& child_octree : inOctree)
+          {
+            if (IntersectRecursive<TIntersectMode>(child_octree, inPrimitivesPool, ioIntersections))
+              return true;
+          }
+          return false;
+        }
+        else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+        {
+          for (const auto& child_octree : inOctree)
+          { IntersectRecursive<TIntersectMode>(child_octree, inPrimitivesPool, ioIntersections); }
+          return;
+        }
+        else if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+        {
+          for (const auto& child_octree : inOctree)
+          { IntersectRecursive<TIntersectMode>(child_octree, inPrimitivesPool, ioIntersections); }
+          return;
+        }
+      }
+
       // Recursive case, check which children octrees the ray intersects
       std::array<std::optional<typename OctreeType::ChildSequentialIndex>, 4> child_octree_indices_to_explore;
 
@@ -518,22 +548,22 @@ struct IntersectHelperStruct
       for (int external_plane_i = 0; external_plane_i < 6; ++external_plane_i)
       {
         const auto& external_plane_normal = OctreeType::ExternalOctreePlaneNormals.at(external_plane_i);
-        if (Dot(inRay.GetDirection(), external_plane_normal) > 0) // Only consider planes from which it can enter
+        if (Dot(mRay.GetDirection(), external_plane_normal) > 0) // Only consider planes from which it can enter
           continue;
 
         const auto remapped_external_plane_normal = Max(external_plane_normal, Zero<Vec3<ValueType>>());
         const auto external_plane_point = inOctree.mAABox.GetMin() + remapped_external_plane_normal * aabox_size;
         const auto external_plane = Plane<ValueType>(external_plane_normal, external_plane_point);
-        const auto ray_plane_intersection_distance = ::ez::IntersectClosest(inRay, external_plane);
+        const auto ray_plane_intersection_distance = ::ez::IntersectClosest(mRay, external_plane);
         if (!ray_plane_intersection_distance)
           continue;
 
-        if (*ray_plane_intersection_distance > inMaxDistance)
+        if (*ray_plane_intersection_distance > mMaxDistance)
           continue;
 
         const auto external_plane_id = static_cast<typename OctreeType::EExternalOctreePlaneId>(external_plane_i);
         const auto first_child_octree_id_to_explore = inOctree.GetNextChildOctreeIndexToExplore(external_plane_id,
-            inRay.GetPoint(*ray_plane_intersection_distance));
+            mRay.GetPoint(*ray_plane_intersection_distance));
         if (!first_child_octree_id_to_explore) // We have hit the plane but not the octree, keep looking
           continue;
 
@@ -553,17 +583,17 @@ struct IntersectHelperStruct
         const auto& internal_plane_normal = OctreeType::InternalOctreePlaneNormals.at(internal_plane_i);
         const auto internal_plane_point = inOctree.mAABox.GetCenter();
         const auto internal_plane = Plane<ValueType>(internal_plane_normal, internal_plane_point);
-        const auto ray_plane_intersection_distance = ::ez::IntersectClosest(inRay, internal_plane);
+        const auto ray_plane_intersection_distance = ::ez::IntersectClosest(mRay, internal_plane);
         if (!ray_plane_intersection_distance)
           continue;
 
-        if (*ray_plane_intersection_distance > inMaxDistance)
+        if (*ray_plane_intersection_distance > mMaxDistance)
           continue;
 
         const auto internal_plane_id = static_cast<typename OctreeType::EInternalOctreePlaneId>(internal_plane_i);
         const auto next_child_octree_id_to_explore = inOctree.GetNextChildOctreeIndexToExplore(internal_plane_id,
-            inRay.GetDirection(),
-            inRay.GetPoint(*ray_plane_intersection_distance));
+            mRay.GetDirection(),
+            mRay.GetPoint(*ray_plane_intersection_distance));
         if (!next_child_octree_id_to_explore)
           continue;
 
@@ -597,21 +627,20 @@ struct IntersectHelperStruct
         if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
         {
           if (IntersectRecursive<TIntersectMode, TPrimitive>(*child_octree_to_explore,
-                  inRay,
-                  inMaxDistance,
                   inPrimitivesPool,
                   ioIntersections))
+          {
             return true;
+          }
         }
-        else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+        else
         {
-          IntersectRecursive<TIntersectMode, TPrimitive>(*child_octree_to_explore,
-              inRay,
-              inMaxDistance,
-              inPrimitivesPool,
-              ioIntersections);
-          if (ioIntersections.size() >= 1)
-            break;
+          IntersectRecursive<TIntersectMode>(*child_octree_to_explore, inPrimitivesPool, ioIntersections);
+          if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+          {
+            if (ioIntersections.size() >= 1)
+              break;
+          }
         }
       }
     }
@@ -628,7 +657,8 @@ auto Intersect(const Octree<TPrimitive>& inTopOctree,
     const Ray3<ValueType_t<TPrimitive>>& inRay,
     const ValueType_t<TPrimitive> inMaxDistance = Infinity<ValueType_t<TPrimitive>>())
 {
-  return IntersectHelperStruct::Intersect<TIntersectMode, TPrimitive>(inTopOctree, inRay, inMaxDistance);
+  IntersectHelperStruct<TPrimitive> intersecter { inRay, inMaxDistance };
+  return intersecter.template Intersect<TIntersectMode>(inTopOctree);
 }
 
 template <EIntersectMode TIntersectMode, typename TPrimitive>

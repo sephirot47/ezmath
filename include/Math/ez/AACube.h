@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ez/AABox.h"
 #include "ez/AAHyperCube.h"
 #include "ez/MathForward.h"
@@ -6,7 +8,7 @@ namespace ez
 {
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Ray<T, 3>& inRay, const AACube<T>& inAACube)
+auto Intersect(const Ray3<T>& inRay, const AACube<T>& inAACube)
 {
   static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
           || TIntersectMode == EIntersectMode::ONLY_CHECK,
@@ -16,7 +18,7 @@ auto Intersect(const Ray<T, 3>& inRay, const AACube<T>& inAACube)
 }
 
 template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const AACube<T>& inAACube, const Ray<T, 3>& inRay)
+auto Intersect(const AACube<T>& inAACube, const Ray3<T>& inRay)
 {
   return Intersect(inRay, inAACube);
 }

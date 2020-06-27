@@ -37,6 +37,14 @@ struct IsAAHyperBox final : std::false_type
 template <typename T>
 constexpr bool IsAAHyperBox_v = IsAAHyperBox<T>::value;
 
+// IsTransformation. Template specialization for Transformation is in "Transformation.h"
+template <typename T>
+struct IsTransformation final : std::false_type
+{
+};
+template <typename T>
+inline constexpr bool IsTransformation_v = IsTransformation<T>::value;
+
 // IsAAHyperCube. Template specialization for AAHyperCube is in "AAHyperCube.h"
 template <typename T>
 struct IsAAHyperCube final : std::false_type
@@ -47,7 +55,7 @@ constexpr bool IsAAHyperCube_v = IsAAHyperCube<T>::value;
 
 // IsNumber
 template <typename T>
-constexpr auto IsNumber_v = std::is_arithmetic_v<T>;
+constexpr auto IsNumber_v = std::is_arithmetic_v<std::remove_cvref_t<T>>;
 
 // IsVecOrMat
 template <typename T>
@@ -60,14 +68,26 @@ constexpr auto _GetNumComponents()
   {
     return 1;
   }
-  else
+  else if constexpr (IsVec_v<T>)
   {
     return T::NumComponents;
   }
+  else if constexpr (IsQuat_v<T>)
+  {
+    return T::NumComponents;
+  }
+  else if constexpr (IsMat_v<T>)
+  {
+    return T::NumComponents;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
-template <typename T>
-constexpr auto NumComponents_v = _GetNumComponents<T>();
+template <typename... TArgs>
+constexpr auto NumComponents_v = (_GetNumComponents<std::remove_cvref_t<TArgs>>() + ... + 0);
 
 template <typename T>
 auto _GetValueType()
@@ -83,10 +103,10 @@ auto _GetValueType()
 }
 
 template <typename T>
-using ValueType_t = decltype(_GetValueType<T>());
+using ValueType_t = decltype(_GetValueType<std::remove_cvref_t<T>>());
 
 template <typename T>
-constexpr std::size_t GetNumDimensions()
+constexpr std::size_t _GetNumDimensions()
 {
   if constexpr (IsNumber_v<T>)
   {
@@ -94,7 +114,7 @@ constexpr std::size_t GetNumDimensions()
   }
   else if constexpr (IsSpan_v<T>)
   {
-    return GetNumDimensions<ValueType_t<T>>();
+    return _GetNumDimensions<ValueType_t<T>>();
   }
   else
   {
@@ -102,7 +122,7 @@ constexpr std::size_t GetNumDimensions()
   }
 };
 
-template <typename T>
-static constexpr auto NumDimensions_v = GetNumDimensions<T>();
+template <typename... TArgs>
+static constexpr auto NumDimensions_v = (_GetNumDimensions<std::remove_cvref_t<TArgs>>() + ... + 0);
 
 }

@@ -24,15 +24,49 @@ Transformation<T, N>::Transformation(const Vec<T, N>& inPosition,
 }
 
 template <typename T, std::size_t N>
-Vec<T, N> Transformation<T, N>::Transformed(const Vec<T, N>& inPoint)
+Transformation<T, N> Transformation<T, N>::operator*(const Transformation<T, N>& inRHS) const
+{
+  return TransformedTransform(inRHS);
+}
+
+template <typename T, std::size_t N>
+inline std::ostream& operator<<(std::ostream& ioLHS, const Transformation<T, N>& inRHS)
+{
+  ioLHS << "(" << inRHS.GetPosition() << ", " << inRHS.GetRotation() << ", " << inRHS.GetScale() << ")";
+  return ioLHS;
+}
+
+template <typename T, std::size_t N>
+Vec<T, N> Transformation<T, N>::TransformedPoint(const Vec<T, N>& inPoint) const
 {
   return mPosition + (Rotated((inPoint * mScale), mRotation));
 }
 
 template <typename T, std::size_t N>
-Vec<T, N> Transformation<T, N>::InverseTransformed(const Vec<T, N>& inPoint)
+Vec<T, N> Transformation<T, N>::InverseTransformedPoint(const Vec<T, N>& inPoint) const
 {
   return Rotated((inPoint - mPosition), -mRotation) / mScale;
+}
+
+template <typename T, std::size_t N>
+Vec<T, N> Transformation<T, N>::TransformedDirection(const Vec<T, N>& inDirection) const
+{
+  return Rotated((inDirection * mScale), mRotation);
+}
+
+template <typename T, std::size_t N>
+Vec<T, N> Transformation<T, N>::InverseTransformedDirection(const Vec<T, N>& inDirection) const
+{
+  return Rotated(inDirection, -mRotation) / mScale;
+}
+
+template <typename T, std::size_t N>
+Transformation<T, N> Transformation<T, N>::TransformedTransform(const Transformation<T, N>& inRHS) const
+{
+  const auto new_position = TransformedPoint(inRHS.mPosition);
+  const auto new_rotation = Rotated(mRotation, inRHS.mRotation);
+  const auto new_scale = mScale * (Rotated(inRHS.mScale, mRotation));
+  return Transformation<T, N> { new_position, new_rotation, new_scale };
 }
 
 template <typename T, std::size_t N>
@@ -47,82 +81,37 @@ SquareMat<T, N + 1> Transformation<T, N>::GetInverseMatrix() const
   return ScaleMat(1.0f / mScale) * RotationMat(-mRotation) * TranslationMat(-mPosition);
 }
 
-template <typename T>
-using HasTransformIteratorDetector = decltype(std::declval<T>().GetTransformIteratorBegin());
-
-template <typename T>
-static constexpr auto HasTransformIterator_v = std::experimental::is_detected_v<HasTransformIteratorDetector, T>;
-
-template <typename TObject>
-auto GetTransformIteratorBegin(TObject& ioObject)
-{
-  if constexpr (HasTransformIterator_v<TObject>)
-  {
-    return ioObject.GetTransformIteratorBegin();
-  }
-  else
-  {
-    return ioObject.begin();
-  }
-}
-
-template <typename TObject>
-auto GetTransformIteratorEnd(TObject& ioObject)
-{
-  if constexpr (HasTransformIterator_v<TObject>)
-  {
-    return ioObject.GetTransformIteratorEnd();
-  }
-  else
-  {
-    return ioObject.end();
-  }
-}
-
-template <typename T, std::size_t N>
-void Transform(Vec<T, N>& ioPoint, const SquareMat<T, N>& inTransformMatrix)
-{
-  ioPoint = (inTransformMatrix * ioPoint);
-}
-
-template <typename T, std::size_t N>
-[[nodiscard]] Vec<T, N> Transformed(const Vec<T, N>& inPoint, const SquareMat<T, N>& inTransformMatrix)
-{
-  auto transformed_point = inPoint;
-  Transform(transformed_point, inTransformMatrix);
-  return transformed_point;
-}
-
-template <typename T, std::size_t N>
-void Transform(Vec<T, N>& ioPoint, const SquareMat<T, N + 1>& inTransformMatrix)
-{
-  // If the point has one less dimension than the transform matrix, convert the point to one
-  // more dimension by adding a 1 at the end, and then retrieve it from the result
-
-  Vec<T, N + 1> point_and_1;
-  for (std::size_t i = 0; i < N; ++i) { point_and_1[i] = ioPoint[i]; }
-  point_and_1[N] = static_cast<T>(1);
-
-  const auto transformed_point_and_1 = Transformed(point_and_1, inTransformMatrix);
-  for (std::size_t i = 0; i < N; ++i) { ioPoint[i] = transformed_point_and_1[i]; }
-}
-
-template <typename T, std::size_t N>
-[[nodiscard]] Vec<T, N> Transformed(const Vec<T, N>& inPoint, const SquareMat<T, N + 1>& inTransformMatrix)
-{
-  auto transformed_point = inPoint;
-  Transform(transformed_point, inTransformMatrix);
-  return transformed_point;
-}
-
 template <typename T, std::size_t N>
 void Transform(T& ioObject, const SquareMat<ValueType_t<T>, N>& inTransformMatrix)
 {
-  for (auto it = GetTransformIteratorBegin(ioObject); it != GetTransformIteratorEnd(ioObject); ++it)
-  {
-    auto& value = *it;
-    Transform(value, inTransformMatrix);
-  }
+  for (auto& value : ioObject) Transform(value, inTransformMatrix);
+}
+
+template <typename T, std::size_t N>
+void Transform(T& ioObject, const SquareMat<ValueType_t<T>, N + 1>& inTransformMatrix)
+{
+  for (auto& value : ioObject) Transform(value, inTransformMatrix);
+}
+
+template <typename T, std::size_t N>
+void Transform(T& ioObject, const Transformation<ValueType_t<T>, N>& inTransformation)
+{
+  for (auto& value : ioObject)
+    value = inTransformation.TransformedPoint(value); // Assume points. If this is not valid, specialize functions.
+}
+
+template <typename T, std::size_t N>
+void InverseTransform(T& ioObjectToTransform, const Transformation<ValueType_t<T>, N>& inTransformMatrix)
+{
+  UNUSED(ioObjectToTransform);
+  UNUSED(inTransformMatrix);
+  static_assert(!std::is_same_v<T, T>, "InverseTransform not specialized for this type, please implement it.");
+}
+
+template <typename T, std::size_t N>
+void InverseTransform(T& ioObjectToTransform, const SquareMat<ValueType_t<T>, N>& inTransformMatrix)
+{
+  return Transform(ioObjectToTransform, Inverted(inTransformMatrix));
 }
 
 template <typename T, std::size_t N>
@@ -134,14 +123,11 @@ template <typename T, std::size_t N>
 }
 
 template <typename T, std::size_t N>
-void Transform(T& ioObject, const Transformation<ValueType_t<T>, N>& inTransformation)
+[[nodiscard]] Vec<T, N> Transformed(const Vec<T, N>& inPoint, const SquareMat<T, N + 1>& inTransformMatrix)
 {
-  const auto transform_matrix = inTransformation.GetMatrix();
-  for (auto it = GetTransformIteratorBegin(ioObject); it != GetTransformIteratorEnd(ioObject); ++it)
-  {
-    auto& value = *it;
-    Transform(value, transform_matrix);
-  }
+  auto transformed_point = inPoint;
+  Transform(transformed_point, inTransformMatrix);
+  return transformed_point;
 }
 
 template <typename T, std::size_t N>
@@ -150,6 +136,23 @@ template <typename T, std::size_t N>
   auto transformed_object = inObject;
   Transform(transformed_object, inTransformation);
   return transformed_object;
+}
+
+template <typename T, std::size_t N>
+[[nodiscard]] T InverseTransformed(const T& inObjectToTransform, const SquareMat<ValueType_t<T>, N>& inTransformMatrix)
+{
+  auto inverse_transformed_object = inObjectToTransform;
+  InverseTransform(inverse_transformed_object, inTransformMatrix);
+  return inverse_transformed_object;
+}
+
+template <typename T, std::size_t N>
+[[nodiscard]] T InverseTransformed(const T& inObjectToTransform,
+    const Transformation<ValueType_t<T>, N>& inTransformation)
+{
+  auto inverse_transformed_object = inObjectToTransform;
+  InverseTransform(inverse_transformed_object, inTransformation);
+  return inverse_transformed_object;
 }
 
 }

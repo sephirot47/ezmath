@@ -113,8 +113,39 @@ inline constexpr std::ostream& operator<<(std::ostream& ioLHS, const VecPart<T, 
   return (ioLHS << Vec<T, N>(inRHS));
 }
 
+template <typename T, std::size_t N>
+struct MaybeVec
+{
+  using type = Vec<T, N>;
+};
+
+template <typename T>
+struct MaybeVec<T, 1ul>
+{
+  using type = T;
+};
+
+template <typename T, std::size_t N>
+using MaybeVec_t = typename MaybeVec<T, N>::type;
+
 template <std::size_t NBegin, std::size_t NEnd, typename T, std::size_t N>
-constexpr decltype(auto) Part(const Vec<T, N>& ioRHS)
+constexpr decltype(auto) WithPart(const Vec<T, N>& inLHS, const MaybeVec_t<T, (NEnd - NBegin + 1)>& inNewPart)
+{
+  auto vec = inLHS;
+  Part<NBegin, NEnd>(vec) = inNewPart;
+  return vec;
+}
+
+/*
+template <std::size_t NBegin, std::size_t NEnd, typename T, std::size_t N>
+constexpr decltype(auto) WithPart(Vec<T, N>&& inLHS, const MaybeVec_t<T, (NEnd - NBegin + 1)>& inNewPart)
+{
+  return WithPart<NBegin, NEnd, T, N>(static_cast<const Vec<T, N>&>(inLHS), inNewPart);
+}
+*/
+
+template <std::size_t NBegin, std::size_t NEnd, typename T, std::size_t N>
+constexpr auto Part(const Vec<T, N>& inRHS)
 {
   static_assert(NBegin < N);
   static_assert(NEnd < N);
@@ -125,12 +156,12 @@ constexpr decltype(auto) Part(const Vec<T, N>& ioRHS)
 
   if constexpr (PartN == 1)
   {
-    return ioRHS[NBegin];
+    return inRHS[NBegin];
   }
   else
   {
     Vec<T, PartN> vec;
-    for (std::size_t i = 0; i < PartN; ++i) { vec[i] = ioRHS[i + NBegin]; }
+    for (std::size_t i = 0; i < PartN; ++i) { vec[i] = inRHS[i + NBegin]; }
     return vec;
   }
 }

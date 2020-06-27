@@ -24,4 +24,11 @@ constexpr auto BoundingAARect(const T& inThingToBound)
   static_assert(NumDimensions_v<T> == 2);
   return BoundingAAHyperBox(inThingToBound);
 }
+
+template <typename T>
+constexpr auto BoundingAARectTransformed(const T& inThingToBound,
+    const Transformation<ValueType_t<T>, NumComponents_v<T>>& inTransformation)
+{
+  return BoundingAARect(inThingToBound, inTransformation);
+}
 }

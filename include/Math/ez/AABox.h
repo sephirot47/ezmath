@@ -2,6 +2,7 @@
 
 #include "ez/AAHyperBox.h"
 #include "ez/IntersectMode.h"
+#include "ez/Plane.h"
 #include <array>
 #include <optional>
 
@@ -26,6 +27,8 @@ auto Intersect(const Ray<T, 3>& inRay, const AABox<T>& inAABox)
   };
 
   const auto aabox_size = inAABox.GetSize();
+  const auto ray_is_inside = Contains(inAABox, inRay.GetOrigin());
+  UNUSED(ray_is_inside); // To avoid warning
 
   auto intersections_found = 0;                           // Only for EIntersectMode::ALL_INTERSECTIONS
   std::array<std::optional<T>, 2> intersection_distances; // Only for EIntersectMode::ALL_INTERSECTIONS
@@ -50,6 +53,14 @@ auto Intersect(const Ray<T, 3>& inRay, const AABox<T>& inAABox)
   {
     // Check whether it intersects the plane
     const auto& aabox_face_normal = BoxFaceNormals[i];
+    if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    {
+      // Only consider enter faces, since that will be the necessarily the closest one in the ray dir.
+      // But if the ray origin is inside, then the first plane it touches will be the closest one in the ray dir.
+      if (!ray_is_inside && Dot(aabox_face_normal, inRay.GetDirection()) > 0)
+        continue;
+    }
+
     const auto& aabox_face_point = (i < 3) ? inAABox.GetMin() : inAABox.GetMax();
     const auto aabox_face_plane = Planef(aabox_face_normal, aabox_face_point);
 
@@ -115,7 +126,7 @@ auto Intersect(const Ray<T, 3>& inRay, const AABox<T>& inAABox)
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const AABox<T>& inAABox, const Ray<T, 3>& inRay)
 {
-  return Intersect(inRay, inAABox);
+  return Intersect<TIntersectMode>(inRay, inAABox);
 }
 
 template <typename T>
@@ -137,4 +148,19 @@ constexpr auto BoundingAABox(const T& inThingToBound)
   return BoundingAAHyperBox(inThingToBound);
 }
 
+template <typename T>
+constexpr auto BoundingAABoxTransformed(const T& inThingToBound,
+    const Transformation<ValueType_t<T>, NumDimensions_v<T>>& inTransformation)
+{
+  static_assert(NumDimensions_v<T> == 3);
+  return BoundingAAHyperBoxTransformed(inThingToBound, inTransformation);
+}
+
+template <typename T>
+constexpr auto BoundingAABoxInverseTransformed(const T& inThingToBound,
+    const Transformation<ValueType_t<T>, NumDimensions_v<T>>& inTransformation)
+{
+  static_assert(NumDimensions_v<T> == 3);
+  return BoundingAAHyperBoxInverseTransformed(inThingToBound, inTransformation);
+}
 };

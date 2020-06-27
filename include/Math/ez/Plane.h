@@ -5,6 +5,7 @@
 #include "ez/MathForward.h"
 #include "ez/MathInitializers.h"
 #include "ez/Vec.h"
+#include <optional>
 
 namespace ez
 {

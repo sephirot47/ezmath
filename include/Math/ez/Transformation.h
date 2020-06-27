@@ -8,16 +8,13 @@
 
 namespace ez
 {
-// clang-format off
-template <typename TTransformation> struct TransformationRotationType { using Type = void; };
-// clang-format on
-
 template <typename T, std::size_t N>
 class Transformation final
 {
 public:
+  static_assert(N == 2 || N == 3);
   using ValueType = T;
-  using RotationType = typename TransformationRotationType<Transformation>::Type;
+  using RotationType = std::conditional_t<N == 2, T, Quat<T>>;
   static constexpr auto Dimensions = N;
 
   Transformation() = default;
@@ -34,8 +31,15 @@ public:
   void SetScale(const Vec<T, N>& inScale) { mScale = inScale; }
   const Vec<T, N>& GetScale() const { return mScale; }
 
-  Vec<T, N> Transformed(const Vec<T, N>& inPoint);
-  Vec<T, N> InverseTransformed(const Vec<T, N>& inPoint);
+  Transformation<T, N> operator*(const Transformation<T, N>& inRHS) const;
+  Transformation<T, N> operator*=(const Transformation<T, N>& inRHS) { return (*this = (*this) * inRHS); }
+
+  Vec<T, N> TransformedPoint(const Vec<T, N>& inPoint) const;
+  Vec<T, N> InverseTransformedPoint(const Vec<T, N>& inPoint) const;
+  Vec<T, N> TransformedDirection(const Vec<T, N>& inDirection) const;
+  Vec<T, N> InverseTransformedDirection(const Vec<T, N>& inDirection) const;
+  Transformation<T, N> TransformedTransform(const Transformation<T, N>& inTransformation) const;
+  Transformation<T, N> InverseTransformedTransform(const Transformation<T, N>& inTransformation) const;
   SquareMat<T, N + 1> GetMatrix() const;
   SquareMat<T, N + 1> GetInverseMatrix() const;
 
@@ -45,44 +49,48 @@ private:
   Vec<T, N> mScale = One<Vec<T, N>>();
 };
 
+template <typename T, std::size_t N>
+inline std::ostream& operator<<(std::ostream& ioLHS, const Transformation<T, N>& inRHS);
+
 // Traits
-// clang-format off
-template <typename T> struct TransformationRotationType<Transformation2<T>> { using Type = T; };
-template <typename T> struct TransformationRotationType<Transformation3<T>> { using Type = Quat<T>; };
-// clang-format on
-
-// Helper functions
-template <typename TObject, typename TTransformIterator>
-TTransformIterator GetTransformIteratorBegin(TObject& ioObject);
-
-template <typename TObject, typename TTransformIterator>
-TTransformIterator GetTransformIteratorEnd(TObject& ioObject);
-
 template <typename T, std::size_t N>
-void Transform(Vec<T, N>& ioPoint, const SquareMat<T, N>& inTransformMatrix);
+struct IsTransformation<Transformation<T, N>> : std::true_type
+{
+};
 
-template <typename T, std::size_t N>
-[[nodiscard]] Vec<T, N> Transformed(const Vec<T, N>& inPoint, const SquareMat<T, N>& inTransformMatrix);
-
-template <typename T, std::size_t N>
-void Transform(Vec<T, N>& ioPoint, const SquareMat<T, N + 1>& inTransformMatrix);
-
-template <typename T, std::size_t N>
-[[nodiscard]] Vec<T, N> Transformed(const Vec<T, N>& inPoint,
-    const SquareMat<ValueType_t<T>, N + 1>& inTransformMatrix);
-
+// Implement these 4 "Transform" methods for specialization (see Ray.h for an example)
 template <typename T, std::size_t N>
 void Transform(T& ioObjectToTransform, const SquareMat<ValueType_t<T>, N>& inTransformMatrix);
 
 template <typename T, std::size_t N>
-[[nodiscard]] T Transformed(const T& inObjectToTransform, const SquareMat<ValueType_t<T>, N>& inTransformMatrix);
+void Transform(T& ioObjectToTransform, const SquareMat<ValueType_t<T>, N + 1>& inTransformMatrix);
 
 template <typename T, std::size_t N>
 void Transform(T& ioObjectToTransform, const Transformation<ValueType_t<T>, N>& inTransformation);
 
 template <typename T, std::size_t N>
+void InverseTransform(T& ioObjectToTransform, const Transformation<ValueType_t<T>, N>& inTransformation);
+// =====
+
+// Inverse that can be generically implemented
+template <typename T, std::size_t N>
+void InverseTransform(T& ioObjectToTransform, const SquareMat<ValueType_t<T>, N>& inTransformMatrix);
+// ======
+
+// Transformed (return) versions
+template <typename T, std::size_t N>
+[[nodiscard]] T Transformed(const T& inObjectToTransform, const SquareMat<ValueType_t<T>, N>& inTransformMatrix);
+
+template <typename T, std::size_t N>
 [[nodiscard]] T Transformed(const T& inObjectToTransform, const Transformation<ValueType_t<T>, N>& inTransformation);
 
+template <typename T, std::size_t N>
+[[nodiscard]] T InverseTransformed(const T& inObjectToTransform, const SquareMat<ValueType_t<T>, N>& inTransformMatrix);
+
+template <typename T, std::size_t N>
+[[nodiscard]] T InverseTransformed(const T& inObjectToTransform,
+    const Transformation<ValueType_t<T>, N>& inTransformation);
+// =====
 }
 
 #include "ez/Transformation.tcc"

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ez/BinaryIndex.h"
 #include "ez/IntersectMode.h"
 #include "ez/MathCommon.h"
 #include "ez/MathForward.h"
@@ -177,4 +178,13 @@ auto Intersect(const AAHyperCube<T, N>& inAAHyperCube, const HyperSphere<T, N>& 
 {
   return Intersect<TIntersectMode, T, N>(inHyperSphere, inAAHyperCube);
 }
+
+template <typename T, std::size_t N>
+AAHyperBox<T, N> BoundingAAHyperBox(const HyperSphere<T, N>& inHyperSphere)
+{
+  return MakeAAHyperBoxFromCenterHalfSize(inHyperSphere.GetCenter(), All<Vec<T, N>>(inHyperSphere.GetRadius()));
 }
+
+}
+
+#include "ez/HyperSphere.tcc"

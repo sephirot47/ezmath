@@ -30,8 +30,15 @@ public:
   {
     ValueType mDistance { Infinity<ValueType>() };            // The distance to the intersection
     PrimitiveIndex mPrimitiveIndex { Max<PrimitiveIndex>() }; // The intersected primitive index in the primitive pool
+
+    Intersection() = default;
+    Intersection(const ValueType& inDistance, const PrimitiveIndex& inPrimitiveIndex)
+        : mDistance { inDistance }, mPrimitiveIndex { inPrimitiveIndex }
+    {
+    }
   };
 
+  Octree() = default;
   explicit Octree(const AABoxf& inAABox);
   Octree(const Span<TPrimitive>& inPrimitives,
       const std::size_t inLeafNodesMaxCapacity = 8,
@@ -83,8 +90,6 @@ public:
   Octree::ConstIterator cend() const { return ConstIterator(*this, 8); }
 
 private:
-  Octree() = default;
-
   enum class EExternalOctreePlaneId
   {
     // Order matters
@@ -143,6 +148,8 @@ private:
       const bool inAddPrimitiveToPool);
 
   friend class OctreeBuilder<TPrimitive>;
+
+  template <typename T>
   friend class IntersectHelperStruct;
 };
 

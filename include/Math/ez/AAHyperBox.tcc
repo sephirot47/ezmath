@@ -154,14 +154,6 @@ constexpr auto BoundingAAHyperBox(const T& inThingToBound)
 {
   if constexpr (IsVec_v<T>)
   {
-    using BoundingAAHyperBoxType = AAHyperBox<ValueType_t<T>, NumDimensions_v<T>>;
-    BoundingAAHyperBoxType bounding_aa_hyper_box;
-    bounding_aa_hyper_box.Wrap(inThingToBound);
-    return bounding_aa_hyper_box;
-  }
-  else if constexpr (IsAAHyperBox_v<T>)
-  {
-    return inThingToBound;
   }
   else
   {
@@ -179,5 +171,73 @@ constexpr auto BoundingAAHyperBox(const T& inThingToBound)
     }
     return bounding_aa_hyper_box;
   }
+}
+
+template <typename T, std::size_t N>
+constexpr auto BoundingAAHyperBox(const AAHyperBox<T, N>& inAAHyperBox)
+{
+  return inAAHyperBox;
+}
+
+template <typename T, std::size_t N>
+constexpr auto BoundingAAHyperBoxTransformed(const AAHyperBox<T, N>& inAAHyperBox,
+    const Transformation<T, N>& inTransformation)
+{
+  AAHyperBox<T, N> transformed_hyper_box;
+  std::for_each(inAAHyperBox.cbegin(), inAAHyperBox.cend(), [&](const auto& inPoint) {
+    transformed_hyper_box.Wrap(Transformed(inPoint, inTransformation));
+  });
+  return transformed_hyper_box;
+}
+
+template <typename T, std::size_t N>
+constexpr auto BoundingAAHyperBoxInverseTransformed(const AAHyperBox<T, N>& inAAHyperBox,
+    const Transformation<T, N>& inTransformation)
+{
+  AAHyperBox<T, N> transformed_hyper_box;
+  std::for_each(inAAHyperBox.cbegin(), inAAHyperBox.cend(), [&](const auto& inPoint) {
+    transformed_hyper_box.Wrap(InverseTransformed(inPoint, inTransformation));
+  });
+  return transformed_hyper_box;
+}
+
+template <typename T, std::size_t N>
+void Transform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const SquareMat<T, N>& inTransformMatrix)
+{
+  AAHyperBox<T, N> transformed_hyper_box;
+  std::for_each(ioAAHyperBoxToTransform.cbegin(), ioAAHyperBoxToTransform.cend(), [&](const auto& inPoint) {
+    transformed_hyper_box.Wrap(InverseTransformed(inPoint, inTransformMatrix));
+  });
+  ioAAHyperBoxToTransform = transformed_hyper_box;
+}
+
+template <typename T, std::size_t N>
+void Transform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const SquareMat<T, N + 1>& inTransformMatrix)
+{
+  AAHyperBox<T, N> transformed_hyper_box;
+  std::for_each(ioAAHyperBoxToTransform.cbegin(), ioAAHyperBoxToTransform.cend(), [&](const auto& inPoint) {
+    transformed_hyper_box.Wrap(Transformed(inPoint, inTransformMatrix));
+  });
+  ioAAHyperBoxToTransform = transformed_hyper_box;
+}
+
+template <typename T, std::size_t N>
+void Transform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const Transformation<T, N>& inTransformation)
+{
+  AAHyperBox<T, N> transformed_hyper_box;
+  std::for_each(ioAAHyperBoxToTransform.cbegin(), ioAAHyperBoxToTransform.cend(), [&](const auto& inPoint) {
+    transformed_hyper_box.Wrap(Transformed(inPoint, inTransformation));
+  });
+  ioAAHyperBoxToTransform = transformed_hyper_box;
+}
+
+template <typename T, std::size_t N>
+void InverseTransform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const Transformation<T, N>& inTransformation)
+{
+  AAHyperBox<T, N> transformed_hyper_box;
+  std::for_each(ioAAHyperBoxToTransform.cbegin(), ioAAHyperBoxToTransform.cend(), [&](const auto& inPoint) {
+    transformed_hyper_box.Wrap(InverseTransformed(inPoint, inTransformation));
+  });
+  ioAAHyperBoxToTransform = transformed_hyper_box;
 }
 }

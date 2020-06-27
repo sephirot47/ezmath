@@ -34,8 +34,10 @@ public:
   template <typename TOther>
   constexpr explicit Vec(const Vec<TOther, N>& inOther) noexcept;
 
-  template <typename... TArgs, typename = std::enable_if_t<sizeof...(TArgs) == N>>
-  constexpr explicit Vec(TArgs&&... inArgs) noexcept;
+  template <typename... TArgs,
+      typename = std::enable_if_t<(
+          (sizeof...(TArgs) >= 2) && (NumComponents_v<TArgs...> == N) && ((IsVec_v<TArgs> || IsNumber_v<TArgs>)&&...))>>
+  constexpr explicit Vec(TArgs&&...) noexcept;
 
   constexpr Vec(const Vec&) noexcept = default;
   constexpr Vec& operator=(const Vec&) noexcept = default;
@@ -140,6 +142,33 @@ constexpr T Down();
 
 template <typename T>
 constexpr T Back();
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> Reflect(const Vec<T, N> &inIncomingVectorNormalized, const Vec<T, N> &inNormalNormalized);
+
+// Transformation specializations. These are point transformations (not directions!)
+template <typename T, std::size_t N>
+void Transform(Ray<T, N>& ioRayToTransform, const Transformation<ValueType_t<T>, N>& inTransformation);
+
+template <typename T, std::size_t N>
+void Transform(Vec<T, N>& ioPoint, const SquareMat<T, N>& inTransformation);
+
+template <typename T, std::size_t N>
+void Transform(Vec<T, N>& ioPoint, const SquareMat<T, N + 1>& inTransformMatrix);
+
+template <typename T, std::size_t N>
+void InverseTransform(Vec<T, N>& ioPoint, const Transformation<ValueType_t<T>, N>& inTransformation);
+
+template <typename T, std::size_t N>
+constexpr auto BoundingAAHyperBox(const Vec<T, N>& inPoint);
+
+template <typename T, std::size_t N>
+constexpr auto BoundingAAHyperBoxTransformed(const Vec<T, N>& inPoint, const Transformation<T, N>& inTransformation);
+
+template <typename T, std::size_t N>
+constexpr auto BoundingAAHyperBoxInverseTransformed(const Vec<T, N>& inPoint,
+    const Transformation<T, N>& inTransformation);
+
 }
 
 #include "ez/Vec.tcc"

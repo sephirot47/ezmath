@@ -100,6 +100,10 @@ constexpr auto Identity()
   {
     return static_cast<T>(0);
   }
+  else if constexpr (IsTransformation_v<T>)
+  {
+    return T {};
+  }
   else
   {
     static_assert(!std::is_same_v<T, T>, "Not implemented for this type.");

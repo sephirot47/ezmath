@@ -314,7 +314,7 @@ constexpr Quat<T> FromTo(const Vec3<T>& inFromNormalized, const Vec3<T>& inToNor
   const auto s = static_cast<T>(std::sqrt((1 + from_to_dot) * 2));
   const auto inverse_of_s = (static_cast<T>(1.0) / s);
   const auto c = Cross(inFromNormalized, inToNormalized) * inverse_of_s;
-  return Normalized(Vec3<T> { c[0], c[1], c[2], s * 0.5 });
+  return Normalized(Quat<T> { c[0], c[1], c[2], s * 0.5 });
 }
 
 template <typename T>
@@ -354,6 +354,18 @@ template <typename T>
 constexpr Vec3<T> Rotated(const Vec3<T>& inVec, const Quat<T>& inRotation)
 {
   return inRotation * inVec;
+}
+
+template <typename T>
+constexpr AngleRads Rotated(const AngleRads inLHS, const AngleRads inRHS)
+{
+  return inLHS + inRHS;
+}
+
+template <typename T>
+constexpr Quat<T> Rotated(const Quat<T>& inLHS, const Quat<T>& inRHS)
+{
+  return inLHS * inRHS;
 }
 
 template <typename T, typename TQuat>
