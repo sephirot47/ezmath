@@ -136,6 +136,8 @@ private:
       const Vec3<ValueType>& inIntersectionPoint) const;
 
   friend class OctreeBuilder<TPrimitive>;
+
+  template <typename T>
   friend class IntersectHelperStruct;
 };
 

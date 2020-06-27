@@ -443,6 +443,8 @@ constexpr T Back()
 template <typename T, std::size_t N>
 constexpr Vec<T, N> Reflect(const Vec<T, N>& inIncomingVectorNormalized, const Vec<T, N>& inNormalNormalized)
 {
+  // inIncomingVectorNormalized pointing into the surface
+  // inNormalNormalized pointing out the surface
   EXPECTS(IsNormalized(inIncomingVectorNormalized));
   EXPECTS(IsNormalized(inNormalNormalized));
   const auto reflected = inIncomingVectorNormalized
