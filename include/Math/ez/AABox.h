@@ -28,18 +28,13 @@ auto Intersect(const Ray<T, 3>& inRay, const AABox<T>& inAABox)
 
   const auto aabox_size = inAABox.GetSize();
   const auto ray_is_inside = Contains(inAABox, inRay.GetOrigin());
-  UNUSED(ray_is_inside); // To avoid warning
+  UNUSED(ray_is_inside);
 
   auto intersections_found = 0;                           // Only for EIntersectMode::ALL_INTERSECTIONS
   std::array<std::optional<T>, 2> intersection_distances; // Only for EIntersectMode::ALL_INTERSECTIONS
-  if (Contains(inAABox, inRay.GetOrigin()))
+  if (ray_is_inside)
   {
-    if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
-    {
-      intersection_distances[intersections_found] = std::make_optional(static_cast<T>(0));
-      ++intersections_found;
-    }
-    else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
     {
       return std::make_optional(static_cast<T>(0));
     }
@@ -53,24 +48,16 @@ auto Intersect(const Ray<T, 3>& inRay, const AABox<T>& inAABox)
   {
     // Check whether it intersects the plane
     const auto& aabox_face_normal = BoxFaceNormals[i];
-    if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    if constexpr (TIntersectMode != EIntersectMode::ALL_INTERSECTIONS)
     {
-      // Only consider enter faces, since that will be the necessarily the closest one in the ray dir.
-      // But if the ray origin is inside, then the first plane it touches will be the closest one in the ray dir.
-      if (!ray_is_inside && Dot(aabox_face_normal, inRay.GetDirection()) > 0)
+      // If we are not looking for all intersections, it suffices with looking at the necessarily closest faces, which
+      // are the ones counter-facing the ray direction
+      if (Dot(aabox_face_normal, inRay.GetDirection()) > 0)
         continue;
     }
 
     const auto& aabox_face_point = (i < 3) ? inAABox.GetMin() : inAABox.GetMax();
     const auto aabox_face_plane = Planef(aabox_face_normal, aabox_face_point);
-
-    if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-    {
-      // For closest, only check for faces facing the ray origin
-      // (because these will be the closest always if any cube face is hit)
-      if (Dot(aabox_face_normal, inRay.GetDirection()) >= 0)
-        continue;
-    }
 
     if (const auto intersection_distance = IntersectClosest(inRay, aabox_face_plane))
     {
