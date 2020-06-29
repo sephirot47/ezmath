@@ -147,7 +147,7 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& i
 {
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
 
-  auto min_distance = 0;
+  T min_distance = 0;
   const auto sphere_center = inHyperSphere.GetCenter();
   const auto aabox_min = inAAHyperBox.GetMin();
   const auto aabox_max = inAAHyperBox.GetMax();
