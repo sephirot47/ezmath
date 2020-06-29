@@ -32,6 +32,12 @@ private:
   T mRadius = static_cast<T>(0);
 };
 
+// Traits
+template <typename T, std::size_t N>
+struct IsHyperSphere<HyperSphere<T, N>> : std::true_type
+{
+};
+
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperSphere<T, N>& inLHS, const HyperSphere<T, N>& inRHS)

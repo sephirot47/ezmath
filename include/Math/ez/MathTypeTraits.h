@@ -53,6 +53,14 @@ struct IsAAHyperCube final : std::false_type
 template <typename T>
 constexpr bool IsAAHyperCube_v = IsAAHyperCube<T>::value;
 
+// IsHyperSphere. Template specialization for HyperSphere is in "HyperSphere.h"
+template <typename T>
+struct IsHyperSphere final : std::false_type
+{
+};
+template <typename T>
+constexpr bool IsHyperSphere_v = IsHyperSphere<T>::value;
+
 // IsNumber
 template <typename T>
 constexpr auto IsNumber_v = std::is_arithmetic_v<std::remove_cvref_t<T>>;
