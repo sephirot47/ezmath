@@ -9,6 +9,19 @@ namespace ez
 template <typename T, std::size_t N>
 class Vec;
 
+template <std::size_t N>
+using Vecb = Vec<bool, N>;
+template <std::size_t N>
+using Veci = Vec<int32_t, N>;
+template <std::size_t N>
+using Vecui = Vec<uint32_t, N>;
+template <std::size_t N>
+using Vecul = Vec<uint64_t, N>;
+template <std::size_t N>
+using Vecf = Vec<float, N>;
+template <std::size_t N>
+using Vecd = Vec<double, N>;
+
 template <typename T>
 using Vec2 = Vec<T, 2>;
 using Vec2b = Vec2<bool>;

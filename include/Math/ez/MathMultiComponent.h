@@ -121,6 +121,19 @@ constexpr auto Floor(const T& inValue)
 }
 
 template <typename T>
+constexpr auto Fract(const T& inValue)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return inValue - Floor(inValue);
+  }
+  else
+  {
+    return MathMultiComponentApplied<T, Fract<ValueType_t<T>>>(inValue);
+  }
+}
+
+template <typename T>
 constexpr auto Sqrt(const T& inValue)
 {
   if constexpr (IsNumber_v<T>)
