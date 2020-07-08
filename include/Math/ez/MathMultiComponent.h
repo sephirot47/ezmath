@@ -125,7 +125,7 @@ constexpr auto Fract(const T& inValue)
 {
   if constexpr (IsNumber_v<T>)
   {
-    return inValue - Floor(inValue);
+    return static_cast<T>(inValue - static_cast<int64_t>(inValue));
   }
   else
   {
