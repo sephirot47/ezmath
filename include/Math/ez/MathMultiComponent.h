@@ -151,11 +151,37 @@ constexpr auto Pow(const T& inValue, const T& inPower)
 {
   if constexpr (IsNumber_v<T>)
   {
-    return std::pow(inValue, inPower);
+    return static_cast<T>(std::pow(inValue, inPower));
   }
   else
   {
     return MathMultiComponentApplied<T, Pow<ValueType_t<T>>>(inValue, inPower);
+  }
+}
+
+template <typename T>
+constexpr auto Log2(const T& inValue)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return static_cast<T>(std::log2(inValue));
+  }
+  else
+  {
+    return MathMultiComponentApplied<T, Log2<ValueType_t<T>>>(inValue);
+  }
+}
+
+template <typename T>
+constexpr auto Log10(const T& inValue)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return static_cast<T>(std::log10(inValue));
+  }
+  else
+  {
+    return MathMultiComponentApplied<T, Log10<ValueType_t<T>>>(inValue);
   }
 }
 
