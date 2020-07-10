@@ -106,15 +106,21 @@ std::ostream& operator<<(std::ostream& ioLHS, const AAHyperBox<T, N>& inAAHyperB
 }
 
 template <typename T, std::size_t N>
+const auto MakeAAHyperBoxFrom2Points(const Vec<T, N>& inPoint1, const Vec<T, N>& inPoint2)
+{
+  return AAHyperBox<T, N>(Min(inPoint1, inPoint2), Max(inPoint1, inPoint2));
+}
+
+template <typename T, std::size_t N>
 const auto MakeAAHyperBoxFromCenterHalfSize(const Vec<T, N>& inCenter, const Vec<T, N>& inHalfSize)
 {
-  return MakeAAHyperBoxFromMinMax(inCenter - inHalfSize, inCenter + inHalfSize);
+  return MakeAAHyperBoxFrom2Points(inCenter - inHalfSize, inCenter + inHalfSize);
 }
 
 template <typename T, std::size_t N>
 const auto MakeAAHyperBoxFromMinSize(const Vec<T, N>& inMin, const Vec<T, N>& inSize)
 {
-  return AAHyperBox<T, N>(inMin, inMin + inSize);
+  return MakeAAHyperBoxFrom2Points(inMin, inMin + inSize);
 }
 
 template <typename T, std::size_t N>
