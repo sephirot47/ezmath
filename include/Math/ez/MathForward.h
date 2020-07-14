@@ -129,6 +129,14 @@ using Spheref = Sphere<float>;
 using Sphered = Sphere<double>;
 using Spherei = Sphere<int32_t>;
 
+// Capsule
+template <typename T>
+class Capsule;
+
+using Capsulef = Capsule<float>;
+using Capsuled = Capsule<double>;
+using Capsulei = Capsule<int32_t>;
+
 // AAHyperBox
 template <typename T, std::size_t N>
 class AAHyperBox;

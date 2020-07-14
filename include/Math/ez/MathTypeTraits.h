@@ -61,6 +61,14 @@ struct IsHyperSphere final : std::false_type
 template <typename T>
 constexpr bool IsHyperSphere_v = IsHyperSphere<T>::value;
 
+// IsCapsule. Template specialization for Capsule is in "Capsule.h"
+template <typename T>
+struct IsCapsule final : std::false_type
+{
+};
+template <typename T>
+constexpr bool IsCapsule_v = IsCapsule<T>::value;
+
 // IsNumber
 template <typename T>
 constexpr auto IsNumber_v = std::is_arithmetic_v<std::remove_cvref_t<T>>;
