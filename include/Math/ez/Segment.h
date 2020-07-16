@@ -32,6 +32,19 @@ private:
 
 template <typename T, std::size_t N>
 constexpr Vec3<T> Direction(const Segment<T, N>& inSegment);
+
+template <typename T>
+Vec3<T> Projected(const Vec3<T>& inPoint, const Segment3<T>& inSegment);
+
+template <typename T>
+T SqDistance(const Vec3<T>& inPoint, const Segment3<T>& inSegment);
+
+template <typename T>
+T SqDistance(const Segment3<T>& inSegment, const Vec3<T>& inPoint);
+
+template <typename T>
+T SqDistance(const Segment3<T>& inSegmentLHS, const Segment3<T>& inSegmentRHS);
+
 }
 
 #include "ez/Segment.tcc"

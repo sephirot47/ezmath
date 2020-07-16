@@ -277,6 +277,12 @@ constexpr auto Clamp(const T& inValue, const T& inMin, const T& inMax)
 }
 
 template <typename T>
+constexpr auto Clamp01(const T& inValue)
+{
+  return Clamp<T>(inValue, static_cast<T>(0), static_cast<T>(1));
+}
+
+template <typename T>
 constexpr auto Min(const T& inLHS, const T& inRHS)
 {
   if constexpr (IsNumber_v<T>)
