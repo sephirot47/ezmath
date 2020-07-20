@@ -147,16 +147,28 @@ constexpr auto Sqrt(const T& inValue)
 }
 
 template <typename T>
-constexpr auto Pow(const T& inValue, const T& inPower)
+constexpr auto Pow(const T& inValue, const T& inExponent)
 {
   if constexpr (IsNumber_v<T>)
   {
-    return static_cast<T>(std::pow(inValue, inPower));
+    return static_cast<T>(std::pow(inValue, inExponent));
   }
   else
   {
-    return MathMultiComponentApplied<T, Pow<ValueType_t<T>>>(inValue, inPower);
+    return MathMultiComponentApplied<T, Pow<ValueType_t<T>>>(inValue, inExponent);
   }
+}
+
+template <typename T>
+constexpr std::enable_if_t<std::is_integral_v<ValueType_t<T>>, T> Pow2Int(const T& inExponent)
+{
+  return (static_cast<T>(1) << inExponent);
+}
+
+template <typename T>
+constexpr std::enable_if_t<std::is_integral_v<ValueType_t<T>>, T> Pow8Int(const T& inExponent)
+{
+  return (static_cast<T>(1) << (inExponent + inExponent + inExponent));
 }
 
 template <typename T>
