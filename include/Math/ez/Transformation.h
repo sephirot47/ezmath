@@ -23,16 +23,35 @@ public:
   Transformation(const Vec<T, N>& inPosition, const RotationType& inRotation, const Vec<T, N>& inScale);
 
   void SetPosition(const Vec<T, N>& inPosition) { mPosition = inPosition; }
+  void Translate(const Vec<T, N>& inPosition) { mPosition += inPosition; }
   const Vec<T, N>& GetPosition() const { return mPosition; }
 
   void SetRotation(const RotationType& inRotation) { mRotation = inRotation; }
+  void Rotate(const RotationType& inRotation) { mRotation = Rotated(mRotation, inRotation); }
   const RotationType& GetRotation() const { return mRotation; }
 
   void SetScale(const Vec<T, N>& inScale) { mScale = inScale; }
+  void Scale(const T& inScale) { mScale *= inScale; }
+  void Scale(const Vec<T, N>& inScale) { mScale *= inScale; }
   const Vec<T, N>& GetScale() const { return mScale; }
 
   Transformation<T, N> operator*(const Transformation<T, N>& inRHS) const;
   Transformation<T, N> operator*=(const Transformation<T, N>& inRHS) { return (*this = (*this) * inRHS); }
+
+  // clang-format off
+  template <typename TAux = T>
+  std::enable_if_t<N >= 2, Vec<TAux, N>> GetLeft() const { return Rotated(Left<Vec<T, N>>(), mRotation); }
+  template <typename TAux = T>
+  std::enable_if_t<N >= 2, Vec<TAux, N>> GetRight() const { return Rotated(Right<Vec<T, N>>(), mRotation); }
+  template <typename TAux = T>
+  std::enable_if_t<N >= 2, Vec<TAux, N>> GetDown() const { return Rotated(Down<Vec<T, N>>(), mRotation); }
+  template <typename TAux = T>
+  std::enable_if_t<N >= 2, Vec<TAux, N>> GetUp() const { return Rotated(Up<Vec<T, N>>(), mRotation); }
+  template <typename TAux = T>
+  std::enable_if_t<N >= 3, Vec<TAux, N>> GetForward() const { return Rotated(Forward<Vec<T, N>>(), mRotation); }
+  template <typename TAux = T>
+  std::enable_if_t<N >= 3, Vec<TAux, N>> GetBack() const { return Rotated(Back<Vec<T, N>>(), mRotation); }
+  // clang-format on
 
   Vec<T, N> TransformedPoint(const Vec<T, N>& inPoint) const;
   Vec<T, N> InverseTransformedPoint(const Vec<T, N>& inPoint) const;
