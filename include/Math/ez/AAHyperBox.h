@@ -118,6 +118,12 @@ const auto MakeAAHyperBoxFromCenterHalfSize(const Vec<T, N>& inCenter, const Vec
 }
 
 template <typename T, std::size_t N>
+const auto MakeAAHyperBoxFromCenterSize(const Vec<T, N>& inCenter, const Vec<T, N>& inSize)
+{
+  return MakeAAHyperBoxFromCenterHalfSize(inCenter, (inSize / static_cast<T>(2)));
+}
+
+template <typename T, std::size_t N>
 const auto MakeAAHyperBoxFromMinSize(const Vec<T, N>& inMin, const Vec<T, N>& inSize)
 {
   return MakeAAHyperBoxFrom2Points(inMin, inMin + inSize);
