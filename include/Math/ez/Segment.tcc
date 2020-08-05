@@ -43,6 +43,12 @@ Vec3<T> Projected(const Vec3<T>& inPoint, const Segment3<T>& inSegment)
   return Lerp(from_point, to_point, Clamp01(t));
 }
 
+template <typename T, std::size_t N>
+T SqLength(const Segment<T, N>& inSegment)
+{
+  return SqLength(inSegment.GetVector());
+}
+
 template <typename T>
 T SqDistance(const Vec3<T>& inPoint, const Segment3<T>& inSegment)
 {

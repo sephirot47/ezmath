@@ -36,6 +36,9 @@ constexpr Vec3<T> Direction(const Segment<T, N>& inSegment);
 template <typename T>
 Vec3<T> Projected(const Vec3<T>& inPoint, const Segment3<T>& inSegment);
 
+template <typename T, std::size_t N>
+T SqLength(const Segment<T, N>& inSegment);
+
 template <typename T>
 T SqDistance(const Vec3<T>& inPoint, const Segment3<T>& inSegment);
 
