@@ -40,6 +40,9 @@ inline std::ostream& operator<<(std::ostream& ioLHS, const Ray<T, N>& inRHS)
   return ioLHS;
 }
 
+template <typename T, std::size_t N>
+constexpr Vec3<T> Direction(const Ray<T, N>& inRay);
+
 // Transformation specializations
 template <typename T, std::size_t N>
 void Transform(Ray<T, N>& ioRayToTransform, const Transformation<ValueType_t<T>, N>& inTransformation);
@@ -52,6 +55,7 @@ void Transform(Ray<T, N>& ioRayToTransform, const SquareMat<T, N + 1>& inTransfo
 
 template <typename T, std::size_t N>
 void InverseTransform(Ray<T, N>& ioRayToTransform, const Transformation<ValueType_t<T>, N>& inTransformation);
+
 }
 
 #include "ez/Ray.tcc"

@@ -18,6 +18,12 @@ void Ray<T, N>::SetDirection(const Vec<T, N>& inDirection)
   mDirection = inDirection;
 }
 
+template <typename T, std::size_t N>
+constexpr Vec3<T> Direction(const Ray<T, N>& inRay)
+{
+  return inRay.GetDirection();
+}
+
 // Transformation specialization
 template <typename T, std::size_t N>
 void Transform(Ray<T, N>& ioRayToTransform, const Transformation<ValueType_t<T>, N>& inTransformation)

@@ -174,4 +174,63 @@ T SqDistance(const Segment3<T>& inSegmentLHS, const Segment3<T>& inSegmentRHS)
   return SqLength(dP); // Return the closest distance
 }
 
+// Intersection functions
+template <EIntersectMode TIntersectMode, typename T, typename TPrimitive>
+auto Intersect(const Segment<T, 3>& inSegment, const TPrimitive& inPrimitive)
+{
+  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
+          || TIntersectMode == EIntersectMode::ONLY_CHECK,
+      "Unsupported EIntersectMode.");
+
+  const auto segment_sq_length = SqLength(inSegment);
+  const auto segment_direction = (segment_sq_length != 0.0f ? Direction(inSegment) : Right<Vec<T, 3>>());
+  const auto segment_ray = Ray<T, 3>(inSegment.GetFromPoint(), segment_direction);
+  auto intersection_distances = Intersect<EIntersectMode::ALL_INTERSECTIONS>(segment_ray, inPrimitive);
+
+  // Invalidate points if outside the segment
+  for (auto& intersection_distance : intersection_distances)
+  {
+    if (!intersection_distance.has_value())
+      continue;
+
+    assert(*intersection_distance >= static_cast<T>(0));
+
+    const auto point_outside_segment_range = (Sq(*intersection_distance) > segment_sq_length);
+    if (!point_outside_segment_range)
+      continue;
+
+    const auto point_inside_primitive = Contains(inPrimitive, inSegment.GetToPoint());
+    intersection_distance = point_inside_primitive ? std::make_optional(Sqrt(segment_sq_length)) : std::nullopt;
+  }
+
+  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+  {
+    return intersection_distances;
+  }
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+  {
+    std::optional<T> min_intersection_distance;
+    for (auto& intersection_distance : intersection_distances)
+    {
+      if (!min_intersection_distance.has_value())
+        min_intersection_distance = intersection_distance;
+      else if (intersection_distance.has_value())
+        min_intersection_distance = Min(*intersection_distance, *min_intersection_distance);
+    }
+    return min_intersection_distance;
+  }
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+  {
+    return std::any_of(intersection_distances.cbegin(),
+        intersection_distances.cend(),
+        [](const auto& in_intersection_distance) { return in_intersection_distance.has_value(); });
+  }
+}
+
+template <EIntersectMode TIntersectMode, typename T, typename TPrimitive>
+auto Intersect(const TPrimitive& inPrimitive, const Segment<T, 3>& inSegment)
+{
+  return Intersect<TIntersectMode>(inSegment, inPrimitive);
+}
+
 }

@@ -10,17 +10,13 @@ namespace ez
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Ray3<T>& inRay, const AACube<T>& inAACube)
 {
-  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
-          || TIntersectMode == EIntersectMode::ONLY_CHECK,
-      "Unsupported EIntersectMode.");
-
   return Intersect<TIntersectMode, T>(inRay, MakeAAHyperBoxFromAAHyperCube(inAACube));
 }
 
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const AACube<T>& inAACube, const Ray3<T>& inRay)
 {
-  return Intersect(inRay, inAACube);
+  return Intersect<TIntersectMode, T>(inRay, inAACube);
 }
 
 template <typename T>
