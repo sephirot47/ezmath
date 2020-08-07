@@ -15,6 +15,8 @@ class VecPart final
 {
 public:
   static_assert(N >= 1);
+  using ValueType = T;
+  static constexpr auto NumComponents = N;
 
   template <std::size_t NOther, std::size_t NBegin, std::size_t NEnd>
   constexpr VecPart(Vec<T, NOther>& ioRHS)
@@ -43,7 +45,7 @@ public:
   constexpr VecPart& operator=(VecPart&&) = default;
   ~VecPart() = default;
 
-  constexpr operator Vec<T, N>() const
+  constexpr operator Vec<T, N>()
   {
     Vec<T, N> vec;
     for (std::size_t i = 0; i < N; ++i) { vec[i] = *mComponentsPtrs[i]; }
@@ -85,6 +87,12 @@ private:
   std::array<T*, N> mComponentsPtrs;
 
   constexpr VecPart() : mComponentsPtrs { GetArrayWithRepeatedValue<T*, N>(nullptr) } {}
+};
+
+// Traits
+template <typename T, std::size_t N>
+struct IsVec<VecPart<T, N>> : std::true_type
+{
 };
 
 template <typename T, std::size_t N>

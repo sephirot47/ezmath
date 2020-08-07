@@ -11,7 +11,7 @@ struct IsVec final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsVec_v = IsVec<T>::value;
+constexpr bool IsVec_v = IsVec<std::remove_cvref_t<T>>::value;
 
 // IsMat. Template specialization for Mat is in "Mat.h"
 template <typename T>
@@ -19,7 +19,7 @@ struct IsMat final : std::false_type
 {
 };
 template <typename T>
-inline constexpr bool IsMat_v = IsMat<T>::value;
+inline constexpr bool IsMat_v = IsMat<std::remove_cvref_t<T>>::value;
 
 // IsQuat. Template specialization for Quat is in "Quat.h"
 template <typename T>
@@ -27,7 +27,7 @@ struct IsQuat final : std::false_type
 {
 };
 template <typename T>
-inline constexpr bool IsQuat_v = IsQuat<T>::value;
+inline constexpr bool IsQuat_v = IsQuat<std::remove_cvref_t<T>>::value;
 
 // IsAAHyperBox. Template specialization for AAHyperBox is in "AAHyperBox.h"
 template <typename T>
@@ -35,7 +35,7 @@ struct IsAAHyperBox final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsAAHyperBox_v = IsAAHyperBox<T>::value;
+constexpr bool IsAAHyperBox_v = IsAAHyperBox<std::remove_cvref_t<T>>::value;
 
 // IsTransformation. Template specialization for Transformation is in "Transformation.h"
 template <typename T>
@@ -43,7 +43,7 @@ struct IsTransformation final : std::false_type
 {
 };
 template <typename T>
-inline constexpr bool IsTransformation_v = IsTransformation<T>::value;
+inline constexpr bool IsTransformation_v = IsTransformation<std::remove_cvref_t<T>>::value;
 
 // IsAAHyperCube. Template specialization for AAHyperCube is in "AAHyperCube.h"
 template <typename T>
@@ -51,7 +51,7 @@ struct IsAAHyperCube final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsAAHyperCube_v = IsAAHyperCube<T>::value;
+constexpr bool IsAAHyperCube_v = IsAAHyperCube<std::remove_cvref_t<T>>::value;
 
 // IsHyperSphere. Template specialization for HyperSphere is in "HyperSphere.h"
 template <typename T>
@@ -59,7 +59,7 @@ struct IsHyperSphere final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsHyperSphere_v = IsHyperSphere<T>::value;
+constexpr bool IsHyperSphere_v = IsHyperSphere<std::remove_cvref_t<T>>::value;
 
 // IsCapsule. Template specialization for Capsule is in "Capsule.h"
 template <typename T>
@@ -67,7 +67,7 @@ struct IsCapsule final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsCapsule_v = IsCapsule<T>::value;
+constexpr bool IsCapsule_v = IsCapsule<std::remove_cvref_t<T>>::value;
 
 // IsNumber
 template <typename T>
