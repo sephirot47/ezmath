@@ -43,4 +43,10 @@ constexpr RotationType_t<T, 3> Orientation(const Cylinder<T>& inCylinder)
   return FromTo(Forward<Vec3<T>>(), Direction(inCylinder));
 }
 
+template <typename T>
+constexpr Vec3<T> Center(const Cylinder<T>& inCylinder)
+{
+  return (inCylinder.GetOrigin() + inCylinder.GetDestiny()) / static_cast<T>(2);
+}
+
 }

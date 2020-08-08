@@ -55,6 +55,12 @@ auto Intersect(const AACube<T>& inAACube, const Capsule<T>& inCapsule);
 template <typename T>
 constexpr bool Contains(const Capsule<T>& inCapsule, const Vec3<T>& inPoint);
 
+template <typename T>
+constexpr RotationType_t<T, 3> Orientation(const Capsule<T>& inCapsule);
+
+template <typename T>
+constexpr Vec3<T> Center(const Capsule<T>& inCapsule);
+
 }
 
 #include "ez/Capsule.tcc"

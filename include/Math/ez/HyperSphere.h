@@ -64,6 +64,9 @@ template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const AAHyperCube<T, N>& inAAHyperCube, const HyperSphere<T, N>& inHyperSphere);
 
 template <typename T, std::size_t N>
+constexpr Vec<T, N> Center(const HyperSphere<T, N>& inHyperSphere);
+
+template <typename T, std::size_t N>
 AAHyperBox<T, N> BoundingAAHyperBox(const HyperSphere<T, N>& inHyperSphere);
 }
 

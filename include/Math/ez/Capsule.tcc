@@ -27,7 +27,7 @@ auto Intersect(const Capsule<T>& inCapsule, const Sphere<T>& inSphere)
 {
   const auto capsule_axis_segment = inCapsule.GetSegment();
   const float radius_sum = (inSphere.GetRadius() + inCapsule.GetRadius());
-  return SqDistance(inSphere.GetCenter(), capsule_axis_segment) <= Sq(radius_sum);
+  return SqDistance(Center(inSphere), capsule_axis_segment) <= Sq(radius_sum);
 }
 
 template <EIntersectMode TIntersectMode, typename T>
@@ -61,4 +61,17 @@ constexpr bool Contains(const Capsule<T>& inCapsule, const Vec3<T>& inPoint)
 {
   return SqDistance(inPoint, inCapsule.GetSegment()) < Sq(inCapsule.GetRadius());
 }
+
+template <typename T>
+constexpr RotationType_t<T, 3> Orientation(const Capsule<T>& inCapsule)
+{
+  return FromTo(Forward<Vec3<T>>(), Direction(inCapsule));
+}
+
+template <typename T>
+constexpr Vec3<T> Center(const Capsule<T>& inCapsule)
+{
+  return (inCapsule.GetOrigin() + inCapsule.GetDestiny()) / static_cast<T>(2);
+}
+
 }

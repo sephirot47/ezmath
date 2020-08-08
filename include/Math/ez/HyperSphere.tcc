@@ -6,13 +6,13 @@ template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperSphere<T, N>& inLHS, const HyperSphere<T, N>& inRHS)
 {
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
-  return SqDistance(inLHS.GetCenter(), inRHS.GetCenter()) <= Sq(inLHS.GetRadius() + inRHS.GetRadius());
+  return SqDistance(Center(inLHS), Center(inRHS)) <= Sq(inLHS.GetRadius() + inRHS.GetRadius());
 }
 
 template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inPoint)
 {
-  return SqDistance(inPoint, inHyperSphere.GetCenter()) <= Sq(inHyperSphere.GetRadius());
+  return SqDistance(inPoint, Center(inHyperSphere)) <= Sq(inHyperSphere.GetRadius());
 }
 
 template <typename T, std::size_t N>
@@ -42,7 +42,7 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& i
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
 
   T min_distance = 0;
-  const auto sphere_center = inHyperSphere.GetCenter();
+  const auto sphere_center = Center(inHyperSphere);
   const auto aabox_min = inAAHyperBox.GetMin();
   const auto aabox_max = inAAHyperBox.GetMax();
   for (std::size_t i = 0; i < N; ++i)
@@ -74,9 +74,15 @@ auto Intersect(const AAHyperCube<T, N>& inAAHyperCube, const HyperSphere<T, N>& 
 }
 
 template <typename T, std::size_t N>
+constexpr Vec<T, N> Center(const HyperSphere<T, N>& inHyperSphere)
+{
+  return inHyperSphere.GetCenter();
+}
+
+template <typename T, std::size_t N>
 AAHyperBox<T, N> BoundingAAHyperBox(const HyperSphere<T, N>& inHyperSphere)
 {
-  return MakeAAHyperBoxFromCenterHalfSize(inHyperSphere.GetCenter(), All<Vec<T, N>>(inHyperSphere.GetRadius()));
+  return MakeAAHyperBoxFromCenterHalfSize(Center(inHyperSphere), All<Vec<T, N>>(inHyperSphere.GetRadius()));
 }
 
 }

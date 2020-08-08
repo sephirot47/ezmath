@@ -45,6 +45,9 @@ constexpr Vec3<T> Direction(const Cylinder<T>& inCylinder);
 template <typename T>
 constexpr RotationType_t<T, 3> Orientation(const Cylinder<T>& inCylinder);
 
+template <typename T>
+constexpr Vec3<T> Center(const Cylinder<T>& inCylinder);
+
 }
 
 #include "ez/Cylinder.tcc"

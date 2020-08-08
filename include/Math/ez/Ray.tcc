@@ -24,6 +24,39 @@ constexpr Vec3<T> Direction(const Ray<T, N>& inRay)
   return inRay.GetDirection();
 }
 
+template <typename T>
+bool HasValue(const std::optional<T>& inOptional)
+{
+  return inOptional.has_value();
+}
+
+template <typename T>
+std::optional<T> GetClosestIntersectionDistance(const std::array<std::optional<T>, 2>& inIntersectionDistances)
+{
+  if (inIntersectionDistances.at(0).has_value())
+  {
+    if (!inIntersectionDistances.at(1).has_value())
+      return inIntersectionDistances.at(0);
+    return std::make_optional(Min(*inIntersectionDistances.at(0), *inIntersectionDistances.at(1)));
+  }
+  return inIntersectionDistances.at(1);
+}
+
+template <typename T>
+bool AddIntersectionDistance(std::array<std::optional<T>, 2>& ioIntersectionDistances, const T& inIntersectionDistance)
+{
+  if (!ioIntersectionDistances.at(0).has_value())
+  {
+    ioIntersectionDistances.at(0) = inIntersectionDistance;
+    return true;
+  }
+
+  if (!ioIntersectionDistances.at(1).has_value())
+    ioIntersectionDistances.at(1) = inIntersectionDistance;
+
+  return false;
+}
+
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Ray<T, 3>& inRay, const Plane<T>& inPlane)
 {
@@ -135,7 +168,7 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Ray<T, N>& inRay)
 
   const auto ray_origin = inRay.GetOrigin();
   const auto ray_dir = inRay.GetDirection();
-  const auto hyper_sphere_center = inHyperSphere.GetCenter();
+  const auto hyper_sphere_center = Center(inHyperSphere);
   const auto hyper_sphere_radius = inHyperSphere.GetRadius();
   const auto ray_origin_local = (ray_origin - hyper_sphere_center);
   const auto o = ray_origin_local;
@@ -170,21 +203,11 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Ray<T, N>& inRay)
   }
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
   {
-    if (intersections.at(0).has_value())
-    {
-      return intersections.at(1).has_value() ? std::make_optional(Min(*intersections.at(0), *intersections.at(1)))
-                                             : intersections.at(0);
-    }
-    else
-    {
-      return intersections.at(1).has_value() ? intersections.at(1) : std::optional<T>();
-    }
+    return GetClosestIntersectionDistance(intersections);
   }
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
   {
-    return std::any_of(intersections.cbegin(), intersections.cend(), [](const auto& in_intersection) {
-      return in_intersection.has_value();
-    });
+    return std::any_of(intersections.cbegin(), intersections.cend(), &HasValue<T>);
   }
 }
 
@@ -194,32 +217,24 @@ auto Intersect(const Ray<T, N>& inRay, const HyperSphere<T, N>& inHyperSphere)
   return Intersect<TIntersectMode>(inHyperSphere, inRay);
 }
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Cylinder<T>& inCylinder, const Ray<T, 3>& inRay)
+template <typename T>
+auto IntersectCylinderWithoutCaps(const Vec3<T>& inRayOriginLocal,
+    const Vec3<T>& inRayDirLocal,
+    const Cylinder<T>& inCylinder,
+    const T inCylinderSqRadius,
+    const T inCylinderSqLength)
 {
-  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
-          || TIntersectMode == EIntersectMode::ONLY_CHECK,
-      "Unsupported EIntersectMode");
-
   std::array<std::optional<T>, 2> intersections;
-
-  const auto cylinder_orientation_inv = -Orientation(inCylinder);
-  const auto cylinder_sq_radius = Sq(inCylinder.GetRadius());
-  const auto cylinder_sq_length = SqLength(inCylinder);
-  const auto cylinder_length = Sqrt(cylinder_sq_length);
-  const auto ray_origin_local = (cylinder_orientation_inv * (inRay.GetOrigin() - inCylinder.GetDestiny()));
-  const auto ray_dir_local = (cylinder_orientation_inv * inRay.GetDirection());
-  const auto ray_local = Ray { ray_origin_local, ray_dir_local };
 
   // Cylinder pipe without caps
   {
-    const auto o = XY(ray_origin_local);
-    const auto d = XY(ray_dir_local);
+    const auto o = XY(inRayOriginLocal);
+    const auto d = XY(inRayDirLocal);
     const auto R = inCylinder.GetRadius();
 
     const auto a = SqLength(d);
     const auto b = static_cast<T>(2) * Dot(o, d);
-    const auto c = SqLength(o) - cylinder_sq_radius;
+    const auto c = SqLength(o) - inCylinderSqRadius;
 
     const auto sqrt_number = (Sq(b) - static_cast<T>(4) * a * c);
     if (sqrt_number >= 0)
@@ -237,14 +252,14 @@ auto Intersect(const Cylinder<T>& inCylinder, const Ray<T, 3>& inRay)
           continue;
         }
 
-        const auto intersection_point_local_z = (ray_origin_local[2] + ray_dir_local[2] * (*intersection));
+        const auto intersection_point_local_z = (inRayOriginLocal[2] + inRayDirLocal[2] * (*intersection));
         if (intersection_point_local_z < 0)
         {
           intersection = std::nullopt;
           continue;
         }
 
-        if (Sq(intersection_point_local_z) > cylinder_sq_length)
+        if (Sq(intersection_point_local_z) > inCylinderSqLength)
         {
           intersection = std::nullopt;
           continue;
@@ -252,6 +267,37 @@ auto Intersect(const Cylinder<T>& inCylinder, const Ray<T, 3>& inRay)
       }
     }
   }
+
+  return intersections;
+}
+
+template <typename T>
+Ray3<T> GetRayInCylinderSpace(const Cylinder<T>& inCylinder, const Ray3<T>& inRay)
+{
+  const auto cylinder_orientation_inv = -Orientation(inCylinder);
+  const auto ray_origin_local = (cylinder_orientation_inv * (inRay.GetOrigin() - inCylinder.GetDestiny()));
+  const auto ray_dir_local = (cylinder_orientation_inv * inRay.GetDirection());
+  return { ray_origin_local, ray_dir_local };
+}
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const Ray<T, 3>& inRay)
+{
+  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
+          || TIntersectMode == EIntersectMode::ONLY_CHECK,
+      "Unsupported EIntersectMode");
+
+  const auto cylinder_sq_radius = Sq(inCylinder.GetRadius());
+  const auto cylinder_sq_length = SqLength(inCylinder);
+  const auto cylinder_length = Sqrt(cylinder_sq_length);
+  const auto ray_local = GetRayInCylinderSpace(inCylinder, inRay);
+
+  // Cylinder pipe without caps
+  auto intersections = IntersectCylinderWithoutCaps(ray_local.GetOrigin(),
+      Direction(ray_local),
+      inCylinder,
+      cylinder_sq_radius,
+      cylinder_sq_length);
 
   // Caps
   for (int cap_i = 0; cap_i < 2; ++cap_i)
@@ -274,15 +320,8 @@ auto Intersect(const Cylinder<T>& inCylinder, const Ray<T, 3>& inRay)
     if (intersection_sq_distance_to_cap_plane_pos > cylinder_sq_radius)
       continue;
 
-    if (intersections.at(0).has_value())
-    {
-      intersections.at(1) = cap_plane_intersection;
+    if (!AddIntersectionDistance(intersections, *cap_plane_intersection))
       break;
-    }
-    else
-    {
-      intersections.at(0) = cap_plane_intersection;
-    }
   }
 
   if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
@@ -291,21 +330,11 @@ auto Intersect(const Cylinder<T>& inCylinder, const Ray<T, 3>& inRay)
   }
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
   {
-    if (intersections.at(0).has_value())
-    {
-      return intersections.at(1).has_value() ? std::make_optional(Min(*intersections.at(0), *intersections.at(1)))
-                                             : intersections.at(0);
-    }
-    else
-    {
-      return intersections.at(1).has_value() ? intersections.at(1) : std::optional<T>();
-    }
+    return GetClosestIntersectionDistance(intersections);
   }
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
   {
-    return std::any_of(intersections.cbegin(), intersections.cend(), [](const auto& in_intersection) {
-      return in_intersection.has_value();
-    });
+    return std::any_of(intersections.cbegin(), intersections.cend(), &HasValue<T>);
   }
 }
 
@@ -333,9 +362,41 @@ auto Intersect(const Capsule<T>& inCapsule, const Ray<T, 3>& inRay)
   else if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS
       || TIntersectMode == EIntersectMode::ONLY_CLOSEST)
   {
-    std::array<std::optional<T>, 2> intersections;
-    intersections = Intersect<TIntersectMode>(cylinder, inRay);
-    return intersections;
+    // Capsule pipe without caps
+    const auto ray_local = GetRayInCylinderSpace(cylinder, inRay);
+    auto intersections = IntersectCylinderWithoutCaps(ray_local.GetOrigin(),
+        Direction(ray_local),
+        cylinder,
+        Sq(cylinder.GetRadius()),
+        SqLength(cylinder));
+
+    for (const auto& sphere : { origin_sphere, destiny_sphere })
+    {
+      if (std::all_of(intersections.cbegin(), intersections.cend(), &HasValue<T>))
+        return intersections;
+
+      const auto sphere_intersections = Intersect<EIntersectMode::ALL_INTERSECTIONS>(inRay, sphere);
+      for (const auto& sphere_intersection : sphere_intersections)
+      {
+        if (!sphere_intersection.has_value())
+          continue;
+
+        if (Contains(cylinder, inRay.GetPoint(*sphere_intersection)))
+          continue;
+
+        if (!AddIntersectionDistance(intersections, *sphere_intersection))
+          break;
+      }
+    }
+
+    if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+    {
+      return intersections;
+    }
+    else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    {
+      return GetClosestIntersectionDistance(intersections);
+    }
   }
 }
 

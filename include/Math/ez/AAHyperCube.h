@@ -62,35 +62,22 @@ struct IsAAHyperCube<AAHyperCube<T, N>> : std::true_type
 
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperCube<T, N>& inLHS, const AAHyperCube<T, N>& inRHS)
-{
-  return Intersect<TIntersectMode>(MakeAAHyperBoxFromAAHyperCube(inLHS), MakeAAHyperBoxFromAAHyperCube(inRHS));
-}
+auto Intersect(const AAHyperCube<T, N>& inLHS, const AAHyperCube<T, N>& inRHS);
 
 template <typename T, std::size_t N>
-bool Contains(const AAHyperCube<T, N>& inAAHyperCube, const Vec<T, N>& inPoint)
-{
-  return inPoint >= inAAHyperCube.GetMin() && inPoint <= inAAHyperCube.GetMax();
-}
+bool Contains(const AAHyperCube<T, N>& inAAHyperCube, const Vec<T, N>& inPoint);
 
 template <typename T, std::size_t N>
-bool Contains(const AAHyperCube<T, N>& inAAHyperCubeContainer, const AAHyperCube<T, N>& inAAHyperCubeContainee)
-{
-  return Contains(inAAHyperCubeContainer, inAAHyperCubeContainee.GetMin())
-      && Contains(inAAHyperCubeContainer, inAAHyperCubeContainee.GetMax());
-}
+bool Contains(const AAHyperCube<T, N>& inAAHyperCubeContainer, const AAHyperCube<T, N>& inAAHyperCubeContainee);
 
 template <typename T, std::size_t N>
-const auto MakeAAHyperCubeFromMinSize(const Vec<T, N>& inMin, const T& inSize)
-{
-  return AAHyperCube<T, N>(inMin, inSize);
-}
+const auto MakeAAHyperCubeFromMinSize(const Vec<T, N>& inMin, const T& inSize);
 
 template <typename T, std::size_t N>
-const auto MakeAAHyperCubeFromCenterSize(const Vec<T, N>& inCenter, const T& inSize)
-{
-  return MakeAAHyperCubeFromMinSize(inCenter - inSize / 2, inSize);
-}
+const auto MakeAAHyperCubeFromCenterSize(const Vec<T, N>& inCenter, const T& inSize);
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> Center(const AAHyperCube<T, N>& inAAHyperCube);
 
 }
 
