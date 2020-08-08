@@ -196,11 +196,8 @@ auto Intersect(const Segment<T, 3>& inSegment, const TPrimitive& inPrimitive)
     assert(*intersection_distance >= static_cast<T>(0));
 
     const auto point_outside_segment_range = (Sq(*intersection_distance) > segment_sq_length);
-    if (!point_outside_segment_range)
-      continue;
-
-    const auto point_inside_primitive = Contains(inPrimitive, inSegment.GetToPoint());
-    intersection_distance = point_inside_primitive ? std::make_optional(Sqrt(segment_sq_length)) : std::nullopt;
+    if (point_outside_segment_range)
+      intersection_distance = std::nullopt;
   }
 
   if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
@@ -221,9 +218,11 @@ auto Intersect(const Segment<T, 3>& inSegment, const TPrimitive& inPrimitive)
   }
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
   {
-    return std::any_of(intersection_distances.cbegin(),
+    const auto some_intersection_has_value = std::any_of(intersection_distances.cbegin(),
         intersection_distances.cend(),
         [](const auto& in_intersection_distance) { return in_intersection_distance.has_value(); });
+    return some_intersection_has_value || Contains(inPrimitive, inSegment.GetFromPoint())
+        || Contains(inPrimitive, inSegment.GetToPoint());
   }
 }
 

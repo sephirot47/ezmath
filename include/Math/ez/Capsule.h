@@ -52,6 +52,9 @@ auto Intersect(const Capsule<T>& inCapsule, const AACube<T>& inAACube);
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const AACube<T>& inAACube, const Capsule<T>& inCapsule);
 
+template <typename T>
+constexpr bool Contains(const Capsule<T>& inCapsule, const Vec3<T>& inPoint);
+
 }
 
 #include "ez/Capsule.tcc"

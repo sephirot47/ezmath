@@ -41,6 +41,12 @@ inline std::ostream& operator<<(std::ostream& ioLHS, const Ray<T, N>& inRHS)
 }
 
 template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Ray<T, 3>& inRay, const Plane<T>& inPlane);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const Ray<T, 3>& inRay);
+
+template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Ray<T, 3>& inRay, const AABox<T>& inAABox);
 
 template <EIntersectMode TIntersectMode, typename T>
@@ -57,6 +63,12 @@ auto Intersect(const Cylinder<T>& inCylinder, const Ray<T, 3>& inRay);
 
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Ray<T, 3>& inRay, const Cylinder<T>& inCylinder);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Capsule<T>& inCapsule, const Ray<T, 3>& inRay);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Ray<T, 3>& inRay, const Capsule<T>& inCapsule);
 
 template <typename T, std::size_t N>
 constexpr Vec3<T> Direction(const Ray<T, N>& inRay);

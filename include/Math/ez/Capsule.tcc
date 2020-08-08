@@ -55,4 +55,10 @@ auto Intersect(const AACube<T>& inAACube, const Capsule<T>& inCapsule)
 {
   return Intersect<TIntersectMode, T>(inCapsule, inAACube);
 }
+
+template <typename T>
+constexpr bool Contains(const Capsule<T>& inCapsule, const Vec3<T>& inPoint)
+{
+  return SqDistance(inPoint, inCapsule.GetSegment()) < Sq(inCapsule.GetRadius());
+}
 }
