@@ -42,12 +42,6 @@ struct IsHyperSphere<HyperSphere<T, N>> : std::true_type
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperSphere<T, N>& inLHS, const HyperSphere<T, N>& inRHS);
 
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Ray<T, N>& inRay);
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const Ray<T, N>& inRay, const HyperSphere<T, N>& inHyperSphere);
-
 template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inPoint);
 

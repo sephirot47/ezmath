@@ -8,12 +8,18 @@ Capsule<T>::Capsule(const Vec3<T>& inOrigin, const Vec3<T>& inDestiny, const T i
 {
 }
 
+template <typename T>
+constexpr Vec3<T> Direction(const Capsule<T>& inCapsule)
+{
+  return Direction(inCapsule.GetSegment());
+}
+
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Capsule<T>& inLHS, const Capsule<T>& inRHS)
 {
   // WARNING: Untested
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
-  return SqDistance(inLHS.GetSegment(), inRHS.GetSegment()) <= (inLHS.GetSqRadius() + inRHS.GetSqRadius());
+  return SqDistance(inLHS.GetSegment(), inRHS.GetSegment()) <= (Sq(inLHS.GetRadius()) + Sq(inRHS.GetRadius()));
 }
 
 template <EIntersectMode TIntersectMode, typename T>

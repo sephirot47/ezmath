@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ez/Segment.h>
 #include <ez/Vec.h>
 
 namespace ez
@@ -19,7 +20,6 @@ public:
   const Vec3<T>& GetOrigin() const { return mOrigin; }
   const Vec3<T>& GetDestiny() const { return mDestiny; }
   const T& GetRadius() const { return mRadius; }
-  T GetSqRadius() const { return Sq(mRadius); }
 
 private:
   Vec3<T> mOrigin { Zero<Vec3<T>>() };
@@ -32,6 +32,9 @@ template <typename T>
 struct IsCapsule<Capsule<T>> : std::true_type
 {
 };
+
+template <typename T>
+constexpr Vec3<T> Direction(const Capsule<T>& inCapsule);
 
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T>

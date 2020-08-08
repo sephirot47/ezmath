@@ -137,6 +137,14 @@ using Capsulef = Capsule<float>;
 using Capsuled = Capsule<double>;
 using Capsulei = Capsule<int32_t>;
 
+// Cylinder
+template <typename T>
+class Cylinder;
+
+using Cylinderf = Cylinder<float>;
+using Cylinderd = Cylinder<double>;
+using Cylinderi = Cylinder<int32_t>;
+
 // AAHyperBox
 template <typename T, std::size_t N>
 class AAHyperBox;

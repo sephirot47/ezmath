@@ -14,7 +14,7 @@ class Transformation final
 public:
   static_assert(N == 2 || N == 3);
   using ValueType = T;
-  using RotationType = std::conditional_t<N == 2, T, Quat<T>>;
+  using RotationType = RotationType_t<T, N>;
   static constexpr auto Dimensions = N;
 
   Transformation() = default;

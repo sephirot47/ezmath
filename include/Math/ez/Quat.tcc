@@ -299,22 +299,15 @@ constexpr Quat<T> FromTo(const Vec3<T>& inFromNormalized, const Vec3<T>& inToNor
   EXPECTS(IsNormalized(inToNormalized));
 
   const auto from_to_dot = Dot(inFromNormalized, inToNormalized);
-  if (from_to_dot >= 1.0)
+  if (IsVeryEqual(from_to_dot, static_cast<T>(1)))
     return Identity<Quat<T>>();
 
-  if (from_to_dot <= -1.0)
-  {
-    auto axis = Cross(Right<Vec3<T>>(), inFromNormalized);
-    if (axis.SqLength() == 0)
-      axis = Cross(Up<Vec3<T>>(), inFromNormalized);
-    axis = Normalized(axis);
-    return Quat<T>(axis[0], axis[1], axis[2], 0.0);
-  }
+  if (IsVeryEqual(from_to_dot, static_cast<T>(-1)))
+    return AngleAxis(HalfCircleRads<T>(), Up<Vec3f>());
 
-  const auto s = static_cast<T>(std::sqrt((1 + from_to_dot) * 2));
-  const auto inverse_of_s = (static_cast<T>(1.0) / s);
-  const auto c = Cross(inFromNormalized, inToNormalized) * inverse_of_s;
-  return Normalized(Quat<T> { c[0], c[1], c[2], s * 0.5 });
+  const auto s = (static_cast<T>(1) + from_to_dot);
+  const auto c = Cross(inFromNormalized, inToNormalized);
+  return Normalized(Quat<T> { c[0], c[1], c[2], s });
 }
 
 template <typename T>
