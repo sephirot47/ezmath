@@ -19,7 +19,7 @@ void Ray<T, N>::SetDirection(const Vec<T, N>& inDirection)
 }
 
 template <typename T, std::size_t N>
-constexpr Vec3<T> Direction(const Ray<T, N>& inRay)
+constexpr Vec<T, N> Direction(const Ray<T, N>& inRay)
 {
   return inRay.GetDirection();
 }
@@ -93,16 +93,16 @@ auto Intersect(const Plane<T>& inPlane, const Ray<T, 3>& inRay)
   return Intersect<TIntersectMode>(inRay, inPlane);
 }
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Ray<T, 3>& inRay, const AABox<T>& inAABox)
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Ray<T, N>& inRay, const AAHyperBox<T, N>& inAAHyperBox)
 {
   static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
           || TIntersectMode == EIntersectMode::ONLY_CHECK,
       "Unsupported EIntersectMode.");
 
   const auto ray_direction_inverse = (static_cast<T>(1) / Direction(inRay));
-  const auto tbot = ray_direction_inverse * (inAABox.GetMin() - inRay.GetOrigin());
-  const auto ttop = ray_direction_inverse * (inAABox.GetMax() - inRay.GetOrigin());
+  const auto tbot = ray_direction_inverse * (inAAHyperBox.GetMin() - inRay.GetOrigin());
+  const auto ttop = ray_direction_inverse * (inAAHyperBox.GetMax() - inRay.GetOrigin());
   const auto tmin = Min(ttop, tbot);
   const auto tmax = Max(ttop, tbot);
   const auto enter = Max(tmin);
@@ -142,10 +142,22 @@ auto Intersect(const Ray<T, 3>& inRay, const AABox<T>& inAABox)
   }
 }
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const AABox<T>& inAABox, const Ray<T, 3>& inRay)
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Ray<T, N>& inRay)
 {
-  return Intersect<TIntersectMode>(inRay, inAABox);
+  return Intersect<TIntersectMode, T, N>(inRay, inAAHyperBox);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Ray<T, N>& inRay, const AAHyperCube<T, N>& inAAHyperCube)
+{
+  return Intersect<TIntersectMode, T, N>(inRay, MakeAAHyperBoxFromAAHyperCube(inAAHyperCube));
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const AAHyperCube<T, N>& inAAHyperCube, const Ray<T, N>& inRay)
+{
+  return Intersect<TIntersectMode, T, N>(inRay, inAAHyperCube);
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>

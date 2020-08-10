@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ez/MathCommon.h"
 #include "ez/IntersectMode.h"
+#include "ez/MathCommon.h"
 #include "ez/MathInitializers.h"
 #include "ez/Vec.h"
 
@@ -47,11 +47,17 @@ auto Intersect(const Ray<T, 3>& inRay, const Plane<T>& inPlane);
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Plane<T>& inPlane, const Ray<T, 3>& inRay);
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Ray<T, 3>& inRay, const AABox<T>& inAABox);
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Ray<T, N>& inRay, const AAHyperBox<T, N>& inAAHyperBox);
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const AABox<T>& inAABox, const Ray<T, 3>& inRay);
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Ray<T, N>& inRay);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Ray<T, N>& inRay, const AAHyperCube<T, N>& inAAHyperCube);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const AAHyperCube<T, N>& inAAHyperCube, const Ray<T, N>& inRay);
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Ray<T, N>& inRay);
@@ -72,7 +78,7 @@ template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Ray<T, 3>& inRay, const Capsule<T>& inCapsule);
 
 template <typename T, std::size_t N>
-constexpr Vec3<T> Direction(const Ray<T, N>& inRay);
+constexpr Vec<T, N> Direction(const Ray<T, N>& inRay);
 
 // Transformation specializations
 template <typename T, std::size_t N>

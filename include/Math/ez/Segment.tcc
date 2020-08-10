@@ -26,7 +26,7 @@ Vec<T, N> Segment<T, N>::GetVector() const
 }
 
 template <typename T, std::size_t N>
-constexpr Vec3<T> Direction(const Segment<T, N>& inSegment)
+constexpr Vec<T, N> Direction(const Segment<T, N>& inSegment)
 {
   const auto direction = NormalizedSafe(inSegment.GetVector());
   return direction;
@@ -173,16 +173,16 @@ T SqDistance(const Segment3<T>& inSegmentLHS, const Segment3<T>& inSegmentRHS)
 }
 
 // Intersection functions
-template <EIntersectMode TIntersectMode, typename T, typename TPrimitive>
-auto Intersect(const Segment<T, 3>& inSegment, const TPrimitive& inPrimitive)
+template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
+auto Intersect(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
 {
   static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
           || TIntersectMode == EIntersectMode::ONLY_CHECK,
       "Unsupported EIntersectMode.");
 
   const auto segment_sq_length = SqLength(inSegment);
-  const auto segment_direction = (segment_sq_length != 0.0f ? Direction(inSegment) : Right<Vec<T, 3>>());
-  const auto segment_ray = Ray<T, 3>(inSegment.GetOrigin(), segment_direction);
+  const auto segment_direction = (segment_sq_length != 0.0f ? Direction(inSegment) : Right<Vec<T, N>>());
+  const auto segment_ray = Ray<T, N>(inSegment.GetOrigin(), segment_direction);
   auto intersection_distances = Intersect<EIntersectMode::ALL_INTERSECTIONS>(segment_ray, inPrimitive);
 
   // Invalidate points if outside the segment
@@ -224,10 +224,10 @@ auto Intersect(const Segment<T, 3>& inSegment, const TPrimitive& inPrimitive)
   }
 }
 
-template <EIntersectMode TIntersectMode, typename T, typename TPrimitive>
-auto Intersect(const TPrimitive& inPrimitive, const Segment<T, 3>& inSegment)
+template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
+auto Intersect(const TPrimitive& inPrimitive, const Segment<T, N>& inSegment)
 {
-  return Intersect<TIntersectMode>(inSegment, inPrimitive);
+  return Intersect<TIntersectMode, T, TPrimitive, N>(inSegment, inPrimitive);
 }
 
 template <typename T, std::size_t N>

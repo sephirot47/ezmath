@@ -33,7 +33,7 @@ private:
 };
 
 template <typename T, std::size_t N>
-constexpr Vec3<T> Direction(const Segment<T, N>& inSegment);
+constexpr Vec<T, N> Direction(const Segment<T, N>& inSegment);
 
 template <typename T>
 Vec3<T> Projected(const Vec3<T>& inPoint, const Segment3<T>& inSegment);
@@ -57,11 +57,11 @@ template <typename T, std::size_t N>
 constexpr Vec<T, N> Center(const Segment<T, N>& inSegment);
 
 // Intersection functions
-template <EIntersectMode TIntersectMode, typename T, typename TPrimitive>
-auto Intersect(const Segment<T, 3>& inSegment, const TPrimitive& inPrimitive);
+template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
+auto Intersect(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive);
 
-template <EIntersectMode TIntersectMode, typename T, typename TPrimitive>
-auto Intersect(const TPrimitive& inPrimitive, const Segment<T, 3>& inSegment);
+template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
+auto Intersect(const TPrimitive& inPrimitive, const Segment<T, N>& inSegment);
 }
 
 #include "ez/Segment.tcc"

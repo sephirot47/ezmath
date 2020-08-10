@@ -337,7 +337,7 @@ constexpr std::tuple<Vec3<T>, Vec3<T>, Vec3<T>> Axes(const Quat<T>& inOrientatio
 }
 
 template <typename T>
-constexpr Vec2<T> Rotated(const Vec2<T>& inVec, const AngleRads inAngle)
+constexpr Vec2<T> Rotated(const Vec2<T>& inVec, const AngleRads<T> inAngle)
 {
   return Vec2<T> { inVec[0] * std::cos(inAngle) - inVec[1] * std::sin(inAngle),
     inVec[0] * std::sin(inAngle) + inVec[1] * std::cos(inAngle) };
@@ -350,7 +350,7 @@ constexpr Vec3<T> Rotated(const Vec3<T>& inVec, const Quat<T>& inRotation)
 }
 
 template <typename T>
-constexpr AngleRads Rotated(const AngleRads inLHS, const AngleRads inRHS)
+constexpr AngleRads<T> Rotated(const AngleRads<T> inLHS, const AngleRads<T> inRHS)
 {
   return inLHS + inRHS;
 }

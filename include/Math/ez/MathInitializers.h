@@ -6,7 +6,8 @@
 
 namespace ez
 {
-using AngleRads = float;
+template <typename T = float>
+using AngleRads = T;
 
 template <typename T = float>
 constexpr T Pi()
