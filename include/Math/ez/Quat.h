@@ -122,7 +122,7 @@ template <typename T>
 constexpr AngleRads<T> Rotated(const AngleRads<T> inLHS, const AngleRads<T> inRHS);
 
 template <typename T>
-constexpr Vec3<T> Rotated(const Quat<T>& inLHS, const Quat<T>& inRHS);
+constexpr Quat<T> Rotated(const Quat<T>& inLHS, const Quat<T>& inRHS);
 
 template <typename T, typename TQuat>
 constexpr TQuat SLerp(const TQuat& inFrom, const TQuat& inTo, const T& inT);

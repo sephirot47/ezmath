@@ -217,54 +217,28 @@ auto Intersect(const Ray<T, N>& inRay, const HyperSphere<T, N>& inHyperSphere)
 template <typename T>
 auto IntersectCylinderWithoutCaps(const Vec3<T>& inRayOriginLocal,
     const Vec3<T>& inRayDirLocal,
-    const Cylinder<T>& inCylinder,
-    const T inCylinderSqRadius,
-    const T inCylinderSqLength)
+    const Cylinder<T>& inCylinder)
 {
-  std::array<std::optional<T>, 2> intersections;
+  const auto ray_dir_local_2d = XY(inRayDirLocal);
+  const auto ray_dir_local_2d_length = Length(ray_dir_local_2d);
+  if (IsVeryEqual(ray_dir_local_2d_length, static_cast<T>(0)))
+    return std::array<std::optional<T>, 2> {};
 
-  // Cylinder pipe without caps
+  const auto ray_dir_local_2d_norm = (ray_dir_local_2d / ray_dir_local_2d_length);
+  const auto ray_2d = Ray2<T> { XY(inRayOriginLocal), ray_dir_local_2d_norm };
+  const auto cylinder_section_circle = Circle<T> { Zero<Vec2<T>>(), inCylinder.GetRadius() };
+
+  auto intersections = IntersectAll(ray_2d, cylinder_section_circle);
+  for (auto& intersection : intersections)
   {
-    const auto o = XY(inRayOriginLocal);
-    const auto d = XY(inRayDirLocal);
-    const auto R = inCylinder.GetRadius();
+    if (!intersection.has_value())
+      continue;
 
-    const auto a = SqLength(d);
-    const auto b = static_cast<T>(2) * Dot(o, d);
-    const auto c = SqLength(o) - inCylinderSqRadius;
-
-    const auto sqrt_number = (Sq(b) - static_cast<T>(4) * a * c);
-    if (sqrt_number >= 0)
-    {
-      const auto sqrt_result = Sqrt(sqrt_number);
-      const auto a2 = a + a;
-      intersections.at(0) = (-b + sqrt_result) / a2;
-      intersections.at(1) = (-b - sqrt_result) / a2;
-
-      for (auto& intersection : intersections)
-      {
-        if (*intersection < static_cast<T>(0))
-        {
-          intersection = std::nullopt;
-          continue;
-        }
-
-        const auto intersection_point_local_z = (inRayOriginLocal[2] + inRayDirLocal[2] * (*intersection));
-        if (intersection_point_local_z < 0)
-        {
-          intersection = std::nullopt;
-          continue;
-        }
-
-        if (Sq(intersection_point_local_z) > inCylinderSqLength)
-        {
-          intersection = std::nullopt;
-          continue;
-        }
-      }
-    }
+    (*intersection) /= ray_dir_local_2d_length;
+    const auto intersection_point_local_z = (inRayOriginLocal[2] + inRayDirLocal[2] * (*intersection));
+    if (intersection_point_local_z < 0 || (Sq(intersection_point_local_z) > SqLength(inCylinder)))
+      intersection = std::nullopt;
   }
-
   return intersections;
 }
 
@@ -290,11 +264,7 @@ auto Intersect(const Cylinder<T>& inCylinder, const Ray<T, 3>& inRay)
   const auto ray_local = GetRayInCylinderSpace(inCylinder, inRay);
 
   // Cylinder pipe without caps
-  auto intersections = IntersectCylinderWithoutCaps(ray_local.GetOrigin(),
-      Direction(ray_local),
-      inCylinder,
-      cylinder_sq_radius,
-      cylinder_sq_length);
+  auto intersections = IntersectCylinderWithoutCaps(ray_local.GetOrigin(), Direction(ray_local), inCylinder);
 
   // Caps
   for (int cap_i = 0; cap_i < 2; ++cap_i)
@@ -355,11 +325,7 @@ auto Intersect(const Capsule<T>& inCapsule, const Ray<T, 3>& inRay)
   {
     // Capsule pipe without caps
     const auto ray_local = GetRayInCylinderSpace(cylinder, inRay);
-    auto intersections = IntersectCylinderWithoutCaps(ray_local.GetOrigin(),
-        Direction(ray_local),
-        cylinder,
-        Sq(cylinder.GetRadius()),
-        SqLength(cylinder));
+    auto intersections = IntersectCylinderWithoutCaps(ray_local.GetOrigin(), Direction(ray_local), cylinder);
 
     for (const auto& sphere : { origin_sphere, destiny_sphere })
     {
