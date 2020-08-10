@@ -5,6 +5,7 @@
 #include "ez/MathCommon.h"
 #include "ez/MathForward.h"
 #include "ez/MathInitializers.h"
+#include "ez/IntersectMode.h"
 #include "ez/Vec.h"
 #include <array>
 #include <optional>

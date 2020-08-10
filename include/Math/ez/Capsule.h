@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ez/IntersectMode.h>
 #include <ez/Segment.h>
 #include <ez/Vec.h>
 

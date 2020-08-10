@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ez/MathCommon.h"
+#include "ez/IntersectMode.h"
 #include "ez/MathInitializers.h"
 #include "ez/Vec.h"
 

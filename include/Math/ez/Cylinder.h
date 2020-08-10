@@ -2,6 +2,7 @@
 
 #include <ez/Segment.h>
 #include <ez/Vec.h>
+#include <ez/IntersectMode.h>
 
 namespace ez
 {
