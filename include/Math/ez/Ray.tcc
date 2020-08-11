@@ -25,195 +25,65 @@ constexpr Vec<T, N> Direction(const Ray<T, N>& inRay)
   return inRay.GetDirection();
 }
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Ray3<T>& inRay, const Plane<T>& inPlane)
+namespace ray_intersections_detail
+{
+  template <typename T>
+  std::optional<T> GetMinIntersectionDistance(const std::array<std::optional<T>, 1>& inIntersectionDistances)
+  {
+    return inIntersectionDistances.front();
+  }
+
+  template <typename T>
+  std::optional<T> GetMinIntersectionDistance(const std::array<std::optional<T>, 2>& inIntersectionDistances)
+  {
+    if (inIntersectionDistances.at(0).has_value())
+    {
+      if (!inIntersectionDistances.at(1).has_value())
+        return inIntersectionDistances.at(0);
+      return std::make_optional(Min(*inIntersectionDistances.at(0), *inIntersectionDistances.at(1)));
+    }
+    return inIntersectionDistances.at(1);
+  }
+}
+
+template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
+auto Intersect(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
 {
   static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
           || TIntersectMode == EIntersectMode::ONLY_CHECK,
       "Unsupported EIntersectMode.");
 
-  const auto ray_line = Line3<T> { inRay.GetOrigin(), Direction(inRay) };
-  const auto intersection = Intersect<EIntersectMode::ONLY_CLOSEST, T>(ray_line, inPlane);
-
-  const auto intersects = (intersection.has_value() && (*intersection >= static_cast<T>(0)));
-  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
-    return std::array { intersects ? std::make_optional(*intersection) : std::optional<T>() };
-  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-    return (intersects ? std::make_optional(*intersection) : std::optional<T>());
-  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-    return intersects;
-}
-
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Plane<T>& inPlane, const Ray3<T>& inRay)
-{
-  return Intersect<TIntersectMode>(inRay, inPlane);
-}
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const Ray<T, N>& inRay, const AAHyperBox<T, N>& inAAHyperBox)
-{
-  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
-          || TIntersectMode == EIntersectMode::ONLY_CHECK,
-      "Unsupported EIntersectMode.");
-
+  constexpr auto Epsilon = static_cast<T>(1e-7);
   const auto ray_line = Line<T, N> { inRay.GetOrigin(), Direction(inRay) };
-  auto intersections = IntersectAll(ray_line, inAAHyperBox);
+  auto intersections = IntersectAll(ray_line, inPrimitive);
 
   for (auto& intersection : intersections)
   {
     if (!intersection.has_value())
       continue;
 
-    constexpr auto Epsilon = static_cast<T>(1e-7);
-    if (*intersection < Epsilon)
-    {
-      intersection = std::nullopt;
-      continue;
-    }
-  }
-
-  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
-    return intersections;
-  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-    return line_intersections_detail::GetMinIntersectionDistance(intersections);
-  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-    return false;
-}
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Ray<T, N>& inRay)
-{
-  return Intersect<TIntersectMode, T, N>(inRay, inAAHyperBox);
-}
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const Ray<T, N>& inRay, const AAHyperCube<T, N>& inAAHyperCube)
-{
-  return Intersect<TIntersectMode, T, N>(inRay, MakeAAHyperBoxFromAAHyperCube(inAAHyperCube));
-}
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperCube<T, N>& inAAHyperCube, const Ray<T, N>& inRay)
-{
-  return Intersect<TIntersectMode, T, N>(inRay, inAAHyperCube);
-}
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Ray<T, N>& inRay)
-{
-  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
-          || TIntersectMode == EIntersectMode::ONLY_CHECK,
-      "Unsupported EIntersectMode");
-
-  const auto ray_line = Line<T, N> { inRay.GetOrigin(), Direction(inRay) };
-  auto intersections = IntersectAll(ray_line, inHyperSphere);
-  for (auto& intersection : intersections)
-  {
-    if (!intersection.has_value())
-      continue;
-
-    constexpr auto Epsilon = static_cast<T>(1e-7);
-    if (*intersection < Epsilon)
-    {
-      intersection = std::nullopt;
-      continue;
-    }
-
+    const auto point_inside_ray_range = (*intersection >= Epsilon);
     if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-      return true;
-  }
-
-  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
-    return intersections;
-  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-    return line_intersections_detail::GetMinIntersectionDistance(intersections);
-  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-    return std::any_of(intersections.cbegin(), intersections.cend(), &line_intersections_detail::HasValue<T>);
-}
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const Ray<T, N>& inRay, const HyperSphere<T, N>& inHyperSphere)
-{
-  return Intersect<TIntersectMode>(inHyperSphere, inRay);
-}
-
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Cylinder<T>& inCylinder, const Ray3<T>& inRay)
-{
-  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
-          || TIntersectMode == EIntersectMode::ONLY_CHECK,
-      "Unsupported EIntersectMode");
-
-  const auto ray_line = Line3<T> { inRay.GetOrigin(), Direction(inRay) };
-  auto intersections = IntersectAll(ray_line, inCylinder);
-  for (auto& intersection : intersections)
-  {
-    if (!intersection.has_value())
-      continue;
-
-    constexpr auto Epsilon = static_cast<T>(1e-7);
-    if (*intersection < Epsilon)
     {
-      intersection = std::nullopt;
-      continue;
+      if (point_inside_ray_range)
+        return true;
     }
-
-    if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-      return true;
+    else if (!point_inside_ray_range)
+      intersection = std::nullopt;
   }
 
   if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
     return intersections;
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-    return line_intersections_detail::GetMinIntersectionDistance(intersections);
+    return ray_intersections_detail::GetMinIntersectionDistance(intersections);
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-    return std::any_of(intersections.cbegin(), intersections.cend(), &line_intersections_detail::HasValue<T>);
+    return Contains(inPrimitive, inRay.GetOrigin());
 }
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Ray3<T>& inRay, const Cylinder<T>& inCylinder)
+template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
+auto Intersect(const TPrimitive& inPrimitive, const Ray<T, N>& inRay)
 {
-  return Intersect<TIntersectMode>(inCylinder, inRay);
-}
-
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Capsule<T>& inCapsule, const Ray3<T>& inRay)
-{
-  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
-          || TIntersectMode == EIntersectMode::ONLY_CHECK,
-      "Unsupported EIntersectMode");
-
-  const auto ray_line = Line3<T> { inRay.GetOrigin(), Direction(inRay) };
-  auto intersections = IntersectAll(ray_line, inCapsule);
-  for (auto& intersection : intersections)
-  {
-    if (!intersection.has_value())
-      continue;
-
-    constexpr auto Epsilon = static_cast<T>(1e-7);
-    if (*intersection < Epsilon)
-    {
-      intersection = std::nullopt;
-      continue;
-    }
-
-    if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-      return true;
-  }
-
-  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
-    return intersections;
-  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-    return line_intersections_detail::GetMinIntersectionDistance(intersections);
-  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-    return std::any_of(intersections.cbegin(), intersections.cend(), &line_intersections_detail::HasValue<T>);
-}
-
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Ray3<T>& inRay, const Capsule<T>& inCapsule)
-{
-  return Intersect<TIntersectMode>(inCapsule, inRay);
+  return Intersect<TIntersectMode, T, TPrimitive, N>(inRay, inPrimitive);
 }
 
 // Transformation specialization

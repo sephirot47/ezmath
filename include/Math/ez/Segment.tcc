@@ -1,3 +1,5 @@
+#include "ez/Line.h"
+#include "ez/Ray.h"
 #include "ez/Segment.h"
 
 namespace ez
@@ -180,48 +182,34 @@ auto Intersect(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
           || TIntersectMode == EIntersectMode::ONLY_CHECK,
       "Unsupported EIntersectMode.");
 
+  constexpr auto Epsilon = static_cast<T>(1e-7);
   const auto segment_sq_length = SqLength(inSegment);
   const auto segment_direction = (segment_sq_length != 0.0f ? Direction(inSegment) : Right<Vec<T, N>>());
-  const auto segment_ray = Ray<T, N>(inSegment.GetOrigin(), segment_direction);
-  auto intersection_distances = Intersect<EIntersectMode::ALL_INTERSECTIONS>(segment_ray, inPrimitive);
+  const auto segment_line = Line<T, N>(inSegment.GetOrigin(), segment_direction);
+  auto intersections = IntersectAll(segment_line, inPrimitive);
 
   // Invalidate points if outside the segment
-  for (auto& intersection_distance : intersection_distances)
+  for (auto& intersection : intersections)
   {
-    if (!intersection_distance.has_value())
+    if (!intersection.has_value())
       continue;
 
-    assert(*intersection_distance >= static_cast<T>(0));
-
-    const auto point_outside_segment_range = (Sq(*intersection_distance) > segment_sq_length);
-    if (point_outside_segment_range)
-      intersection_distance = std::nullopt;
+    const auto point_inside_segment_range = (*intersection >= Epsilon && Sq(*intersection) <= segment_sq_length);
+    if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+    {
+      if (point_inside_segment_range)
+        return true;
+    }
+    else if (!point_inside_segment_range)
+      intersection = std::nullopt;
   }
 
   if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
-  {
-    return intersection_distances;
-  }
+    return intersections;
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-  {
-    std::optional<T> min_intersection_distance;
-    for (auto& intersection_distance : intersection_distances)
-    {
-      if (!min_intersection_distance.has_value())
-        min_intersection_distance = intersection_distance;
-      else if (intersection_distance.has_value())
-        min_intersection_distance = Min(*intersection_distance, *min_intersection_distance);
-    }
-    return min_intersection_distance;
-  }
+    return ray_intersections_detail::GetMinIntersectionDistance(intersections);
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-  {
-    const auto some_intersection_has_value = std::any_of(intersection_distances.cbegin(),
-        intersection_distances.cend(),
-        [](const auto& in_intersection_distance) { return in_intersection_distance.has_value(); });
-    return some_intersection_has_value || Contains(inPrimitive, inSegment.GetOrigin())
-        || Contains(inPrimitive, inSegment.GetDestiny());
-  }
+    return (Contains(inPrimitive, inSegment.GetOrigin()) || Contains(inPrimitive, inSegment.GetDestiny()));
 }
 
 template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>

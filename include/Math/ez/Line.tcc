@@ -40,18 +40,6 @@ namespace line_intersections_detail
   }
 
   template <typename T>
-  std::optional<T> GetMinIntersectionDistance(const std::array<std::optional<T>, 2>& inIntersectionDistances)
-  {
-    if (inIntersectionDistances.at(0).has_value())
-    {
-      if (!inIntersectionDistances.at(1).has_value())
-        return inIntersectionDistances.at(0);
-      return std::make_optional(Min(*inIntersectionDistances.at(0), *inIntersectionDistances.at(1)));
-    }
-    return inIntersectionDistances.at(1);
-  }
-
-  template <typename T>
   bool AddIntersectionDistance(std::array<std::optional<T>, 2>& ioIntersectionDistances,
       const T& inIntersectionDistance)
   {
@@ -77,17 +65,17 @@ namespace line_intersections_detail
   }
 
   template <typename T>
-  auto IntersectCylinderWithoutCaps(const Vec3<T>& inRayOriginLocal,
-      const Vec3<T>& inRayDirLocal,
+  auto IntersectCylinderWithoutCaps(const Vec3<T>& inLineOriginLocal,
+      const Vec3<T>& inLineDirLocal,
       const Cylinder<T>& inCylinder)
   {
-    const auto line_dir_local_2d = XY(inRayDirLocal);
+    const auto line_dir_local_2d = XY(inLineDirLocal);
     const auto line_dir_local_2d_length = Length(line_dir_local_2d);
     if (IsVeryEqual(line_dir_local_2d_length, static_cast<T>(0)))
       return std::array<std::optional<T>, 2> {};
 
     const auto line_dir_local_2d_norm = (line_dir_local_2d / line_dir_local_2d_length);
-    const auto line_2d = Ray2<T> { XY(inRayOriginLocal), line_dir_local_2d_norm };
+    const auto line_2d = Line2<T> { XY(inLineOriginLocal), line_dir_local_2d_norm };
     const auto cylinder_section_circle = Circle<T> { Zero<Vec2<T>>(), inCylinder.GetRadius() };
 
     auto intersections = IntersectAll(line_2d, cylinder_section_circle);
@@ -97,7 +85,7 @@ namespace line_intersections_detail
         continue;
 
       (*intersection) /= line_dir_local_2d_length;
-      const auto intersection_point_local_z = (inRayOriginLocal[2] + inRayDirLocal[2] * (*intersection));
+      const auto intersection_point_local_z = (inLineOriginLocal[2] + inLineDirLocal[2] * (*intersection));
       if (intersection_point_local_z < 0 || (Sq(intersection_point_local_z) > SqLength(inCylinder)))
         intersection = std::nullopt;
     }
@@ -170,6 +158,18 @@ template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Line<T, N>& inLine)
 {
   return Intersect<TIntersectMode, T, N>(inLine, inAAHyperBox);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Line<T, N>& inLine, const AAHyperCube<T, N>& inAAHyperCube)
+{
+  return Intersect<TIntersectMode, T, N>(inLine, MakeAAHyperBoxFromAAHyperCube(inAAHyperCube));
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const AAHyperCube<T, N>& inAAHyperCube, const Line<T, N>& inLine)
+{
+  return Intersect<TIntersectMode, T, N>(inLine, inAAHyperCube);
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
