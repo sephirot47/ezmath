@@ -102,6 +102,20 @@ using Ray3 = Ray<T, 3>;
 using Ray3f = Ray3<float>;
 using Ray3d = Ray3<double>;
 
+// Line
+template <typename T, std::size_t N>
+class Line;
+
+template <typename T>
+using Line2 = Line<T, 2>;
+using Line2f = Line2<float>;
+using Line2d = Line2<double>;
+
+template <typename T>
+using Line3 = Line<T, 3>;
+using Line3f = Line3<float>;
+using Line3d = Line3<double>;
+
 // Plane
 template <typename T>
 class Plane;

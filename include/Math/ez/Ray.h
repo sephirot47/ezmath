@@ -42,10 +42,10 @@ inline std::ostream& operator<<(std::ostream& ioLHS, const Ray<T, N>& inRHS)
 }
 
 template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Ray<T, 3>& inRay, const Plane<T>& inPlane);
+auto Intersect(const Ray3<T>& inRay, const Plane<T>& inPlane);
 
 template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Plane<T>& inPlane, const Ray<T, 3>& inRay);
+auto Intersect(const Plane<T>& inPlane, const Ray3<T>& inRay);
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Ray<T, N>& inRay, const AAHyperBox<T, N>& inAAHyperBox);
@@ -66,16 +66,16 @@ template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Ray<T, N>& inRay, const HyperSphere<T, N>& inHyperSphere);
 
 template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Cylinder<T>& inCylinder, const Ray<T, 3>& inRay);
+auto Intersect(const Cylinder<T>& inCylinder, const Ray3<T>& inRay);
 
 template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Ray<T, 3>& inRay, const Cylinder<T>& inCylinder);
+auto Intersect(const Ray3<T>& inRay, const Cylinder<T>& inCylinder);
 
 template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Capsule<T>& inCapsule, const Ray<T, 3>& inRay);
+auto Intersect(const Capsule<T>& inCapsule, const Ray3<T>& inRay);
 
 template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Ray<T, 3>& inRay, const Capsule<T>& inCapsule);
+auto Intersect(const Ray3<T>& inRay, const Capsule<T>& inCapsule);
 
 template <typename T, std::size_t N>
 constexpr Vec<T, N> Direction(const Ray<T, N>& inRay);
