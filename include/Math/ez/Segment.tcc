@@ -77,28 +77,6 @@ constexpr Vec<T, N> ClosestPoint(const Segment<T, N>& inSegment, const TPrimitiv
   return inSegment.GetPoint(closest_point_t);
 }
 
-/*
-namespace segment_detail
-{
-  template <typename T, std::size_t N, typename TPrimitive>
-  T SqDistance(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
-  {
-    const auto segment_dir = Direction(inSegment);
-    const auto segment_line = Line<T, N> { inSegment.GetOrigin(), segment_dir };
-    const auto segment_line_distance = ClosestPointT(segment_line, inPrimitive);
-
-    if (segment_line_distance < static_cast<T>(0))
-      return SqDistance(inSegment.GetOrigin(), inPrimitive);
-
-    if (segment_line_distance > Length(inSegment))
-      return SqDistance(inSegment.GetDestiny(), inPrimitive);
-
-    const auto segment_point = (inSegment.GetOrigin() + segment_dir * segment_line_distance);
-    return SqDistance(segment_point, inPrimitive);
-  }
-}
-*/
-
 template <typename T, std::size_t N>
 T SqDistance(const Segment<T, N>& inSegmentLHS, const Segment<T, N>& inSegmentRHS)
 {
@@ -118,34 +96,6 @@ T SqDistance(const TPrimitive& inPrimitive, const Segment<T, N>& inSegment)
 {
   return SqDistance(inSegment, inPrimitive);
 }
-/*
- */
-
-/*
-template <typename T>
-T SqDistance(const Segment3<T>& inSegment, const Plane<T>& inPlane)
-{
-  return segment_detail::SqDistance(inSegment, inPlane);
-}
-
-template <typename T>
-T SqDistance(const Plane<T>& inPlane, const Segment3<T>& inSegment)
-{
-  return segment_detail::SqDistance(inSegment, inPlane);
-}
-
-template <typename T, std::size_t N>
-T SqDistance(const Segment<T, N>& inSegment, const Vec<T, N>& inPoint)
-{
-  return segment_detail::SqDistance(inSegment, inPoint);
-}
-
-template <typename T, std::size_t N>
-T SqDistance(const Vec<T, N>& inPoint, const Segment<T, N>& inSegment)
-{
-  return SqDistance(inSegment, inPoint);
-}
-*/
 
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>

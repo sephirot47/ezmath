@@ -1,8 +1,8 @@
 #pragma once
 
+#include <ez/IntersectMode.h>
 #include <ez/Segment.h>
 #include <ez/Vec.h>
-#include <ez/IntersectMode.h>
 
 namespace ez
 {
@@ -10,6 +10,9 @@ template <typename T>
 class Cylinder
 {
 public:
+  using ValueType = T;
+  static constexpr auto NumComponents = 3;
+
   Cylinder() = default;
   Cylinder(const Vec3<T>& inOrigin, const Vec3<T>& inDestiny, const T inRadius);
 
@@ -35,7 +38,7 @@ struct IsCylinder<Cylinder<T>> : std::true_type
 };
 
 template <typename T>
-constexpr bool Contains(const Cylinder<T>& inCylinder, const Vec3<T> &inPoint);
+constexpr bool Contains(const Cylinder<T>& inCylinder, const Vec3<T>& inPoint);
 
 template <typename T>
 constexpr T SqLength(const Cylinder<T>& inCylinder);

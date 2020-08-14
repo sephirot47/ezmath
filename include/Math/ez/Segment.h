@@ -49,20 +49,6 @@ constexpr T ClosestPointT(const Segment<T, N>& inSegment, const TPrimitive& inPr
 template <typename T, std::size_t N, typename TPrimitive>
 constexpr Vec<T, N> ClosestPoint(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive);
 
-/*
-template <typename T>
-T SqDistance(const Segment3<T>& inSegment, const Plane<T>& inPlane);
-
-template <typename T>
-T SqDistance(const Plane<T>& inPlane, const Segment3<T>& inSegment);
-
-template <typename T, std::size_t N>
-T SqDistance(const Segment<T, N>& inSegment, const Vec<T, N>& inPoint);
-
-template <typename T, std::size_t N>
-T SqDistance(const Vec<T, N>& inPoint, const Segment<T, N>& inSegment);
-*/
-
 template <typename T, std::size_t N>
 T SqDistance(const Segment<T, N>& inSegmentLHS, const Segment<T, N>& inSegmentRHS);
 
@@ -71,8 +57,6 @@ T SqDistance(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive);
 
 template <typename T, std::size_t N, typename TPrimitive>
 T SqDistance(const TPrimitive& inPrimitive, const Segment<T, N>& inSegment);
-/*
-*/
 
 template <typename T, std::size_t N>
 constexpr RotationType_t<T, N> Orientation(const Segment<T, N>& inSegment);

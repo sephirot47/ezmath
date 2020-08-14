@@ -92,11 +92,11 @@ auto Intersect(const Cylinder<T>& inCylinder, const Line3<T>& inLine);
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Line3<T>& inLine, const Cylinder<T>& inCylinder);
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Capsule<T>& inCapsule, const Line3<T>& inLine);
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Capsule<T, N>& inCapsule, const Line<T, N>& inLine);
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Line3<T>& inLine, const Capsule<T>& inCapsule);
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule);
 
 template <typename T, std::size_t N>
 bool Contains(const Line<T, N>& inLine, const Vec<T, N>& inPoint);

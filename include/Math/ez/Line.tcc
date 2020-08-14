@@ -31,57 +31,6 @@ constexpr RotationType_t<T, N> Orientation(const Line<T, N>& inLine)
   return FromTo(Forward<Vec3<T>>(), Direction(inLine));
 }
 
-template <typename T>
-constexpr T ClosestPointT(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS)
-{
-  const auto intersection = IntersectClosest(inLineLHS, inLineRHS);
-  if (intersection.has_value())
-    return *intersection;
-
-  // Lines are parallel. Pick a consistent closest point even when commuting parameters.
-  if (inLineLHS.GetOrigin() < inLineRHS.GetOrigin())
-    return static_cast<T>(0);
-  return ClosestPointT(inLineLHS, inLineRHS.GetOrigin());
-}
-
-template <typename T>
-constexpr T ClosestPointT(const Line3<T>& inLineLHS, const Line3<T>& inLineRHS)
-{
-  return static_cast<T>(0); // TODO
-}
-
-template <typename T, std::size_t N>
-constexpr T ClosestPointT(const Line<T, N>& inLine, const Vec<T, N>& inPoint)
-{
-  const auto line_dir = Direction(inLine);
-  const auto point_origin_vector = (inPoint - inLine.GetOrigin());
-  return Dot(point_origin_vector, line_dir);
-}
-
-template <typename T, std::size_t N>
-constexpr T ClosestPointT(const Line<T, N>& inLine, const Segment<T, N>& inSegment)
-{
-  const auto segment_line = Line<T, N> { inSegment.GetOrigin(), Direction(inSegment) };
-  const auto lines_closest_point_t = ClosestPointT(segment_line, inLine);
-  const auto segment_length = Length(inSegment);
-  return Clamp(lines_closest_point_t, static_cast<T>(0), segment_length);
-}
-
-template <typename T, std::size_t N, typename TPrimitive>
-constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const TPrimitive& inPrimitive)
-{
-  const auto t = ClosestPointT(inLine, inPrimitive);
-  return inLine.GetPoint(t);
-}
-
-template <typename T, std::size_t N, typename TPrimitive>
-constexpr T SqDistance(const Line<T, N>& inLine, const TPrimitive& inPrimitive)
-{
-  const auto closest_point_on_line = ClosestPoint(inLine, inPrimitive);
-  const auto closest_point_on_primitive = ClosestPoint(inPrimitive, inLine);
-  return SqDistance(closest_point_on_line, closest_point_on_primitive);
-}
-
 namespace line_detail
 {
   template <typename T>
@@ -144,11 +93,8 @@ namespace line_detail
   }
 
   template <typename TFrom, typename TTo, typename T>
-  void ChangeIntersectionOrigin(const TFrom& inFrom, const TTo& inTo, std::optional<T>& ioIntersection)
+  void ChangeIntersectionOrigin(const TFrom& inFrom, const TTo& inTo, T& ioIntersection)
   {
-    if (!ioIntersection)
-      return;
-
     const auto from_direction = Direction(inFrom);
     const auto to_direction = Direction(inTo);
     for (std::size_t i = 0; i < NumComponents_v<decltype(Direction(std::declval<TFrom>()))>; ++i)
@@ -156,10 +102,17 @@ namespace line_detail
       if (IsVeryEqual(to_direction[i], static_cast<T>(0)))
         continue;
 
-      const auto point_coord = inFrom.GetOrigin()[i] + from_direction[i] * (*ioIntersection);
-      *ioIntersection = ((point_coord - inTo.GetOrigin()[i]) / to_direction[i]);
+      const auto point_coord = inFrom.GetOrigin()[i] + from_direction[i] * ioIntersection;
+      ioIntersection = ((point_coord - inTo.GetOrigin()[i]) / to_direction[i]);
       return;
     }
+  }
+
+  template <typename TFrom, typename TTo, typename T>
+  void ChangeIntersectionOrigin(const TFrom& inFrom, const TTo& inTo, std::optional<T>& ioIntersection)
+  {
+    if (ioIntersection)
+      ChangeIntersectionOrigin(inFrom, inTo, *ioIntersection);
   }
 
   template <typename TFrom, typename TTo, typename T, std::size_t N>
@@ -174,6 +127,70 @@ namespace line_detail
   }
 }
 
+template <typename T>
+constexpr T ClosestPointT(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS)
+{
+  const auto intersection = IntersectClosest(inLineLHS, inLineRHS);
+  if (intersection.has_value())
+    return *intersection;
+
+  // Lines are parallel. Pick a consistent closest point even when commuting parameters.
+  auto line_lhs_less_than_line_rhs = false;
+  for (std::size_t i = 0; i < 2; ++i)
+  {
+    if (inLineLHS.GetOrigin()[i] < inLineRHS.GetOrigin()[i])
+      return ClosestPointT(inLineLHS, inLineRHS.GetOrigin());
+    else if (inLineLHS.GetOrigin()[i] > inLineRHS.GetOrigin()[i])
+      return static_cast<T>(0);
+  }
+  return static_cast<T>(0);
+}
+
+template <typename T>
+constexpr T ClosestPointT(const Line3<T>& inLineLHS, const Line3<T>& inLineRHS)
+{
+  return static_cast<T>(0); // TODO
+}
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Vec<T, N>& inPoint)
+{
+  const auto line_dir = Direction(inLine);
+  const auto point_origin_vector = (inPoint - inLine.GetOrigin());
+  return Dot(point_origin_vector, line_dir);
+}
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Segment<T, N>& inSegment)
+{
+  const auto segment_sq_length = SqLength(inSegment);
+  if (IsVeryEqual(segment_sq_length, static_cast<T>(0)))
+    return ClosestPointT(inLine, inSegment.GetOrigin());
+
+  const auto segment_line = Line<T, N> { inSegment.GetOrigin(), Direction(inSegment) };
+  const auto segment_line_closest_point_t = ClosestPointT(segment_line, inLine);
+  const auto segment_length = Sqrt(segment_sq_length);
+  const auto segment_line_closest_point_t_clamped
+      = Clamp(segment_line_closest_point_t, static_cast<T>(0), segment_length);
+  const auto segment_closest_point = inSegment.GetPoint(segment_line_closest_point_t_clamped);
+  return ClosestPointT(inLine, segment_closest_point);
+}
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const TPrimitive& inPrimitive)
+{
+  const auto t = ClosestPointT(inLine, inPrimitive);
+  return inLine.GetPoint(t);
+}
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr T SqDistance(const Line<T, N>& inLine, const TPrimitive& inPrimitive)
+{
+  const auto closest_point_on_line = ClosestPoint(inLine, inPrimitive);
+  const auto closest_point_on_primitive = ClosestPoint(inPrimitive, inLine);
+  return SqDistance(closest_point_on_line, closest_point_on_primitive);
+}
+
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS)
 {
@@ -183,7 +200,7 @@ auto Intersect(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS)
 
   const auto lhs_dir = Direction(inLineLHS);
   const auto rhs_dir = Direction(inLineRHS);
-  const auto denominator = (lhs_dir[1] * rhs_dir[0] - lhs_dir[0] * rhs_dir[1]);
+  const auto denominator = (lhs_dir[0] * rhs_dir[1] - lhs_dir[1] * rhs_dir[0]);
   if (IsVeryEqual(denominator, static_cast<T>(0)))
   {
     if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
@@ -198,7 +215,7 @@ auto Intersect(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS)
   {
     const auto& lhs_ori = inLineLHS.GetOrigin();
     const auto& rhs_ori = inLineRHS.GetOrigin();
-    const auto numerator = (rhs_dir[1] * lhs_ori[0] - rhs_dir[0] * (lhs_ori[1] - rhs_ori[1]) - rhs_dir[1] * rhs_ori[0]);
+    const auto numerator = (rhs_dir[0] * (lhs_ori[1] - rhs_ori[1]) + rhs_dir[1] * (rhs_ori[0] - lhs_ori[0]));
     const auto t = (numerator / denominator);
     if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
       return std::array { std::make_optional(t) };
@@ -409,52 +426,79 @@ auto Intersect(const Line3<T>& inLine, const Cylinder<T>& inCylinder)
   return Intersect<TIntersectMode>(inCylinder, inLine);
 }
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Capsule<T>& inCapsule, const Line3<T>& inLine)
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Capsule<T, N>& inCapsule, const Line<T, N>& inLine)
 {
   static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CHECK,
       "Unsupported EIntersectMode");
 
-  const auto origin_sphere = Sphere<T> { inCapsule.GetOrigin(), inCapsule.GetRadius() };
-  const auto destiny_sphere = Sphere<T> { inCapsule.GetDestiny(), inCapsule.GetRadius() };
-  const auto cylinder = Cylinder<T> { inCapsule.GetOrigin(), inCapsule.GetDestiny(), inCapsule.GetRadius() };
-  if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-  {
-    return IntersectCheck(origin_sphere, inLine) || IntersectCheck(destiny_sphere, inLine)
-        || IntersectCheck(cylinder, inLine);
-  }
-  else if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
-  {
-    // Capsule pipe without caps
-    const auto line_local = line_detail::GetLineInCylinderSpace(cylinder, inLine);
-    auto intersections
-        = line_detail::IntersectCylinderWithoutCaps(line_local.GetOrigin(), Direction(line_local), cylinder);
+  const auto origin_hypersphere = HyperSphere<T, N> { inCapsule.GetOrigin(), inCapsule.GetRadius() };
+  const auto destiny_hypersphere = HyperSphere<T, N> { inCapsule.GetDestiny(), inCapsule.GetRadius() };
 
-    for (const auto& sphere : { origin_sphere, destiny_sphere })
+  std::array<std::optional<T>, 2> intersections;
+  std::conditional_t<N == 3, Cylinder<T>, AARect<T>> mid_section_primitive;
+  if constexpr (N == 3)
+  {
+    // Middle cylinder
+    mid_section_primitive = Cylinder<T> { inCapsule.GetOrigin(), inCapsule.GetDestiny(), inCapsule.GetRadius() };
+    if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+    {
+      return IntersectCheck(origin_hypersphere, inLine) || IntersectCheck(destiny_hypersphere, inLine)
+          || IntersectCheck(mid_section_primitive, inLine);
+    }
+    else if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+    {
+      const auto line_local_mid_section = line_detail::GetLineInCylinderSpace(mid_section_primitive, inLine);
+      intersections = line_detail::IntersectCylinderWithoutCaps(line_local_mid_section.GetOrigin(),
+          Direction(line_local_mid_section),
+          mid_section_primitive);
+    }
+  }
+  else if constexpr (N == 2)
+  {
+    // Middle rect
+    mid_section_primitive
+        = MakeAAHyperBoxFromCenterSize(Center(inCapsule), Vec<T, N> { Length(inCapsule), inCapsule.GetRadius() });
+    const auto line_local_mid_section = Line<T, N> { inLine.GetOrigin(), -Orientation(inCapsule) * Direction(inLine) };
+
+    if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+    {
+      return IntersectCheck(origin_hypersphere, inLine) || IntersectCheck(destiny_hypersphere, inLine)
+          || IntersectCheck(mid_section_primitive, line_local_mid_section);
+    }
+    else if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+    {
+      intersections = IntersectAll(mid_section_primitive, line_local_mid_section);
+    }
+  }
+
+  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+  {
+    // Caps
+    for (const auto& hypersphere : { origin_hypersphere, destiny_hypersphere })
     {
       if (std::all_of(intersections.cbegin(), intersections.cend(), &line_detail::HasValue<T>))
         return intersections;
 
-      const auto sphere_intersections = Intersect<EIntersectMode::ALL_INTERSECTIONS>(inLine, sphere);
-      for (const auto& sphere_intersection : sphere_intersections)
+      const auto hypersphere_intersections = Intersect<EIntersectMode::ALL_INTERSECTIONS>(inLine, hypersphere);
+      for (const auto& hypersphere_intersection : hypersphere_intersections)
       {
-        if (!sphere_intersection.has_value())
+        if (!hypersphere_intersection.has_value())
           continue;
 
-        if (Contains(cylinder, inLine.GetPoint(*sphere_intersection)))
+        if (Contains(mid_section_primitive, inLine.GetPoint(*hypersphere_intersection)))
           continue;
 
-        if (!line_detail::AddIntersectionDistance(intersections, *sphere_intersection))
+        if (!line_detail::AddIntersectionDistance(intersections, *hypersphere_intersection))
           break;
       }
     }
-
     return intersections;
   }
 }
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Line3<T>& inLine, const Capsule<T>& inCapsule)
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule)
 {
   return Intersect<TIntersectMode>(inCapsule, inLine);
 }

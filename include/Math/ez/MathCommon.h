@@ -14,16 +14,14 @@ namespace ez
 template <typename T>
 constexpr auto Dot(const T& inLHS, const T& inRHS)
 {
-  using ValueType = typename T::ValueType;
-
   if constexpr (IsNumber_v<T>)
   {
     return (inLHS * inRHS);
   }
   else
   {
-    auto dot = static_cast<ValueType>(0);
-    for (std::size_t i = 0; i < T::NumComponents; ++i) { dot += inLHS[i] * inRHS[i]; }
+    auto dot = static_cast<ValueType_t<T>>(0);
+    for (std::size_t i = 0; i < NumComponents_v<T>; ++i) { dot += inLHS[i] * inRHS[i]; }
     return dot;
   }
 }
@@ -44,7 +42,9 @@ constexpr auto Sq(const T& inV)
 {
   return inV * inV;
 }
-template <typename TLHS, typename TRHS, typename = std::enable_if_t<(IsNumber_v<TLHS> || IsVec_v<TLHS>) && (IsNumber_v<TRHS> || IsVec_v<TRHS>)>>
+template <typename TLHS,
+    typename TRHS,
+    typename = std::enable_if_t<(IsNumber_v<TLHS> || IsVec_v<TLHS>)&&(IsNumber_v<TRHS> || IsVec_v<TRHS>)>>
 constexpr auto SqDistance(const TLHS& inLHS, const TRHS& inRHS)
 {
   const auto diff = (inRHS - inLHS);

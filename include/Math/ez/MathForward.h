@@ -144,12 +144,18 @@ using Sphered = Sphere<double>;
 using Spherei = Sphere<int32_t>;
 
 // Capsule
-template <typename T>
+template <typename T, std::size_t N>
 class Capsule;
 
-using Capsulef = Capsule<float>;
-using Capsuled = Capsule<double>;
-using Capsulei = Capsule<int32_t>;
+template <typename T>
+using Capsule2 = Capsule<T, 2>;
+using Capsule2f = Capsule2<float>;
+using Capsule2d = Capsule2<double>;
+
+template <typename T>
+using Capsule3 = Capsule<T, 3>;
+using Capsule3f = Capsule3<float>;
+using Capsule3d = Capsule3<double>;
 
 // Cylinder
 template <typename T>
