@@ -25,8 +25,8 @@ public:
   void SetDirection(const Vec<T, N>& inDirection);
 
 private:
-  Vec<T, N> mOrigin;
-  Vec<T, N> mDirection;
+  Vec<T, N> mOrigin = Zero<Vec<T,N>>();
+  Vec<T, N> mDirection = Right<Vec<T, N>>();
 };
 
 template <typename T, std::size_t N>
