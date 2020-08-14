@@ -65,7 +65,10 @@ constexpr bool Contains(const Capsule<T>& inCapsule, const Vec3<T>& inPoint)
 template <typename T>
 constexpr RotationType_t<T, 3> Orientation(const Capsule<T>& inCapsule)
 {
-  return FromTo(Forward<Vec3<T>>(), Direction(inCapsule));
+  const auto direction = Direction(inCapsule);
+  if (SqLength(direction) == static_cast<T>(0))
+    return Identity<Quat<T>>();
+  return FromTo(Forward<Vec3<T>>(), direction);
 }
 
 template <typename T>

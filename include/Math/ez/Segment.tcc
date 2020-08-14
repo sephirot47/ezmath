@@ -28,6 +28,12 @@ Vec<T, N> Segment<T, N>::GetVector() const
 }
 
 template <typename T, std::size_t N>
+Vec<T, N> Segment<T, N>::GetPoint(const T& inDistanceFromOrigin) const
+{
+  return mOrigin + Direction(*this) * inDistanceFromOrigin;
+}
+
+template <typename T, std::size_t N>
 constexpr Vec<T, N> Direction(const Segment<T, N>& inSegment)
 {
   const auto direction = NormalizedSafe(inSegment.GetVector());
@@ -50,129 +56,96 @@ T SqLength(const Segment<T, N>& inSegment)
   return SqLength(inSegment.GetVector());
 }
 
-template <typename T>
-T SqDistance(const Vec3<T>& inPoint, const Segment3<T>& inSegment)
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr T ClosestPointT(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
 {
-  const auto origin_to_destiny = (inSegment.GetDestiny() - inSegment.GetOrigin());
+  const auto segment_sq_length = SqLength(inSegment);
+  if (IsVeryEqual(segment_sq_length, static_cast<T>(0)))
+    return static_cast<T>(0);
 
-  const auto origin_destiny = (inPoint - inSegment.GetOrigin());
-  const auto point_proj_in_segment_sq_length = Dot(origin_destiny, origin_to_destiny);
-  if (point_proj_in_segment_sq_length <= static_cast<T>(0))
+  const auto segment_line = Line<T, N> { inSegment.GetOrigin(), Direction(inSegment) };
+  const auto line_closest_point_t = ClosestPointT(segment_line, inPrimitive);
+  const auto line_closest_point_t_clamped
+      = Clamp(line_closest_point_t, static_cast<T>(0), Sqrt(segment_sq_length));
+  return line_closest_point_t_clamped;
+}
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr Vec<T, N> ClosestPoint(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
+{
+  const auto closest_point_t = ClosestPointT(inSegment, inPrimitive);
+  return inSegment.GetPoint(closest_point_t);
+}
+
+/*
+namespace segment_detail
+{
+  template <typename T, std::size_t N, typename TPrimitive>
+  T SqDistance(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
   {
-    const auto point_to_origin_sq_dist = Dot(origin_destiny, origin_destiny);
-    return point_to_origin_sq_dist;
-  }
+    const auto segment_dir = Direction(inSegment);
+    const auto segment_line = Line<T, N> { inSegment.GetOrigin(), segment_dir };
+    const auto segment_line_distance = ClosestPointT(segment_line, inPrimitive);
 
-  const auto segment_sq_length = Dot(origin_to_destiny, origin_to_destiny);
-  if (point_proj_in_segment_sq_length >= segment_sq_length)
-  {
-    const auto destiny_destiny = (inPoint - inSegment.GetDestiny());
-    const auto point_to_destiny_sq_dist = Dot(destiny_destiny, destiny_destiny);
-    return point_to_destiny_sq_dist;
-  }
+    if (segment_line_distance < static_cast<T>(0))
+      return SqDistance(inSegment.GetOrigin(), inPrimitive);
 
-  const auto point_proj_in_segment_length_ratioed = (point_proj_in_segment_sq_length / segment_sq_length);
-  const auto point_proj_in_segment = (inSegment.GetOrigin() + origin_to_destiny * point_proj_in_segment_length_ratioed);
-  const auto point_to_segment_vec = (point_proj_in_segment - inPoint);
-  const auto point_to_segment_sq_dist = Dot(point_to_segment_vec, point_to_segment_vec);
-  return point_to_segment_sq_dist;
+    if (segment_line_distance > Length(inSegment))
+      return SqDistance(inSegment.GetDestiny(), inPrimitive);
+
+    const auto segment_point = (inSegment.GetOrigin() + segment_dir * segment_line_distance);
+    return SqDistance(segment_point, inPrimitive);
+  }
+}
+*/
+
+template <typename T, std::size_t N>
+T SqDistance(const Segment<T, N>& inSegmentLHS, const Segment<T, N>& inSegmentRHS)
+{
+  const auto closest_point_in_segment_lhs = ClosestPoint(inSegmentLHS, inSegmentRHS);
+  return SqDistance(closest_point_in_segment_lhs, inSegmentRHS);
+}
+
+template <typename T, std::size_t N, typename TPrimitive>
+T SqDistance(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
+{
+  const auto closest_point_in_segment = ClosestPoint(inSegment, inPrimitive);
+  return SqDistance(closest_point_in_segment, inPrimitive);
+}
+
+template <typename T, std::size_t N, typename TPrimitive>
+T SqDistance(const TPrimitive& inPrimitive, const Segment<T, N>& inSegment)
+{
+  return SqDistance(inSegment, inPrimitive);
+}
+/*
+ */
+
+/*
+template <typename T>
+T SqDistance(const Segment3<T>& inSegment, const Plane<T>& inPlane)
+{
+  return segment_detail::SqDistance(inSegment, inPlane);
 }
 
 template <typename T>
-T SqDistance(const Segment3<T>& inSegment, const Vec3<T>& inPoint)
+T SqDistance(const Plane<T>& inPlane, const Segment3<T>& inSegment)
 {
-  return SqDistance(inPoint, inSegment);
+  return segment_detail::SqDistance(inSegment, inPlane);
 }
 
-template <typename T>
-T SqDistance(const Segment3<T>& inSegmentLHS, const Segment3<T>& inSegmentRHS)
+template <typename T, std::size_t N>
+T SqDistance(const Segment<T, N>& inSegment, const Vec<T, N>& inPoint)
 {
-  // WARNING: Untested
-  // http://geomalgorithms.com/a07-_distance.html
-  constexpr float Epsilon = 1e-5f;
-
-  const auto u = (inSegmentLHS.GetDestiny() - inSegmentLHS.GetOrigin());
-  const auto v = (inSegmentRHS.GetDestiny() - inSegmentRHS.GetOrigin());
-  const auto w = (inSegmentLHS.GetOrigin() - inSegmentRHS.GetOrigin());
-  const auto a = Dot(u, u); // Always >= 0
-  const auto b = Dot(u, v);
-  const auto c = Dot(v, v); // Always >= 0
-  const auto d = Dot(u, w);
-  const auto e = Dot(v, w);
-  const auto D = a * c - b * b; // Always >= 0
-  T sc, sN, sD = D;             // sc = sN / sD, default sD = D >= 0
-  T tc, tN, tD = D;             // tc = tN / tD, default tD = D >= 0
-
-  // Compute the line parameters of the two closest points
-  if (D < Epsilon) // The lines are almost parallel
-  {
-    sN = static_cast<T>(0); // Force using point Origin on SegmentLHS
-    sD = static_cast<T>(1); // To prevent possible division by 0 later
-    tN = e;
-    tD = c;
-  }
-  else // Get the closest points on the infinite lines
-  {
-    sN = (b * e - c * d);
-    tN = (a * e - b * d);
-    if (sN < static_cast<T>(0)) // sc < 0 => the s=0 edge is visible
-    {
-      sN = static_cast<T>(0);
-      tN = e;
-      tD = c;
-    }
-    else if (sN > sD) // sc > 1  => the s=1 edge is visible
-    {
-      sN = sD;
-      tN = e + b;
-      tD = c;
-    }
-  }
-
-  if (tN < static_cast<T>(0)) // tc < 0 => the t=0 edge is visible
-  {
-    tN = static_cast<T>(0); // Recompute sc for this edge
-    if (-d < static_cast<T>(0))
-    {
-      sN = static_cast<T>(0);
-    }
-    else if (-d > a)
-    {
-      sN = sD;
-    }
-    else
-    {
-      sN = -d;
-      sD = a;
-    }
-  }
-  else if (tN > tD) // tc > 1  => the t=1 edge is visible
-  {
-    tN = tD; // Recompute sc for this edge
-    if ((-d + b) < static_cast<T>(0))
-    {
-      sN = static_cast<T>(0);
-    }
-    else if ((-d + b) > a)
-    {
-      sN = sD;
-    }
-    else
-    {
-      sN = (-d + b);
-      sD = a;
-    }
-  }
-
-  // Finally do the division to get sc and tc
-  sc = (Abs(sN) < Epsilon ? static_cast<T>(0) : sN / sD);
-  tc = (Abs(tN) < Epsilon ? static_cast<T>(0) : tN / tD);
-
-  // Get the difference of the two closest points
-  const auto dP = w + (sc * u) - (tc * v); // =  inSegmentLHS(sc) - inSegmentRHS(tc)
-
-  return SqLength(dP); // Return the closest distance
+  return segment_detail::SqDistance(inSegment, inPoint);
 }
+
+template <typename T, std::size_t N>
+T SqDistance(const Vec<T, N>& inPoint, const Segment<T, N>& inSegment)
+{
+  return SqDistance(inSegment, inPoint);
+}
+*/
 
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
@@ -207,15 +180,9 @@ auto Intersect(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
   if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
     return intersections;
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-    return ray_intersections_detail::GetMinIntersectionDistance(intersections);
+    return ray_detail::GetMinIntersectionDistance(intersections);
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
     return (Contains(inPrimitive, inSegment.GetOrigin()) || Contains(inPrimitive, inSegment.GetDestiny()));
-}
-
-template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
-auto Intersect(const TPrimitive& inPrimitive, const Segment<T, N>& inSegment)
-{
-  return Intersect<TIntersectMode, T, TPrimitive, N>(inSegment, inPrimitive);
 }
 
 template <typename T, std::size_t N>
@@ -230,4 +197,10 @@ constexpr Vec<T, N> Center(const Segment<T, N>& inSegment)
   return (inSegment.GetOrigin() + inSegment.GetDestiny()) / static_cast<T>(2);
 }
 
+template <typename T, std::size_t N>
+bool Contains(const Segment<T, N>& inSegment, const Vec<T, N>& inPoint)
+{
+  constexpr auto Epsilon = static_cast<T>(1e-7);
+  return (SqDistance(inSegment, inPoint) < Epsilon);
+}
 }

@@ -25,7 +25,7 @@ constexpr Vec<T, N> Direction(const Ray<T, N>& inRay)
   return inRay.GetDirection();
 }
 
-namespace ray_intersections_detail
+namespace ray_detail
 {
   template <typename T>
   std::optional<T> GetMinIntersectionDistance(const std::array<std::optional<T>, 1>& inIntersectionDistances)
@@ -75,7 +75,7 @@ auto Intersect(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
   if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
     return intersections;
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-    return ray_intersections_detail::GetMinIntersectionDistance(intersections);
+    return ray_detail::GetMinIntersectionDistance(intersections);
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
     return Contains(inPrimitive, inRay.GetOrigin());
 }
@@ -84,6 +84,13 @@ template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::s
 auto Intersect(const TPrimitive& inPrimitive, const Ray<T, N>& inRay)
 {
   return Intersect<TIntersectMode, T, TPrimitive, N>(inRay, inPrimitive);
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Ray<T, N>& inRay, const Vec<T, N>& inPoint)
+{
+  constexpr auto Epsilon = static_cast<T>(1e-7);
+  return (SqDistance(inRay, inPoint) < Epsilon);
 }
 
 // Transformation specialization

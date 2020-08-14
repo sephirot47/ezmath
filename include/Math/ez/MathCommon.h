@@ -16,9 +16,16 @@ constexpr auto Dot(const T& inLHS, const T& inRHS)
 {
   using ValueType = typename T::ValueType;
 
-  auto dot = static_cast<ValueType>(0);
-  for (std::size_t i = 0; i < T::NumComponents; ++i) { dot += inLHS[i] * inRHS[i]; }
-  return dot;
+  if constexpr (IsNumber_v<T>)
+  {
+    return (inLHS * inRHS);
+  }
+  else
+  {
+    auto dot = static_cast<ValueType>(0);
+    for (std::size_t i = 0; i < T::NumComponents; ++i) { dot += inLHS[i] * inRHS[i]; }
+    return dot;
+  }
 }
 
 template <typename T>
@@ -37,17 +44,17 @@ constexpr auto Sq(const T& inV)
 {
   return inV * inV;
 }
-template <typename T>
-constexpr auto SqDistance(const T& inLHS, const T& inRHS)
+template <typename TLHS, typename TRHS, typename = std::enable_if_t<(IsNumber_v<TLHS> || IsVec_v<TLHS>) && (IsNumber_v<TRHS> || IsVec_v<TRHS>)>>
+constexpr auto SqDistance(const TLHS& inLHS, const TRHS& inRHS)
 {
   const auto diff = (inRHS - inLHS);
   return SqLength(diff);
 }
 
-template <typename T>
-constexpr auto Distance(const T& inLHS, const T& inRHS)
+template <typename TLHS, typename TRHS>
+constexpr auto Distance(const TLHS& inLHS, const TRHS& inRHS)
 {
-  if constexpr (IsNumber_v<T>)
+  if constexpr (IsNumber_v<TLHS> && IsNumber_v<TRHS>)
   {
     return Abs(inLHS - inRHS);
   }

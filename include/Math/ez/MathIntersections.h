@@ -1,7 +1,6 @@
 #pragma once
 
 #include "MathIntersections.h"
-#include "ez/Geometry.h"
 #include "ez/IntersectMode.h"
 #include "ez/Vec.h"
 #include <functional>

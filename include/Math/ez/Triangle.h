@@ -44,64 +44,41 @@ private:
   std::array<Vec<T, N>, 3> mPoints;
 };
 
-// Intersection functions
-template <typename T>
-auto GetSATNormals(const Triangle3<T>& inTriangle)
-{
-  return std::array { Normal(inTriangle) };
-}
-
-template <typename T>
-constexpr auto GetSATNormals(const Triangle2<T>&)
-{
-  return std::array<Vec2<T>, 0> {};
-}
+template <typename T, std::size_t N>
+T Area(const Triangle<T, N>& inTriangle);
 
 template <typename T, std::size_t N>
-auto GetSATEdges(const Triangle<T, N>& inTriangle)
-{
-  return std::array { (inTriangle[0] - inTriangle[1]),
-    (inTriangle[0] - inTriangle[2]),
-    (inTriangle[1] - inTriangle[2]) };
-}
+T Perimeter(const Triangle<T, N>& inTriangle);
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Ray<T, 3>& inRay, const Triangle3<T>& inTriangle)
-{
-  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
-          || TIntersectMode == EIntersectMode::ONLY_CHECK,
-      "Unsupported EIntersectMode.");
-
-  const auto ray_plane_intersection_distance = IntersectClosest(inRay, GetPlane(inTriangle));
-  if (!ray_plane_intersection_distance)
-  {
-    if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-    {
-      return false;
-    }
-    else
-    {
-      return std::optional<T>();
-    }
-  }
-
-  const auto ray_plane_intersection_point = inRay.GetPoint(*ray_plane_intersection_distance);
-  const auto barycentric_coordinates = BarycentricCoordinates(inTriangle, ray_plane_intersection_point);
-  const auto intersection_point_is_in_triangle = IsBetween(barycentric_coordinates, Zero<Vec3<T>>(), One<Vec3<T>>());
-  if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-  {
-    return intersection_point_is_in_triangle;
-  }
-  else
-  {
-    return intersection_point_is_in_triangle ? ray_plane_intersection_distance : std::optional<T>();
-  }
-}
+template <typename T, std::size_t N>
+T Barycenter(const Triangle<T, N>& inTriangle);
 
 template <typename T>
-auto Intersect(const Triangle3<T>& inTriangle, const Ray<T, 3>& inRay)
-{
-  return Intersect(inRay, inTriangle);
+Vec3<T> Normal(const Triangle3<T>& inTriangle);
+
+template <typename T>
+Plane<T> GetPlane(const Triangle3<T>& inTriangle);
+
+template <typename T>
+Vec3<T> Projected(const Vec3<T>& inPoint, const Triangle3<T>& inTriangle);
+
+template <typename T, std::size_t N>
+Vec3<T> BarycentricCoordinates(const Triangle<T, N>& inTriangle, const Vec<T, N>& inPoint);
+
+template <typename T>
+auto GetSATNormals(const Triangle3<T>& inTriangle);
+
+template <typename T>
+constexpr auto GetSATNormals(const Triangle2<T>&);
+
+template <typename T, std::size_t N>
+auto GetSATEdges(const Triangle<T, N>& inTriangle);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Ray<T, 3>& inRay, const Triangle3<T>& inTriangle);
+
+template <typename T>
+auto Intersect(const Triangle3<T>& inTriangle, const Ray<T, 3>& inRay);
 }
 
-}
+#include "ez/Triangle.tcc"

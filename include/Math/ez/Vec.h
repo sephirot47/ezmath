@@ -144,7 +144,10 @@ template <typename T>
 constexpr T Back();
 
 template <typename T, std::size_t N>
-constexpr Vec<T, N> Reflect(const Vec<T, N> &inIncomingVectorNormalized, const Vec<T, N> &inNormalNormalized);
+constexpr Vec<T, N> Reflect(const Vec<T, N>& inIncomingVectorNormalized, const Vec<T, N>& inNormalNormalized);
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr Vec<T, N> ClosestPoint(const Vec<T, N>& inPoint, const TPrimitive& inPrimitive);
 
 // Transformation specializations. These are point transformations (not directions!)
 template <typename T, std::size_t N>

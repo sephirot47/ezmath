@@ -49,4 +49,53 @@ Vec3<T> Plane<T>::GetArbitraryPoint() const
 {
   return mDistanceFromOrigin * mNormal;
 }
+
+template <typename T>
+Vec3<T> Normal(const Plane<T>& inPlane)
+{
+  return inPlane.GetNormal();
+}
+
+template <typename T>
+T Distance(const Vec3<T>& inPoint, const Plane<T>& inPlane)
+{
+  const auto plane_point = inPlane.GetArbitraryPoint();
+  const auto& plane_normal = inPlane.GetNormal();
+  const auto plane_to_point_vector = (inPoint - plane_point);
+  const auto vector_projected_to_plane_normal_length = Dot(plane_to_point_vector, plane_normal);
+  return vector_projected_to_plane_normal_length;
+}
+
+template <typename T>
+T Distance(const Plane<T>& inPlane, const Vec3<T>& inPoint)
+{
+  return Distance(inPoint, inPlane);
+}
+
+template <typename T>
+T SqDistance(const Vec3<T>& inPoint, const Plane<T>& inPlane)
+{
+  return Sq(Distance(inPoint, inPlane));
+}
+
+template <typename T>
+T SqDistance(const Plane<T>& inPlane, const Vec3<T>& inPoint)
+{
+  return SqDistance(inPoint, inPlane);
+}
+
+template <typename T>
+Vec3<T> Projected(const Vec3<T>& inPoint, const Plane<T>& inPlaneToProjectTo)
+{
+  const auto point_to_plane_distance = Distance(inPoint, inPlaneToProjectTo);
+  const auto point_projected_to_plane_normal = (inPoint - point_to_plane_distance * inPlaneToProjectTo.GetNormal());
+  return point_projected_to_plane_normal;
+}
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Vec3<T>& inPoint)
+{
+  return IsVeryEqual(Distance(inPoint, inPlane), static_cast<T>(0));
+}
+
 }

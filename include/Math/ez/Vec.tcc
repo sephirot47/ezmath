@@ -452,6 +452,12 @@ constexpr Vec<T, N> Reflect(const Vec<T, N>& inIncomingVectorNormalized, const V
   return reflected;
 }
 
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr Vec<T, N> ClosestPoint(const Vec<T, N>& inPoint, const TPrimitive& inPrimitive)
+{
+  return inPoint;
+}
+
 template <typename T, std::size_t N>
 void Transform(Vec<T, N>& ioPoint, const Transformation<T, N>& inTransformation)
 {

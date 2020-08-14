@@ -37,6 +37,27 @@ private:
   T mDistanceFromOrigin = static_cast<T>(0); // Distance from origin i-n the direction of the normal (D)
 };
 
+template <typename T>
+Vec3<T> Normal(const Plane<T>& inPlane);
+
+template <typename T>
+T Distance(const Vec3<T>& inPoint, const Plane<T>& inPlane);
+
+template <typename T>
+T Distance(const Plane<T>& inPlane, const Vec3<T>& inPoint);
+
+template <typename T>
+T SqDistance(const Vec3<T>& inPoint, const Plane<T>& inPlane);
+
+template <typename T>
+T SqDistance(const Plane<T>& inPlane, const Vec3<T>& inPoint);
+
+template <typename T>
+Vec3<T> Projected(const Vec3<T>& inPoint, const Plane<T>& inPlaneToProjectTo);
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Vec3<T>& inPoint);
+
 }
 
 #include "ez/Plane.tcc"

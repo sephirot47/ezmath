@@ -11,6 +11,9 @@ template <typename T, std::size_t N>
 class Line
 {
 public:
+  using ValueType = T;
+  static constexpr auto NumComponents = N;
+
   Line() = default;
   Line(const Vec<T, N>& inOrigin, const Vec<T, N>& inDirection);
 
@@ -31,6 +34,33 @@ constexpr Vec<T, N> Direction(const Line<T, N>& inLine);
 
 template <typename T, std::size_t N>
 constexpr RotationType_t<T, N> Orientation(const Line<T, N>& inLine);
+
+template <typename T>
+constexpr T ClosestPointT(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS);
+
+template <typename T>
+constexpr T ClosestPointT(const Line3<T>& inLineLHS, const Line3<T>& inLineRHS);
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Vec<T, N>& inPoint);
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Segment<T, N>& inSegment);
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const TPrimitive& inPrimitive);
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr T SqDistance(const Line<T, N>& inLine, const TPrimitive& inPrimitive);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Segment2<T>& inSegment, const Line2<T>& inLine);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Line2<T>& inLine, const Segment2<T>& inSegment);
 
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Line3<T>& inLine, const Plane<T>& inPlane);
@@ -67,6 +97,9 @@ auto Intersect(const Capsule<T>& inCapsule, const Line3<T>& inLine);
 
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Line3<T>& inLine, const Capsule<T>& inCapsule);
+
+template <typename T, std::size_t N>
+bool Contains(const Line<T, N>& inLine, const Vec<T, N>& inPoint);
 }
 
 #include <ez/Line.tcc>

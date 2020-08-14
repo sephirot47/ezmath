@@ -51,6 +51,9 @@ auto Intersect(const Ray<T, N>& inRay, const TPrimitive& inPrimitive);
 template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
 auto Intersect(const TPrimitive& inPrimitive, const Ray<T, N>& inRay);
 
+template <typename T, std::size_t N>
+bool Contains(const Ray<T, N>& inRay, const Vec<T, N>& inPoint);
+
 // Transformation specializations
 template <typename T, std::size_t N>
 void Transform(Ray<T, N>& ioRayToTransform, const Transformation<ValueType_t<T>, N>& inTransformation);

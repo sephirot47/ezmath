@@ -1,21 +1,7 @@
-#pragma once
-
-#include "ez/MathCommon.h"
-#include "ez/MathForward.h"
+#include "ez/Triangle.h"
 
 namespace ez
 {
-template <typename T, std::size_t N>
-T Area(const Triangle<T, N>& inTriangle)
-{
-  const auto length_01 = Distance(inTriangle[0], inTriangle[1]);
-  const auto length_02 = Distance(inTriangle[0], inTriangle[2]);
-  const auto length_12 = Distance(inTriangle[1], inTriangle[2]);
-  const auto half_sum_of_lengths = (length_01 + length_02 + length_12) * 0.5f;
-  const auto& hs = half_sum_of_lengths;
-  const auto area = std::sqrt(hs * (hs - length_01) * (hs - length_02) * (hs - length_12));
-  return area;
-}
 
 template <typename T, std::size_t N>
 T Perimeter(const Triangle<T, N>& inTriangle)
@@ -42,12 +28,6 @@ Vec3<T> Normal(const Triangle3<T>& inTriangle)
 }
 
 template <typename T>
-Vec3<T> Normal(const Plane<T>& inPlane)
-{
-  return inPlane.GetNormal();
-}
-
-template <typename T>
 Plane<T> GetPlane(const Triangle3<T>& inTriangle)
 {
   const auto v10 = (inTriangle[0] - inTriangle[1]);
@@ -59,27 +39,9 @@ Plane<T> GetPlane(const Triangle3<T>& inTriangle)
 }
 
 template <typename T>
-T Distance(const Vec3<T>& inPoint, const Plane<T>& inPlane)
-{
-  const auto plane_point = inPlane.GetArbitraryPoint();
-  const auto& plane_normal = inPlane.GetNormal();
-  const auto plane_to_point_vector = (inPoint - plane_point);
-  const auto vector_projected_to_plane_normal_length = Dot(plane_to_point_vector, plane_normal);
-  return vector_projected_to_plane_normal_length;
-}
-
-template <typename T>
-Vec3<T> Projected(const Vec3<T>& inPoint, const Plane<T>& inPlaneToProjectTo)
-{
-  const auto point_to_plane_distance = Distance(inPoint, inPlaneToProjectTo);
-  const auto point_projected_to_plane_normal = (inPoint - point_to_plane_distance * inPlaneToProjectTo.GetNormal());
-  return point_projected_to_plane_normal;
-}
-
-template <typename T>
 Vec3<T> Projected(const Vec3<T>& inPoint, const Triangle3<T>& inTriangle)
 {
-  const auto triangle_plane = Plane(inTriangle);
+  const auto triangle_plane = GetPlane(inTriangle);
   return Projected(inPoint, triangle_plane);
 }
 
@@ -105,4 +67,64 @@ Vec3<T> BarycentricCoordinates(const Triangle<T, N>& inTriangle, const Vec<T, N>
 
   return Vec3<T>(u, v, w);
 }
+
+template <typename T>
+auto GetSATNormals(const Triangle3<T>& inTriangle)
+{
+  return std::array { Normal(inTriangle) };
+}
+
+template <typename T>
+constexpr auto GetSATNormals(const Triangle2<T>&)
+{
+  return std::array<Vec2<T>, 0> {};
+}
+
+template <typename T, std::size_t N>
+auto GetSATEdges(const Triangle<T, N>& inTriangle)
+{
+  return std::array { (inTriangle[0] - inTriangle[1]),
+    (inTriangle[0] - inTriangle[2]),
+    (inTriangle[1] - inTriangle[2]) };
+}
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Ray<T, 3>& inRay, const Triangle3<T>& inTriangle)
+{
+  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
+          || TIntersectMode == EIntersectMode::ONLY_CHECK,
+      "Unsupported EIntersectMode.");
+
+  const auto ray_plane_intersection_distance = IntersectClosest(inRay, GetPlane(inTriangle));
+  if (!ray_plane_intersection_distance)
+  {
+    if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+    {
+      return false;
+    }
+    else
+    {
+      return std::optional<T>();
+    }
+  }
+
+  const auto ray_plane_intersection_point = inRay.GetPoint(*ray_plane_intersection_distance);
+  const auto barycentric_coordinates = BarycentricCoordinates(inTriangle, ray_plane_intersection_point);
+  const auto intersection_point_is_in_triangle = IsBetween(barycentric_coordinates, Zero<Vec3<T>>(), One<Vec3<T>>());
+  if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+  {
+    return intersection_point_is_in_triangle;
+  }
+  else
+  {
+    return intersection_point_is_in_triangle ? ray_plane_intersection_distance : std::optional<T>();
+  }
+}
+
+template <typename T>
+auto Intersect(const Triangle3<T>& inTriangle, const Ray<T, 3>& inRay)
+{
+  return Intersect(inRay, inTriangle);
+}
+
 }
