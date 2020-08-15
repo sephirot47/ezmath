@@ -65,8 +65,7 @@ constexpr T ClosestPointT(const Segment<T, N>& inSegment, const TPrimitive& inPr
 
   const auto segment_line = Line<T, N> { inSegment.GetOrigin(), Direction(inSegment) };
   const auto line_closest_point_t = ClosestPointT(segment_line, inPrimitive);
-  const auto line_closest_point_t_clamped
-      = Clamp(line_closest_point_t, static_cast<T>(0), Sqrt(segment_sq_length));
+  const auto line_closest_point_t_clamped = Clamp(line_closest_point_t, static_cast<T>(0), Sqrt(segment_sq_length));
   return line_closest_point_t_clamped;
 }
 
@@ -130,7 +129,7 @@ auto Intersect(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
   if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
     return intersections;
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-    return ray_detail::GetMinIntersectionDistance(intersections);
+    return line_detail::GetMinIntersectionDistance(intersections);
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
     return (Contains(inPrimitive, inSegment.GetOrigin()) || Contains(inPrimitive, inSegment.GetDestiny()));
 }

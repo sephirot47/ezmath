@@ -25,27 +25,6 @@ constexpr Vec<T, N> Direction(const Ray<T, N>& inRay)
   return inRay.GetDirection();
 }
 
-namespace ray_detail
-{
-  template <typename T>
-  std::optional<T> GetMinIntersectionDistance(const std::array<std::optional<T>, 1>& inIntersectionDistances)
-  {
-    return inIntersectionDistances.front();
-  }
-
-  template <typename T>
-  std::optional<T> GetMinIntersectionDistance(const std::array<std::optional<T>, 2>& inIntersectionDistances)
-  {
-    if (inIntersectionDistances.at(0).has_value())
-    {
-      if (!inIntersectionDistances.at(1).has_value())
-        return inIntersectionDistances.at(0);
-      return std::make_optional(Min(*inIntersectionDistances.at(0), *inIntersectionDistances.at(1)));
-    }
-    return inIntersectionDistances.at(1);
-  }
-}
-
 template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
 auto Intersect(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
 {
@@ -75,7 +54,7 @@ auto Intersect(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
   if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
     return intersections;
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-    return ray_detail::GetMinIntersectionDistance(intersections);
+    return line_detail::GetMinIntersectionDistance(intersections);
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
     return Contains(inPrimitive, inRay.GetOrigin());
 }

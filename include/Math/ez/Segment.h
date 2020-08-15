@@ -6,6 +6,7 @@
 #include "ez/MathInitializers.h"
 #include "ez/Vec.h"
 #include <cstdint>
+#include <type_traits>
 
 namespace ez
 {
@@ -27,11 +28,16 @@ public:
   Vec<T, N> GetOrigin() const;
   Vec<T, N> GetDestiny() const;
   Vec<T, N> GetVector() const;
-  Vec<T, N> GetPoint(const T &inDistanceFromOrigin) const;
+  Vec<T, N> GetPoint(const T& inDistanceFromOrigin) const;
 
 private:
   Vec<T, N> mOrigin = Zero<Vec<T, N>>();
   Vec<T, N> mDestiny = Zero<Vec<T, N>>();
+};
+
+template <typename T, std::size_t N>
+struct IsSegment<Segment<T, N>> : std::true_type
+{
 };
 
 template <typename T, std::size_t N>

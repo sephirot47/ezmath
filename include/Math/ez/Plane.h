@@ -6,6 +6,7 @@
 #include "ez/MathInitializers.h"
 #include "ez/Vec.h"
 #include <optional>
+#include <type_traits>
 
 namespace ez
 {
@@ -35,6 +36,11 @@ public:
 private:
   Vec3<T> mNormal = Forward<Vec3<T>>();      // A, B, C
   T mDistanceFromOrigin = static_cast<T>(0); // Distance from origin i-n the direction of the normal (D)
+};
+
+template <typename T>
+struct IsPlane<Plane<T>> : std::true_type
+{
 };
 
 template <typename T>

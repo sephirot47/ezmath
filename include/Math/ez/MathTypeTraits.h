@@ -29,6 +29,38 @@ struct IsQuat final : std::false_type
 template <typename T>
 inline constexpr bool IsQuat_v = IsQuat<std::remove_cvref_t<T>>::value;
 
+// IsLine. Template specialization for Line is in "Line.h"
+template <typename T>
+struct IsLine final : std::false_type
+{
+};
+template <typename T>
+constexpr bool IsLine_v = IsLine<std::remove_cvref_t<T>>::value;
+
+// IsRay. Template specialization for Ray is in "Ray.h"
+template <typename T>
+struct IsRay final : std::false_type
+{
+};
+template <typename T>
+constexpr bool IsRay_v = IsRay<std::remove_cvref_t<T>>::value;
+
+// IsSegment. Template specialization for Segment is in "Segment.h"
+template <typename T>
+struct IsSegment final : std::false_type
+{
+};
+template <typename T>
+constexpr bool IsSegment_v = IsSegment<std::remove_cvref_t<T>>::value;
+
+// IsPlane. Template specialization for Plane is in "Plane.h"
+template <typename T>
+struct IsPlane final : std::false_type
+{
+};
+template <typename T>
+constexpr bool IsPlane_v = IsPlane<std::remove_cvref_t<T>>::value;
+
 // IsAAHyperBox. Template specialization for AAHyperBox is in "AAHyperBox.h"
 template <typename T>
 struct IsAAHyperBox final : std::false_type
@@ -95,15 +127,9 @@ constexpr auto _GetNumComponents()
   {
     return 1;
   }
-  else if constexpr (IsVec_v<T>)
-  {
-    return T::NumComponents;
-  }
-  else if constexpr (IsQuat_v<T>)
-  {
-    return T::NumComponents;
-  }
-  else if constexpr (IsMat_v<T>)
+  else if constexpr (
+      IsVec_v<
+          T> || IsQuat_v<T> || IsMat_v<T> || IsLine_v<T> || IsRay_v<T> || IsSegment_v<T> || IsPlane_v<T> || IsAAHyperBox_v<T> || IsAAHyperCube_v<T> || IsHyperSphere_v<T> || IsCylinder_v<T> || IsCapsule_v<T>)
   {
     return T::NumComponents;
   }

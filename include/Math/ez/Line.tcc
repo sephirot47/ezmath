@@ -125,6 +125,24 @@ namespace line_detail
   void ChangeIntersectionOrigin(const TFrom& inFrom, const TTo& inTo, bool& ioIntersection)
   {
   }
+
+  template <typename T>
+  std::optional<T> GetMinIntersectionDistance(const std::array<std::optional<T>, 1>& inIntersectionDistances)
+  {
+    return inIntersectionDistances.front();
+  }
+
+  template <typename T>
+  std::optional<T> GetMinIntersectionDistance(const std::array<std::optional<T>, 2>& inIntersectionDistances)
+  {
+    if (inIntersectionDistances.at(0).has_value())
+    {
+      if (!inIntersectionDistances.at(1).has_value())
+        return inIntersectionDistances.at(0);
+      return std::make_optional(Min(*inIntersectionDistances.at(0), *inIntersectionDistances.at(1)));
+    }
+    return inIntersectionDistances.at(1);
+  }
 }
 
 template <typename T>
@@ -158,6 +176,16 @@ constexpr T ClosestPointT(const Line<T, N>& inLine, const Vec<T, N>& inPoint)
   const auto line_dir = Direction(inLine);
   const auto point_origin_vector = (inPoint - inLine.GetOrigin());
   return Dot(point_origin_vector, line_dir);
+}
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Ray<T, N>& inRay)
+{
+  const auto ray_line = Line<T, N> { inRay.GetOrigin(), Direction(inRay) };
+  const auto ray_line_closest_point_t = ClosestPointT(ray_line, inLine);
+  const auto ray_line_closest_point_t_clamped = Max(ray_line_closest_point_t, static_cast<T>(0));
+  const auto ray_closest_point = inRay.GetPoint(ray_line_closest_point_t_clamped);
+  return ClosestPointT(inLine, ray_closest_point);
 }
 
 template <typename T, std::size_t N>
@@ -303,7 +331,8 @@ auto Intersect(const Plane<T>& inPlane, const Line3<T>& inLine)
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox)
 {
-  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CHECK,
+  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
+          || TIntersectMode == EIntersectMode::ONLY_CHECK,
       "Unsupported EIntersectMode.");
 
   const auto line_direction_inverse = (static_cast<T>(1) / Direction(inLine));
@@ -321,6 +350,10 @@ auto Intersect(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox)
     if (intersects)
       intersections = { std::make_optional(enter), std::make_optional(exit) };
     return intersections;
+  }
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+  {
+    return intersects ? std::make_optional(Min(enter, exit)) : std::optional<T> {};
   }
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
     return intersects;
@@ -347,8 +380,9 @@ auto Intersect(const AAHyperCube<T, N>& inAAHyperCube, const Line<T, N>& inLine)
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Line<T, N>& inLine)
 {
-  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CHECK,
-      "Unsupported EIntersectMode");
+  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
+          || TIntersectMode == EIntersectMode::ONLY_CHECK,
+      "Unsupported EIntersectMode.");
 
   const auto line_origin = inLine.GetOrigin();
   const auto line_dir = inLine.GetDirection();
@@ -364,9 +398,7 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Line<T, N>& inLine)
   const auto c = SqLength(o) - Sq(R);
 
   const auto sqrt_number = (Sq(b) - static_cast<T>(4) * a * c);
-  if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-    return sqrt_number >= 0;
-  else if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST)
   {
     std::array<std::optional<T>, 2> intersections;
     if (sqrt_number >= 0)
@@ -376,8 +408,14 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Line<T, N>& inLine)
       intersections.at(0) = (-b + sqrt_result) / a2;
       intersections.at(1) = (-b - sqrt_result) / a2;
     }
-    return intersections;
+
+    if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+      return intersections;
+    else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+      return line_detail::GetMinIntersectionDistance(intersections);
   }
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+    return sqrt_number >= 0;
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
@@ -389,8 +427,9 @@ auto Intersect(const Line<T, N>& inLine, const HyperSphere<T, N>& inHyperSphere)
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Cylinder<T>& inCylinder, const Line3<T>& inLine)
 {
-  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CHECK,
-      "Unsupported EIntersectMode");
+  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
+          || TIntersectMode == EIntersectMode::ONLY_CHECK,
+      "Unsupported EIntersectMode.");
 
   const auto cylinder_sq_radius = Sq(inCylinder.GetRadius());
   const auto cylinder_sq_length = SqLength(inCylinder);
@@ -428,6 +467,8 @@ auto Intersect(const Cylinder<T>& inCylinder, const Line3<T>& inLine)
 
   if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
     return intersections;
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    return line_detail::GetMinIntersectionDistance(intersections);
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
     return std::any_of(intersections.cbegin(), intersections.cend(), &line_detail::HasValue<T>);
 }
@@ -441,8 +482,9 @@ auto Intersect(const Line3<T>& inLine, const Cylinder<T>& inCylinder)
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Capsule<T, N>& inCapsule, const Line<T, N>& inLine)
 {
-  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CHECK,
-      "Unsupported EIntersectMode");
+  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
+          || TIntersectMode == EIntersectMode::ONLY_CHECK,
+      "Unsupported EIntersectMode.");
 
   const auto origin_hypersphere = HyperSphere<T, N> { inCapsule.GetOrigin(), inCapsule.GetRadius() };
   const auto destiny_hypersphere = HyperSphere<T, N> { inCapsule.GetDestiny(), inCapsule.GetRadius() };
@@ -458,7 +500,8 @@ auto Intersect(const Capsule<T, N>& inCapsule, const Line<T, N>& inLine)
       return IntersectCheck(origin_hypersphere, inLine) || IntersectCheck(destiny_hypersphere, inLine)
           || IntersectCheck(mid_section_primitive, inLine);
     }
-    else if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+    else if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS
+        || TIntersectMode == EIntersectMode::ONLY_CLOSEST)
     {
       const auto line_local_mid_section = line_detail::GetLineInCylinderSpace(mid_section_primitive, inLine);
       intersections = line_detail::IntersectCylinderWithoutCaps(line_local_mid_section.GetOrigin(),
@@ -474,24 +517,24 @@ auto Intersect(const Capsule<T, N>& inCapsule, const Line<T, N>& inLine)
     const auto line_local_mid_section
         = Line<T, N> { inLine.GetOrigin(), NormalizedSafe(-Orientation(inCapsule) * Direction(inLine)) };
 
-    if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+    if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    {
+      intersections = IntersectAll(mid_section_primitive, line_local_mid_section);
+    }
+    else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
     {
       return IntersectCheck(origin_hypersphere, inLine) || IntersectCheck(destiny_hypersphere, inLine)
           || IntersectCheck(mid_section_primitive, line_local_mid_section);
     }
-    else if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
-    {
-      intersections = IntersectAll(mid_section_primitive, line_local_mid_section);
-    }
   }
 
-  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST)
   {
     // Caps
     for (const auto& hypersphere : { origin_hypersphere, destiny_hypersphere })
     {
       if (std::all_of(intersections.cbegin(), intersections.cend(), &line_detail::HasValue<T>))
-        return intersections;
+        break;
 
       const auto hypersphere_intersections = Intersect<EIntersectMode::ALL_INTERSECTIONS>(inLine, hypersphere);
       for (const auto& hypersphere_intersection : hypersphere_intersections)
@@ -506,7 +549,11 @@ auto Intersect(const Capsule<T, N>& inCapsule, const Line<T, N>& inLine)
           break;
       }
     }
-    return intersections;
+
+    if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+      return intersections;
+    else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+      return line_detail::GetMinIntersectionDistance(intersections);
   }
 }
 

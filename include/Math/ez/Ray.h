@@ -4,6 +4,7 @@
 #include "ez/MathCommon.h"
 #include "ez/MathInitializers.h"
 #include "ez/Vec.h"
+#include <type_traits>
 
 namespace ez
 {
@@ -32,6 +33,11 @@ public:
 private:
   Vec<T, N> mOrigin = Zero<Vec<T, N>>();
   Vec<T, N> mDirection = Right<Vec<T, N>>();
+};
+
+template <typename T, std::size_t N>
+struct IsRay<Ray<T, N>> : std::true_type
+{
 };
 
 template <typename T, std::size_t N>

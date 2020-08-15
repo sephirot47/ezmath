@@ -4,6 +4,7 @@
 #include <ez/MathForward.h>
 #include <ez/MathInitializers.h>
 #include <ez/Vec.h>
+#include <type_traits>
 
 namespace ez
 {
@@ -25,8 +26,13 @@ public:
   void SetDirection(const Vec<T, N>& inDirection);
 
 private:
-  Vec<T, N> mOrigin = Zero<Vec<T,N>>();
+  Vec<T, N> mOrigin = Zero<Vec<T, N>>();
   Vec<T, N> mDirection = Right<Vec<T, N>>();
+};
+
+template <typename T, std::size_t N>
+struct IsLine<Line<T, N>> : std::true_type
+{
 };
 
 template <typename T, std::size_t N>
@@ -43,6 +49,9 @@ constexpr T ClosestPointT(const Line3<T>& inLineLHS, const Line3<T>& inLineRHS);
 
 template <typename T, std::size_t N>
 constexpr T ClosestPointT(const Line<T, N>& inLine, const Vec<T, N>& inPoint);
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Ray<T, N>& inRay);
 
 template <typename T, std::size_t N>
 constexpr T ClosestPointT(const Line<T, N>& inLine, const Segment<T, N>& inSegment);
