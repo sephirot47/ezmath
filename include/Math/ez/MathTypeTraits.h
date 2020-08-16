@@ -109,9 +109,6 @@ struct IsCylinder final : std::false_type
 template <typename T>
 constexpr bool IsCylinder_v = IsCylinder<std::remove_cvref_t<T>>::value;
 
-template <typename T, std::size_t N>
-using RotationType_t = std::conditional_t<N == 2, T, Quat<T>>;
-
 // IsNumber
 template <typename T>
 constexpr auto IsNumber_v = std::is_arithmetic_v<std::remove_cvref_t<T>>;

@@ -431,8 +431,8 @@ struct IntersectHelperStruct final
         if (ioIntersections.empty() || *inIntersectionDistance < ioIntersections.front().mDistance)
         {
           // Only save the closest intersection out of all primitives
-          ioIntersections.resize(0);
           ioIntersections.emplace_back(*inIntersectionDistance, inPrimitiveIndex);
+          ioIntersections.resize(0);
         }
       }
     }

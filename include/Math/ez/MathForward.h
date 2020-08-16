@@ -127,6 +127,11 @@ using Planed = Plane<double>;
 template <typename T, std::size_t N>
 class HyperSphere;
 
+template <std::size_t N>
+using HyperSpheref = HyperSphere<float, N>;
+template <std::size_t N>
+using HyperSphered = HyperSphere<double, N>;
+
 // Circle
 template <typename T>
 using Circle = HyperSphere<T, 2>;

@@ -4,6 +4,7 @@
 #include "ez/MathCommon.h"
 #include "ez/MathForward.h"
 #include "ez/MathInitializers.h"
+#include "ez/Quat.h"
 #include "ez/Vec.h"
 #include <cstdint>
 #include <type_traits>
@@ -71,6 +72,9 @@ template <typename T, std::size_t N>
 constexpr Vec<T, N> Center(const Segment<T, N>& inSegment);
 
 // Intersection functions
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Segment2<T>& inSegment, const Line2<T>& inLine);
+
 template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
 auto Intersect(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive);
 

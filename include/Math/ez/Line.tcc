@@ -255,37 +255,6 @@ auto Intersect(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS)
 }
 
 template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Segment2<T>& inSegment, const Line2<T>& inLine)
-{
-  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
-          || TIntersectMode == EIntersectMode::ONLY_CHECK,
-      "Unsupported EIntersectMode.");
-
-  const auto segment_sq_length = SqLength(inSegment);
-  if (IsVeryEqual(segment_sq_length, static_cast<T>(0)))
-  {
-    if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
-      return std::array { std::optional<T> {} };
-    else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-      return std::optional<T> {};
-    else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-      return false;
-  }
-
-  auto intersection = IntersectClosest(Line2<T> { inSegment.GetOrigin(), Direction(inSegment) }, inLine);
-  const auto segment_length = Sqrt(segment_sq_length);
-  const auto intersects
-      = (intersection.has_value() && (*intersection >= static_cast<T>(0)) && (*intersection <= segment_length));
-
-  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
-    return std::array { intersects ? intersection : std::optional<T> {} };
-  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-    return intersects ? intersection : std::optional<T> {};
-  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-    return intersection.has_value();
-}
-
-template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Line2<T>& inLine, const Segment2<T>& inSegment)
 {
   auto intersection = Intersect<TIntersectMode, T>(inSegment, inLine);
@@ -322,12 +291,6 @@ auto Intersect(const Line3<T>& inLine, const Plane<T>& inPlane)
     return true;
 }
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Plane<T>& inPlane, const Line3<T>& inLine)
-{
-  return Intersect<TIntersectMode>(inLine, inPlane);
-}
-
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox)
 {
@@ -360,25 +323,13 @@ auto Intersect(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox)
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Line<T, N>& inLine)
-{
-  return Intersect<TIntersectMode, T, N>(inLine, inAAHyperBox);
-}
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Line<T, N>& inLine, const AAHyperCube<T, N>& inAAHyperCube)
 {
   return Intersect<TIntersectMode, T, N>(inLine, MakeAAHyperBoxFromAAHyperCube(inAAHyperCube));
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperCube<T, N>& inAAHyperCube, const Line<T, N>& inLine)
-{
-  return Intersect<TIntersectMode, T, N>(inLine, inAAHyperCube);
-}
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Line<T, N>& inLine)
+auto Intersect(const Line<T, N>& inLine, const HyperSphere<T, N>& inHyperSphere)
 {
   static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
           || TIntersectMode == EIntersectMode::ONLY_CHECK,
@@ -418,14 +369,8 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Line<T, N>& inLine)
     return sqrt_number >= 0;
 }
 
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const Line<T, N>& inLine, const HyperSphere<T, N>& inHyperSphere)
-{
-  return Intersect<TIntersectMode>(inHyperSphere, inLine);
-}
-
 template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Cylinder<T>& inCylinder, const Line3<T>& inLine)
+auto Intersect(const Line3<T>& inLine, const Cylinder<T>& inCylinder)
 {
   static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
           || TIntersectMode == EIntersectMode::ONLY_CHECK,
@@ -473,14 +418,8 @@ auto Intersect(const Cylinder<T>& inCylinder, const Line3<T>& inLine)
     return std::any_of(intersections.cbegin(), intersections.cend(), &line_detail::HasValue<T>);
 }
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Line3<T>& inLine, const Cylinder<T>& inCylinder)
-{
-  return Intersect<TIntersectMode>(inCylinder, inLine);
-}
-
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const Capsule<T, N>& inCapsule, const Line<T, N>& inLine)
+auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule)
 {
   static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
           || TIntersectMode == EIntersectMode::ONLY_CHECK,
@@ -555,12 +494,6 @@ auto Intersect(const Capsule<T, N>& inCapsule, const Line<T, N>& inLine)
     else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
       return line_detail::GetMinIntersectionDistance(intersections);
   }
-}
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule)
-{
-  return Intersect<TIntersectMode>(inCapsule, inLine);
 }
 
 template <typename T, std::size_t N>

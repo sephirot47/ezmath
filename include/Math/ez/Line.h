@@ -66,43 +66,22 @@ template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS);
 
 template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Segment2<T>& inSegment, const Line2<T>& inLine);
-
-template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Line2<T>& inLine, const Segment2<T>& inSegment);
 
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Line3<T>& inLine, const Plane<T>& inPlane);
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Plane<T>& inPlane, const Line3<T>& inLine);
-
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox);
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Line<T, N>& inLine);
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Line<T, N>& inLine, const AAHyperCube<T, N>& inAAHyperCube);
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperCube<T, N>& inAAHyperCube, const Line<T, N>& inLine);
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Line<T, N>& inLine);
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Line<T, N>& inLine, const HyperSphere<T, N>& inHyperSphere);
 
 template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Cylinder<T>& inCylinder, const Line3<T>& inLine);
-
-template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Line3<T>& inLine, const Cylinder<T>& inCylinder);
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const Capsule<T, N>& inCapsule, const Line<T, N>& inLine);
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule);

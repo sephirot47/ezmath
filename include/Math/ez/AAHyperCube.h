@@ -14,6 +14,7 @@ class AAHyperCube final
 public:
   using ValueType = T;
   static constexpr auto NumPoints = std::pow(static_cast<std::size_t>(2), N);
+  static constexpr auto NumComponents = N;
   static constexpr auto NumDimensions = N;
 
   AAHyperCube();
@@ -62,7 +63,10 @@ struct IsAAHyperCube<AAHyperCube<T, N>> : std::true_type
 
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperCube<T, N>& inLHS, const AAHyperCube<T, N>& inRHS);
+auto Intersect(const AAHyperCube<T, N>& inAAHyperCubeLHS, const AAHyperCube<T, N>& inAAHyperCubeRHS);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N, typename TPrimitive>
+auto Intersect(const AAHyperCube<T, N>& inAAHyperCube, const TPrimitive& inPrimitive);
 
 template <typename T, std::size_t N>
 bool Contains(const AAHyperCube<T, N>& inAAHyperCube, const Vec<T, N>& inPoint);

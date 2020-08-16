@@ -194,25 +194,43 @@ const auto MakeAAHyperBoxFromAAHyperCube(const AAHyperCube<T, N>& inAAHyperCube)
 
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperBox<T, N>& inLHS, const AAHyperBox<T, N>& inRHS)
+auto Intersect(const AAHyperBox<T, N>& inAAHyperBoxLHS, const AAHyperBox<T, N>& inAAHyperBoxRHS)
 {
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
-  const auto some_lhs_min_coord_greater_than_max = !(inLHS.GetMin() <= inRHS.GetMax());
-  const auto some_lhs_max_coord_less_than_max = !(inLHS.GetMax() >= inRHS.GetMin());
+  const auto some_lhs_min_coord_greater_than_max = !(inAAHyperBoxLHS.GetMin() <= inAAHyperBoxRHS.GetMax());
+  const auto some_lhs_max_coord_less_than_max = !(inAAHyperBoxLHS.GetMax() >= inAAHyperBoxRHS.GetMin());
   const auto do_not_intersect = (some_lhs_min_coord_greater_than_max || some_lhs_max_coord_less_than_max);
   return !do_not_intersect;
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperCube<T, N>& inLHS, const AAHyperBox<T, N>& inRHS)
+auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Line<T, N>& inLine)
 {
-  return Intersect<TIntersectMode>(MakeAAHyperBoxFromAAHyperCube(inLHS), inRHS);
+  return Intersect<TIntersectMode>(inLine, inAAHyperBox);
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperBox<T, N>& inLHS, const AAHyperCube<T, N>& inRHS)
+auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Ray<T, N>& inRay)
 {
-  return Intersect<TIntersectMode>(inRHS, inLHS);
+  return Intersect<TIntersectMode>(inRay, inAAHyperBox);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Segment<T, N>& inSegment)
+{
+  return Intersect<TIntersectMode>(inSegment, inAAHyperBox);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& inHyperSphere)
+{
+  return Intersect<TIntersectMode>(inHyperSphere, inAAHyperBox);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const AAHyperBox<T, N>& inAAHyperBoxLHS, const AAHyperCube<T, N>& inAAHyperCubeRHS)
+{
+  return Intersect<TIntersectMode>(MakeAAHyperBoxFromAAHyperCube(inAAHyperCubeRHS), inAAHyperBoxLHS);
 }
 
 template <typename T, std::size_t N>

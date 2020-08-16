@@ -5,7 +5,6 @@
 #include "ez/MathCommon.h"
 #include "ez/MathForward.h"
 #include "ez/MathInitializers.h"
-#include "ez/IntersectMode.h"
 #include "ez/Vec.h"
 #include <array>
 #include <optional>
@@ -17,6 +16,7 @@ class HyperSphere final
 {
 public:
   using ValueType = T;
+  static constexpr auto NumComponents = N;
   static constexpr auto NumDimensions = N;
 
   HyperSphere() = default;
@@ -41,7 +41,22 @@ struct IsHyperSphere<HyperSphere<T, N>> : std::true_type
 
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const HyperSphere<T, N>& inLHS, const HyperSphere<T, N>& inRHS);
+auto Intersect(const HyperSphere<T, N>& inHyperSphereLHS, const HyperSphere<T, N>& inHyperSphereRHS);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Line<T, N>& inLine);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Ray<T, N>& inRay);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Segment<T, N>& inSegment);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperCube<T, N>& inAAHyperCube);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& inAAHyperBox);
 
 template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inPoint);
@@ -51,16 +66,6 @@ bool Contains(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& in
 
 template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const AAHyperCube<T, N>& inAAHyperCube);
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& inAAHyperBox);
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& inHyperSphere);
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperCube<T, N>& inAAHyperCube);
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperCube<T, N>& inAAHyperCube, const HyperSphere<T, N>& inHyperSphere);
 
 template <typename T, std::size_t N>
 constexpr Vec<T, N> Center(const HyperSphere<T, N>& inHyperSphere);

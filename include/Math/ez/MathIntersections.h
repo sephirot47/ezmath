@@ -44,7 +44,7 @@ bool DoProjectionsOverlap(const TLHSConvexObject& inLHS,
 }
 
 template <EIntersectMode TIntersectMode, typename TLHSConvexObject, typename TRHSConvexObject>
-bool Intersect(const TLHSConvexObject& inLHS, const TRHSConvexObject& inRHS)
+bool IntersectCheckSAT(const TLHSConvexObject& inLHS, const TRHSConvexObject& inRHS)
 {
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode");
 

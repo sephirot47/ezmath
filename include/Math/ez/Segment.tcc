@@ -97,6 +97,37 @@ T SqDistance(const TPrimitive& inPrimitive, const Segment<T, N>& inSegment)
 }
 
 // Intersection functions
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Segment2<T>& inSegment, const Line2<T>& inLine)
+{
+  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
+          || TIntersectMode == EIntersectMode::ONLY_CHECK,
+      "Unsupported EIntersectMode.");
+
+  const auto segment_sq_length = SqLength(inSegment);
+  if (IsVeryEqual(segment_sq_length, static_cast<T>(0)))
+  {
+    if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+      return std::array { std::optional<T> {} };
+    else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+      return std::optional<T> {};
+    else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+      return false;
+  }
+
+  auto intersection = IntersectClosest(Line2<T> { inSegment.GetOrigin(), Direction(inSegment) }, inLine);
+  const auto segment_length = Sqrt(segment_sq_length);
+  const auto intersects
+      = (intersection.has_value() && (*intersection >= static_cast<T>(0)) && (*intersection <= segment_length));
+
+  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+    return std::array { intersects ? intersection : std::optional<T> {} };
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    return intersects ? intersection : std::optional<T> {};
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+    return intersects;
+}
+
 template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
 auto Intersect(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
 {

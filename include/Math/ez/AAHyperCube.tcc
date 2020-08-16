@@ -70,9 +70,16 @@ AAHyperCube<T, N>& AAHyperCube<T, N>::operator*=(const Vec<T, N>& inRHS)
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperCube<T, N>& inLHS, const AAHyperCube<T, N>& inRHS)
+auto Intersect(const AAHyperCube<T, N>& inAAHyperCubeLHS, const AAHyperCube<T, N>& inAAHyperCubeRHS)
 {
-  return Intersect<TIntersectMode>(MakeAAHyperBoxFromAAHyperCube(inLHS), MakeAAHyperBoxFromAAHyperCube(inRHS));
+  return Intersect<TIntersectMode>(MakeAAHyperBoxFromAAHyperCube(inAAHyperCubeLHS),
+      MakeAAHyperBoxFromAAHyperCube(inAAHyperCubeRHS));
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N, typename TPrimitive>
+auto Intersect(const AAHyperCube<T, N>& inAAHyperCube, const TPrimitive& inPrimitive)
+{
+  return Intersect<TIntersectMode>(MakeAAHyperBoxFromAAHyperCube(inAAHyperCube), inPrimitive);
 }
 
 template <typename T, std::size_t N>

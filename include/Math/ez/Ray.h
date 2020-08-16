@@ -13,6 +13,7 @@ class Ray final
 {
 public:
   using ValueType = T;
+  static constexpr auto NumComponents = N;
   static constexpr auto NumDimensions = N;
 
   Ray() = default;

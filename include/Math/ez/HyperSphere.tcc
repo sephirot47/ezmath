@@ -3,10 +3,54 @@
 namespace ez
 {
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const HyperSphere<T, N>& inLHS, const HyperSphere<T, N>& inRHS)
+auto Intersect(const HyperSphere<T, N>& inHyperSphereLHS, const HyperSphere<T, N>& inHyperSphereRHS)
 {
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
-  return SqDistance(Center(inLHS), Center(inRHS)) <= Sq(inLHS.GetRadius() + inRHS.GetRadius());
+  return SqDistance(Center(inHyperSphereLHS), Center(inHyperSphereRHS))
+      <= Sq(inHyperSphereLHS.GetRadius() + inHyperSphereRHS.GetRadius());
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Line<T, N>& inLine)
+{
+  return Intersect<TIntersectMode>(inLine, inHyperSphere);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Ray<T, N>& inRay)
+{
+  return Intersect<TIntersectMode>(inRay, inHyperSphere);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Segment<T, N>& inSegment)
+{
+  return Intersect<TIntersectMode>(inSegment, inHyperSphere);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperCube<T, N>& inAAHyperCube)
+{
+  return Intersect<TIntersectMode, T, N>(inHyperSphere, MakeAAHyperBoxFromAAHyperCube(inAAHyperCube));
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& inAAHyperBox)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+
+  T min_distance = 0;
+  const auto sphere_center = Center(inHyperSphere);
+  const auto aabox_min = inAAHyperBox.GetMin();
+  const auto aabox_max = inAAHyperBox.GetMax();
+  for (std::size_t i = 0; i < N; ++i)
+  {
+    if (sphere_center[i] < aabox_min[i])
+      min_distance += Sq(sphere_center[i] - aabox_min[i]);
+    else if (sphere_center[i] > aabox_max[i])
+      min_distance += Sq(sphere_center[i] - aabox_max[i]);
+  }
+  return (min_distance <= Sq(inHyperSphere.GetRadius()));
 }
 
 template <typename T, std::size_t N>
@@ -34,43 +78,6 @@ template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const AAHyperCube<T, N>& inAAHyperCube)
 {
   return Contains(inHyperSphere, MakeAAHyperBoxFromAAHyperCube(inAAHyperCube));
-}
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& inAAHyperBox)
-{
-  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
-
-  T min_distance = 0;
-  const auto sphere_center = Center(inHyperSphere);
-  const auto aabox_min = inAAHyperBox.GetMin();
-  const auto aabox_max = inAAHyperBox.GetMax();
-  for (std::size_t i = 0; i < N; ++i)
-  {
-    if (sphere_center[i] < aabox_min[i])
-      min_distance += Sq(sphere_center[i] - aabox_min[i]);
-    else if (sphere_center[i] > aabox_max[i])
-      min_distance += Sq(sphere_center[i] - aabox_max[i]);
-  }
-  return (min_distance <= Sq(inHyperSphere.GetRadius()));
-}
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& inHyperSphere)
-{
-  return Intersect<TIntersectMode, T, N>(inHyperSphere, inAAHyperBox);
-}
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperCube<T, N>& inAAHyperCube)
-{
-  return Intersect<TIntersectMode, T, N>(inHyperSphere, MakeAAHyperBoxFromAAHyperCube(inAAHyperCube));
-}
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperCube<T, N>& inAAHyperCube, const HyperSphere<T, N>& inHyperSphere)
-{
-  return Intersect<TIntersectMode, T, N>(inHyperSphere, inAAHyperCube);
 }
 
 template <typename T, std::size_t N>
