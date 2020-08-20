@@ -11,6 +11,12 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphereLHS, const HyperSphere<T, N
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inPoint)
+{
+  return Intersect<TIntersectMode>(inPoint, inHyperSphere);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Line<T, N>& inLine)
 {
   return Intersect<TIntersectMode>(inLine, inHyperSphere);

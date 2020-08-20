@@ -91,8 +91,20 @@ T SqDistance(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
 }
 
 // Intersection functions
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Segment2<T>& inSegment, const Line2<T>& inLine)
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Segment<T, N>& inSegment, const Vec<T, N>& inPoint)
+{
+  const auto intersection = Intersect<TIntersectMode>(inPoint, inSegment);
+  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+    return std::array { intersection[0].has_value() ? line_detail::GetT(inSegment, inPoint) : std::optional<T> {} };
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    return intersection.has_value() ? line_detail::GetT(inSegment, inPoint) : std::optional<T> {};
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+    return intersection;
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Segment<T, N>& inSegment, const Line<T, N>& inLine)
 {
   static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
           || TIntersectMode == EIntersectMode::ONLY_CHECK,

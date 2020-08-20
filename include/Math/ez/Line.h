@@ -77,8 +77,14 @@ constexpr T SqDistance(const Line<T, N>& inLine, const TPrimitive& inPrimitive);
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS);
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Line2<T>& inLine, const Segment2<T>& inSegment);
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Line<T, N>& inLine, const Vec<T, N>& inPoint);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Line<T, N>& inLine, const Ray<T, N>& inRay);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Line<T, N>& inLine, const Segment<T, N>& inSegment);
 
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Line3<T>& inLine, const Plane<T>& inPlane);
@@ -102,10 +108,10 @@ template <typename T, std::size_t N>
 bool Contains(const Line<T, N>& inLine, const Vec<T, N>& inPoint);
 
 template <typename T, std::size_t N>
-constexpr Line<T, N> Translated(const Line<T, N>& inLine, const Vec<T, N> &inTranslation);
+constexpr Line<T, N> Translated(const Line<T, N>& inLine, const Vec<T, N>& inTranslation);
 
 template <typename T, std::size_t N>
-constexpr Line<T, N> Rotated(const Line<T, N>& inLine, const RotationType_t<T, N> &inRotation);
+constexpr Line<T, N> Rotated(const Line<T, N>& inLine, const RotationType_t<T, N>& inRotation);
 }
 
 #include <ez/Line.tcc>

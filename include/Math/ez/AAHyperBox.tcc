@@ -199,6 +199,12 @@ auto Intersect(const AAHyperBox<T, N>& inAAHyperBoxLHS, const AAHyperBox<T, N>& 
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Vec<T, N>& inPoint)
+{
+  return Intersect<TIntersectMode>(inPoint, inAAHyperBox);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Line<T, N>& inLine)
 {
   return Intersect<TIntersectMode>(inLine, inAAHyperBox);

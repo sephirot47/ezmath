@@ -21,6 +21,12 @@ constexpr T SqLength(const Capsule<T, N>& inCapsule)
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Capsule<T, N>& inCapsule, const Vec<T, N>& inPoint)
+{
+  return Intersect<TIntersectMode>(inPoint, inCapsule);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Capsule<T, N>& inCapsule, const Line<T, N>& inLine)
 {
   return Intersect<TIntersectMode>(inLine, inCapsule);

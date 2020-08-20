@@ -69,8 +69,11 @@ template <typename T, std::size_t N>
 constexpr Vec<T, N> Center(const Segment<T, N>& inSegment);
 
 // Intersection functions
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Segment2<T>& inSegment, const Line2<T>& inLine);
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Segment<T, N>& inSegment, const Vec<T, N>& inPoint);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Segment<T, N>& inSegment, const Line<T, N>& inLine);
 
 template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
 auto Intersect(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive);

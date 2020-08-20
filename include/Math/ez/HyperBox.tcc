@@ -70,6 +70,12 @@ std::ostream& operator<<(std::ostream& ioLHS, const HyperBox<T, N>& inHyperBox)
 
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperBox<T, N>& inHyperBox, const Vec<T, N>& inPoint)
+{
+  return Intersect<TIntersectMode>(inPoint, inHyperBox);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperBox<T, N>& inHyperBoxLHS, const HyperBox<T, N>& inHyperBoxRHS)
 {
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");

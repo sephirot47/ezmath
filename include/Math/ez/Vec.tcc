@@ -470,6 +470,18 @@ constexpr Vec<T, N> ClosestPoint(const Vec<T, N>& inPoint, const TPrimitive& inP
   return inPoint;
 }
 
+template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
+auto Intersect(const Vec<T, N>& inPoint, const TPrimitive& inPrimitive)
+{
+  const auto contained = Contains(inPrimitive, inPoint);
+  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+    return std::array<std::optional<T>, 1> { contained ? std::make_optional(static_cast<T>(0)) : std::optional<T> {} };
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    return contained ? std::make_optional(static_cast<T>(0)) : std::optional<T> {};
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+    return contained;
+}
+
 template <typename T, std::size_t N>
 void Transform(Vec<T, N>& ioPoint, const Transformation<T, N>& inTransformation)
 {

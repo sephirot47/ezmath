@@ -93,14 +93,14 @@ namespace line_detail
     return intersections;
   }
 
-  template <typename T, std::size_t N>
-  T GetT(const Line<T, N>& inLine, const Vec<T, N>& inPoint)
+  template <typename T, std::size_t N, typename TLineLikePrimitive>
+  T GetT(const TLineLikePrimitive& inLineLike, const Vec<T, N>& inPoint)
   {
-    const auto line_dir = Direction(inLine);
+    const auto line_dir = Direction(inLineLike);
     for (std::size_t i = 0; i < NumComponents_v<decltype(inPoint)>; ++i)
     {
       if (!IsVeryEqual(line_dir[i], static_cast<T>(0)))
-        return (inPoint[i] - inLine.GetOrigin()[i]) / line_dir[i];
+        return (inPoint[i] - inLineLike.GetOrigin()[i]) / line_dir[i];
     }
     return static_cast<T>(0);
   }
@@ -315,8 +315,28 @@ auto Intersect(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS)
     return true;
 }
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Line2<T>& inLine, const Segment2<T>& inSegment)
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Line<T, N>& inLine, const Vec<T, N>& inPoint)
+{
+  const auto intersection = Intersect<TIntersectMode>(inPoint, inLine);
+  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+    return std::array { intersection[0].has_value() ? line_detail::GetT(inLine, inPoint) : std::optional<T> {} };
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    return intersection.has_value() ? line_detail::GetT(inLine, inPoint) : std::optional<T> {};
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+    return intersection;
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Line<T, N>& inLine, const Ray<T, N>& inRay)
+{
+  auto intersection = Intersect<TIntersectMode, T>(inRay, inLine);
+  line_detail::ChangeIntersectionOrigin(inRay, inLine, intersection);
+  return intersection;
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Line<T, N>& inLine, const Segment<T, N>& inSegment)
 {
   auto intersection = Intersect<TIntersectMode, T>(inSegment, inLine);
   line_detail::ChangeIntersectionOrigin(inSegment, inLine, intersection);
@@ -366,7 +386,7 @@ auto Intersect(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox)
   const auto tmax = Max(ttop, tbot);
   const auto enter = Max(tmin);
   const auto exit = Min(tmax);
-  const auto intersects = ((exit >= 0) && (enter < exit));
+  const auto intersects = (enter < exit);
 
   if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
   {
@@ -492,7 +512,7 @@ auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule)
   const auto destiny_hypersphere = HyperSphere<T, N> { inCapsule.GetDestiny(), inCapsule.GetRadius() };
 
   std::array<std::optional<T>, 2> intersections;
-  std::conditional_t<N == 3, Cylinder<T>, AARect<T>> mid_section_primitive;
+  std::conditional_t<N == 3, Cylinder<T>, HyperBox<T, N>> mid_section_primitive;
   if constexpr (N == 3)
   {
     // Middle cylinder
@@ -513,24 +533,26 @@ auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule)
     const auto capsule_length = Length(inCapsule);
     const auto capsule_direction = Direction(inCapsule);
     const auto capsule_perpendicular_direction = Perpendicular(capsule_direction);
-    const auto capsule_length_extent = (capsule_direction * capsule_length);
+    const auto capsule_length_vec = (capsule_direction * capsule_length);
     const auto capsule_radius_extent = (capsule_perpendicular_direction * inCapsule.GetRadius());
-    const auto mid_aarect_origin = inCapsule.GetOrigin() - capsule_radius_extent;
-    const auto mid_aarect = MakeAAHyperBoxFromMinSize(mid_aarect_origin, capsule_length_extent);
+    const auto mid_rect_origin = inCapsule.GetOrigin() - capsule_radius_extent;
+    const auto mid_rect_center = Center(inCapsule);
+    const auto mid_rect_extents = Vec2<T> { capsule_length / static_cast<T>(2), inCapsule.GetRadius() };
+    const auto mid_rect = HyperBox<T, N> { mid_rect_center, mid_rect_extents, Orientation(inCapsule) };
     if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST)
     {
       for (int segmenti = 0; segmenti < 2; ++segmenti)
       {
         const auto offset = (segmenti == 0 ? Zero<Vec2<T>>() : capsule_radius_extent * static_cast<T>(2));
-        const auto mid_aarect_segment_origin = mid_aarect_origin + offset;
-        const auto mid_aarect_segment_destiny = mid_aarect_segment_origin + capsule_length_extent;
-        const auto mid_aarect_segment = Segment2<T> { mid_aarect_segment_origin, mid_aarect_segment_destiny };
-        const auto mid_aarect_segment_intersection = IntersectClosest(inLine, mid_aarect_segment);
-        if (mid_aarect_segment_intersection.has_value())
-          line_detail::AddIntersectionDistance(intersections, *mid_aarect_segment_intersection);
+        const auto mid_rect_segment_origin = mid_rect_origin + offset;
+        const auto mid_rect_segment_destiny = mid_rect_segment_origin + capsule_length_vec;
+        const auto mid_rect_segment = Segment2<T> { mid_rect_segment_origin, mid_rect_segment_destiny };
+        const auto mid_rect_segment_intersection = IntersectClosest(inLine, mid_rect_segment);
+        if (mid_rect_segment_intersection.has_value())
+          line_detail::AddIntersectionDistance(intersections, *mid_rect_segment_intersection);
       }
     }
-    mid_section_primitive = mid_aarect;
+    mid_section_primitive = mid_rect;
   }
 
   if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)

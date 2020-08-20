@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ez/IntersectMode.h"
 #include "ez/MathForward.h"
 #include "ez/MathInitializerTokens.h"
 #include "ez/MathTypeTraits.h"
@@ -9,6 +10,7 @@
 #include <cstdint>
 #include <initializer_list>
 #include <iostream>
+#include <optional>
 #include <ostream>
 #include <type_traits>
 
@@ -116,7 +118,7 @@ template <typename T>
 constexpr bool IsVeryPerpendicular(const Vec3<T>& inDirection0, const Vec3<T>& inDirection1);
 
 template <typename T, std::size_t N>
-constexpr Vec<T, N> Direction(const Vec<T, N> &inVector);
+constexpr Vec<T, N> Direction(const Vec<T, N>& inVector);
 
 template <typename T, std::size_t N>
 constexpr auto Inverted(const Vec<T, N>& inValue);
@@ -154,6 +156,9 @@ constexpr Vec<T, N> Reflect(const Vec<T, N>& inIncomingVectorNormalized, const V
 
 template <typename T, std::size_t N, typename TPrimitive>
 constexpr Vec<T, N> ClosestPoint(const Vec<T, N>& inPoint, const TPrimitive& inPrimitive);
+
+template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
+auto Intersect(const Vec<T, N>& inPoint, const TPrimitive& inPrimitive);
 
 // Transformation specializations. These are point transformations (not directions!)
 template <typename T, std::size_t N>

@@ -25,6 +25,18 @@ constexpr Vec<T, N> Direction(const Ray<T, N>& inRay)
   return inRay.GetDirection();
 }
 
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Ray<T, N>& inRay, const Vec<T, N>& inPoint)
+{
+  const auto intersection = Intersect<TIntersectMode>(inPoint, inRay);
+  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+    return std::array { intersection[0].has_value() ? line_detail::GetT(inRay, inPoint) : std::optional<T> {} };
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    return intersection.has_value() ? line_detail::GetT(inRay, inPoint) : std::optional<T> {};
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+    return intersection;
+}
+
 template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
 auto Intersect(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
 {
@@ -59,10 +71,33 @@ auto Intersect(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
     return Contains(inPrimitive, inRay.GetOrigin());
 }
 
-template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
-auto Intersect(const TPrimitive& inPrimitive, const Ray<T, N>& inRay)
+template <typename T, std::size_t N, typename TPrimitive>
+auto ClosestPointT(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
 {
-  return Intersect<TIntersectMode, T, TPrimitive, N>(inRay, inPrimitive);
+  const auto ray_line = Line<T, N> { inRay.GetOrigin(), Direction(inRay) };
+  const auto line_closest_point_t = ClosestPointT(ray_line, inPrimitive);
+  return Max(line_closest_point_t, static_cast<T>(0));
+}
+
+template <typename T, std::size_t N, typename TPrimitive>
+auto ClosestPoint(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
+{
+  return inRay.GetPoint(ClosestPointT(inRay, inPrimitive));
+}
+
+template <typename T, std::size_t N>
+auto SqDistance(const Ray<T, N>& inRay, const Vec<T, N>& inPoint)
+{
+  const auto closest_point_t = ClosestPointT(inRay, inPoint);
+  if (closest_point_t < static_cast<T>(0))
+    return SqDistance(inRay.GetOrigin(), inPoint);
+  return SqDistance(inRay.GetPoint(closest_point_t), inPoint);
+}
+
+template <typename T, std::size_t N, typename TPrimitive>
+auto SqDistance(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
+{
+  return SqDistance(inRay, ClosestPoint(inRay, inPrimitive));
 }
 
 template <typename T, std::size_t N>

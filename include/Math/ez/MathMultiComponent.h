@@ -294,6 +294,21 @@ constexpr auto Clamp01(const T& inValue)
   return Clamp<T>(inValue, static_cast<T>(0), static_cast<T>(1));
 }
 
+namespace math_multicomponent_detail
+{
+  template <typename T>
+  constexpr T MinValue()
+  {
+    return All<T>(std::numeric_limits<ValueType_t<T>>::lowest());
+  }
+
+  template <typename T>
+  constexpr T MaxValue()
+  {
+    return All<T>(std::numeric_limits<ValueType_t<T>>::max());
+  }
+}
+
 template <typename T>
 constexpr auto Min(const T& inLHS, const T& inRHS)
 {
@@ -316,8 +331,36 @@ constexpr auto Min(const T& inValue)
   }
   else
   {
-    auto min = std::numeric_limits<ValueType_t<T>>::max();
+    auto min = math_multicomponent_detail::MaxValue<ValueType_t<T>>();
     for (const auto& component : inValue) { min = std::min(min, Min(component)); }
+    return min;
+  }
+}
+
+template <typename T>
+constexpr auto MinUnsigned(const T& inLHS, const T& inRHS)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return (Abs(inLHS) < Abs(inRHS)) ? inLHS : inRHS;
+  }
+  else
+  {
+    return MathMultiComponentApplied<T, MinUnsigned<ValueType_t<T>>>(inLHS, inRHS);
+  }
+}
+
+template <typename T>
+constexpr auto MinUnsigned(const T& inValue)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return inValue;
+  }
+  else
+  {
+    auto min = math_multicomponent_detail::MaxValue<ValueType_t<T>>();
+    for (const auto& component : inValue) { min = Abs(MinUnsigned(component)) < Abs(min) ? component : min; }
     return min;
   }
 }
@@ -334,7 +377,7 @@ constexpr auto MinIndex(const T& inValue)
     auto min_index = 0ul;
     for (std::size_t i = 0ul; i < NumComponents_v<T>; ++i)
     {
-      if (inValue[i] > inValue[min_index])
+      if (inValue[i] < inValue[min_index])
         min_index = i;
     }
     return min_index;
@@ -342,9 +385,22 @@ constexpr auto MinIndex(const T& inValue)
 }
 
 template <typename T>
-constexpr auto Min()
+constexpr auto MinUnsignedIndex(const T& inValue)
 {
-  return All<T>(std::numeric_limits<ValueType_t<T>>::lowest());
+  if constexpr (IsNumber_v<T>)
+  {
+    return 0;
+  }
+  else
+  {
+    auto min_index = 0ul;
+    for (std::size_t i = 0ul; i < NumComponents_v<T>; ++i)
+    {
+      if (Abs(inValue[i]) < Abs(inValue[min_index]))
+        min_index = i;
+    }
+    return min_index;
+  }
 }
 
 template <typename T>
@@ -369,8 +425,36 @@ constexpr auto Max(const T& inValue)
   }
   else
   {
-    auto max = std::numeric_limits<ValueType_t<T>>::min();
+    auto max = math_multicomponent_detail::MinValue<ValueType_t<T>>();
     for (const auto& component : inValue) { max = std::max(max, Max(component)); }
+    return max;
+  }
+}
+
+template <typename T>
+constexpr auto MaxUnsigned(const T& inLHS, const T& inRHS)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return (Abs(inLHS) > Abs(inRHS)) ? inLHS : inRHS;
+  }
+  else
+  {
+    return MathMultiComponentApplied<T, MaxUnsigned<ValueType_t<T>>>(inLHS, inRHS);
+  }
+}
+
+template <typename T>
+constexpr auto MaxUnsigned(const T& inValue)
+{
+  if constexpr (IsNumber_v<T>)
+  {
+    return inValue;
+  }
+  else
+  {
+    auto max = math_multicomponent_detail::MinValue<ValueType_t<T>>();
+    for (const auto& component : inValue) { max = Abs(MaxUnsigned(component)) > Abs(max) ? component : max; }
     return max;
   }
 }
@@ -395,9 +479,34 @@ constexpr auto MaxIndex(const T& inValue)
 }
 
 template <typename T>
-constexpr auto Max()
+constexpr auto MaxUnsignedIndex(const T& inValue)
 {
-  return All<T>(std::numeric_limits<ValueType_t<T>>::max());
+  if constexpr (IsNumber_v<T>)
+  {
+    return 0;
+  }
+  else
+  {
+    auto max_index = 0ul;
+    for (std::size_t i = 0ul; i < NumComponents_v<T>; ++i)
+    {
+      if (Abs(inValue[i]) > Abs(inValue[max_index]))
+        max_index = i;
+    }
+    return max_index;
+  }
+}
+
+template <typename T>
+constexpr T Min()
+{
+  return math_multicomponent_detail::MinValue<T>();
+}
+
+template <typename T>
+constexpr T Max()
+{
+  return math_multicomponent_detail::MaxValue<T>();
 }
 
 template <typename T>

@@ -65,6 +65,9 @@ struct IsHyperBox<HyperBox<T, N>> : std::true_type
 
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperBox<T, N>& inHyperBox, const Vec<T, N>& inPoint);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperBox<T, N>& inHyperBoxLHS, const HyperBox<T, N>& inHyperBoxRHS);
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>

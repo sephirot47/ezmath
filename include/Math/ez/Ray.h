@@ -52,11 +52,23 @@ template <typename T, std::size_t N>
 constexpr Vec<T, N> Direction(const Ray<T, N>& inRay);
 
 // Intersection functions
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Ray<T, N>& inRay, const Vec<T, N>& inPoint);
+
 template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
 auto Intersect(const Ray<T, N>& inRay, const TPrimitive& inPrimitive);
 
-template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
-auto Intersect(const TPrimitive& inPrimitive, const Ray<T, N>& inRay);
+template <typename T, std::size_t N, typename TPrimitive>
+auto ClosestPointT(const Ray<T, N>& inRay, const TPrimitive& inPrimitive);
+
+template <typename T, std::size_t N, typename TPrimitive>
+auto ClosestPoint(const Ray<T, N>& inRay, const TPrimitive& inPrimitive);
+
+template <typename T, std::size_t N>
+auto SqDistance(const Ray<T, N>& inRay, const Vec<T, N>& inPoint);
+
+template <typename T, std::size_t N, typename TPrimitive>
+auto SqDistance(const Ray<T, N>& inRay, const TPrimitive& inPrimitive);
 
 template <typename T, std::size_t N>
 bool Contains(const Ray<T, N>& inRay, const Vec<T, N>& inPoint);
