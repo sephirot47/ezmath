@@ -29,17 +29,11 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Segment<T, N>& inSe
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperCube<T, N>& inAAHyperCube)
-{
-  return Intersect<TIntersectMode, T, N>(inHyperSphere, MakeAAHyperBoxFromAAHyperCube(inAAHyperCube));
-}
-
-template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& inAAHyperBox)
 {
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
 
-  T min_distance = 0;
+  T min_distance = static_cast<T>(0);
   const auto sphere_center = Center(inHyperSphere);
   const auto aabox_min = inAAHyperBox.GetMin();
   const auto aabox_max = inAAHyperBox.GetMax();
@@ -51,6 +45,23 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& i
       min_distance += Sq(sphere_center[i] - aabox_max[i]);
   }
   return (min_distance <= Sq(inHyperSphere.GetRadius()));
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperSphere<T, N>& inHyperSphere, const HyperBox<T, N>& inHyperBox)
+{
+  const auto hyper_box_orientation_inv = -Orientation(inHyperBox);
+  const auto aa_hyper_box_center = Rotated(Center(inHyperBox), hyper_box_orientation_inv);
+  const auto aa_hyper_box = MakeAAHyperBoxFromCenterSize(aa_hyper_box_center, inHyperBox.GetSize());
+  return Intersect<TIntersectMode>(Rotated(inHyperSphere, hyper_box_orientation_inv), aa_hyper_box);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Capsule<T, N>& inCapsule)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return SqDistance(inCapsule.GetSegment(), Center(inHyperSphere))
+      < Sq(inHyperSphere.GetRadius() + inCapsule.GetRadius());
 }
 
 template <typename T, std::size_t N>
@@ -75,9 +86,15 @@ bool Contains(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& in
 }
 
 template <typename T, std::size_t N>
-bool Contains(const HyperSphere<T, N>& inHyperSphere, const AAHyperCube<T, N>& inAAHyperCube)
+constexpr HyperSphere<T, N> Translated(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inTranslation)
 {
-  return Contains(inHyperSphere, MakeAAHyperBoxFromAAHyperCube(inAAHyperCube));
+  return HyperSphere<T, N> { Center(inHyperSphere) + inTranslation, inHyperSphere.GetRadius() };
+}
+
+template <typename T, std::size_t N>
+constexpr HyperSphere<T, N> Rotated(const HyperSphere<T, N>& inHyperSphere, const RotationType_t<T, N>& inRotation)
+{
+  return HyperSphere<T, N> { Rotated(Center(inHyperSphere), inRotation), inHyperSphere.GetRadius() };
 }
 
 template <typename T, std::size_t N>

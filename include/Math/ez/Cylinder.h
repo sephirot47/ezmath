@@ -50,6 +50,12 @@ template <typename T>
 constexpr RotationType_t<T, 3> Orientation(const Cylinder<T>& inCylinder);
 
 template <typename T>
+constexpr Cylinder<T> Translated(const Cylinder<T>& inCylinder, const Vec3<T>& inTranslation);
+
+template <typename T>
+constexpr Cylinder<T> Rotated(const Cylinder<T>& inCylinder, const RotationType_t<T, 3>& inRotation);
+
+template <typename T>
 constexpr Vec3<T> Center(const Cylinder<T>& inCylinder);
 
 }

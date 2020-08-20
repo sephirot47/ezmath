@@ -66,13 +66,15 @@ template <typename T, std::size_t N>
 Vec3<T> BarycentricCoordinates(const Triangle<T, N>& inTriangle, const Vec<T, N>& inPoint);
 
 template <typename T>
-auto GetSATNormals(const Triangle3<T>& inTriangle);
-
+auto GetSATNormals(const Triangle2<T>& inTriangle);
 template <typename T>
-constexpr auto GetSATNormals(const Triangle2<T>&);
+auto GetSATNormals(const Triangle3<T>& inTriangle);
 
 template <typename T, std::size_t N>
 auto GetSATEdges(const Triangle<T, N>& inTriangle);
+
+template <typename T, std::size_t N>
+auto GetSATPoints(const Triangle<T, N>& inTriangle);
 
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Ray<T, 3>& inRay, const Triangle3<T>& inTriangle);

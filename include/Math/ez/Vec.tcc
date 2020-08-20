@@ -354,6 +354,12 @@ constexpr bool IsVeryPerpendicular(const Vec3<T>& inDirection0, const Vec3<T>& i
 }
 
 template <typename T, std::size_t N>
+constexpr Vec<T, N> Direction(const Vec<T, N>& inVector)
+{
+  return NormalizedSafe(inVector);
+}
+
+template <typename T, std::size_t N>
 constexpr auto Inverted(const Vec<T, N>& inValue)
 {
   return -inValue;
@@ -394,6 +400,12 @@ constexpr std::tuple<Vec3<T>, Vec3<T>, Vec3<T>> Axes(const Vec3<T>& inForwardVec
   ENSURES(IsVeryPerpendicular(up_vector, right_vector));
 
   return { right_vector, up_vector, forward_vector };
+}
+
+template <typename T>
+constexpr Vec2<T> Perpendicular(const Vec2<T>& inVector)
+{
+  return Vec2<T> { -inVector[1], inVector[0] };
 }
 
 template <typename T>

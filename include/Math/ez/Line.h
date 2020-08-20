@@ -56,6 +56,18 @@ constexpr T ClosestPointT(const Line<T, N>& inLine, const Ray<T, N>& inRay);
 template <typename T, std::size_t N>
 constexpr T ClosestPointT(const Line<T, N>& inLine, const Segment<T, N>& inSegment);
 
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox);
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const HyperBox<T, N>& inHyperBox);
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox);
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const HyperBox<T, N>& inHyperBox);
+
 template <typename T, std::size_t N, typename TPrimitive>
 constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const TPrimitive& inPrimitive);
 
@@ -75,7 +87,7 @@ template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox);
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const Line<T, N>& inLine, const AAHyperCube<T, N>& inAAHyperCube);
+auto Intersect(const Line<T, N>& inLine, const HyperBox<T, N>& inHyperBox);
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Line<T, N>& inLine, const HyperSphere<T, N>& inHyperSphere);
@@ -88,6 +100,12 @@ auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule);
 
 template <typename T, std::size_t N>
 bool Contains(const Line<T, N>& inLine, const Vec<T, N>& inPoint);
+
+template <typename T, std::size_t N>
+constexpr Line<T, N> Translated(const Line<T, N>& inLine, const Vec<T, N> &inTranslation);
+
+template <typename T, std::size_t N>
+constexpr Line<T, N> Rotated(const Line<T, N>& inLine, const RotationType_t<T, N> &inRotation);
 }
 
 #include <ez/Line.tcc>

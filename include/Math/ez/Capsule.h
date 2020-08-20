@@ -45,25 +45,46 @@ constexpr T SqLength(const Capsule<T, N>& inCapsule);
 
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const Capsule<T, N>& inLHS, const Capsule<T, N>& inRHS);
+auto Intersect(const Capsule<T, N>& inCapsule, const Line<T, N>& inLine);
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const Capsule<T, N>& inCapsule, const Sphere<T>& inSphere);
+auto Intersect(const Capsule<T, N>& inCapsule, const Ray<T, N>& inRay);
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const Sphere<T>& inSphere, const Capsule<T, N>& inCapsule);
+auto Intersect(const Capsule<T, N>& inCapsule, const Segment<T, N>& inSegment);
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const Capsule<T, N>& inCapsule, const AACube<T>& inAACube);
+auto Intersect(const Capsule<T, N>& inCapsule, const HyperSphere<T, N>& inHyperSphere);
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AACube<T>& inAACube, const Capsule<T, N>& inCapsule);
+auto Intersect(const Capsule<T, N>& inCapsule, const AAHyperBox<T, N>& inAAHyperBox);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Capsule<T, N>& inCapsule, const HyperBox<T, N>& inHyperBox);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Capsule<T, N>& inCapsuleLHS, const Capsule<T, N>& inCapsuleRHS);
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const Vec<T, N>& inPoint);
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const AAHyperBox<T, N>& inAAHyperBox);
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const HyperBox<T, N>& inHyperBox);
 
 template <typename T, std::size_t N>
 constexpr bool Contains(const Capsule<T, N>& inCapsule, const Vec<T, N>& inPoint);
 
 template <typename T, std::size_t N>
 constexpr RotationType_t<T, N> Orientation(const Capsule<T, N>& inCapsule);
+
+template <typename T, std::size_t N>
+constexpr Capsule<T, N> Translated(const Capsule<T, N>& inCapsule, const Vec<T, N>& inTranslation);
+
+template <typename T, std::size_t N>
+constexpr Capsule<T, N> Rotated(const Capsule<T, N>& inCapsule, const RotationType_t<T, N>& inRotation);
 
 template <typename T, std::size_t N>
 constexpr Vec<T, N> Center(const Capsule<T, N>& inCapsule);

@@ -72,6 +72,18 @@ bool Contains(const Ray<T, N>& inRay, const Vec<T, N>& inPoint)
   return (SqDistance(inRay, inPoint) < Epsilon);
 }
 
+template <typename T, std::size_t N>
+constexpr Ray<T, N> Translated(const Ray<T, N>& inRay, const Vec<T, N>& inTranslation)
+{
+  return Ray<T, N> { inRay.GetOrigin() + inTranslation, inRay.GetDirection() };
+}
+
+template <typename T, std::size_t N>
+constexpr Ray<T, N> Rotated(const Ray<T, N>& inRay, const RotationType_t<T, N>& inRotation)
+{
+  return Ray<T, N> { Rotated(inRay.GetOrigin(), inRotation), Rotated(inRay.GetDirection(), inRotation) };
+}
+
 // Transformation specialization
 template <typename T, std::size_t N>
 void Transform(Ray<T, N>& ioRayToTransform, const Transformation<ValueType_t<T>, N>& inTransformation)

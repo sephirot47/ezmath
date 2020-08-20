@@ -69,6 +69,14 @@ struct IsAAHyperBox final : std::false_type
 template <typename T>
 constexpr bool IsAAHyperBox_v = IsAAHyperBox<std::remove_cvref_t<T>>::value;
 
+// IsHyperBox. Template specialization for HyperBox is in "HyperBox.h"
+template <typename T>
+struct IsHyperBox final : std::false_type
+{
+};
+template <typename T>
+constexpr bool IsHyperBox_v = IsHyperBox<std::remove_cvref_t<T>>::value;
+
 // IsTransformation. Template specialization for Transformation is in "Transformation.h"
 template <typename T>
 struct IsTransformation final : std::false_type
@@ -76,14 +84,6 @@ struct IsTransformation final : std::false_type
 };
 template <typename T>
 inline constexpr bool IsTransformation_v = IsTransformation<std::remove_cvref_t<T>>::value;
-
-// IsAAHyperCube. Template specialization for AAHyperCube is in "AAHyperCube.h"
-template <typename T>
-struct IsAAHyperCube final : std::false_type
-{
-};
-template <typename T>
-constexpr bool IsAAHyperCube_v = IsAAHyperCube<std::remove_cvref_t<T>>::value;
 
 // IsHyperSphere. Template specialization for HyperSphere is in "HyperSphere.h"
 template <typename T>
@@ -124,9 +124,14 @@ constexpr auto _GetNumComponents()
   {
     return 1;
   }
+  // clang-format off
   else if constexpr (
-      IsVec_v<
-          T> || IsQuat_v<T> || IsMat_v<T> || IsLine_v<T> || IsRay_v<T> || IsSegment_v<T> || IsPlane_v<T> || IsAAHyperBox_v<T> || IsAAHyperCube_v<T> || IsHyperSphere_v<T> || IsCylinder_v<T> || IsCapsule_v<T>)
+      IsVec_v<T> || IsQuat_v<T> || IsMat_v<T> ||
+      IsLine_v<T> || IsRay_v<T> || IsSegment_v<T> ||
+      IsPlane_v<T> ||
+      IsAAHyperBox_v<T> || IsHyperBox_v<T> ||
+      IsHyperSphere_v<T> || IsCylinder_v<T> || IsCapsule_v<T>)
+  // clang-format on
   {
     return T::NumComponents;
   }

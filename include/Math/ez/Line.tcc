@@ -1,3 +1,4 @@
+#include <ez/BinaryIndex.h>
 #include <ez/Line.h>
 #include <ez/Macros.h>
 #include <ez/Quat.h>
@@ -90,6 +91,18 @@ namespace line_detail
         intersection = std::nullopt;
     }
     return intersections;
+  }
+
+  template <typename T, std::size_t N>
+  T GetT(const Line<T, N>& inLine, const Vec<T, N>& inPoint)
+  {
+    const auto line_dir = Direction(inLine);
+    for (std::size_t i = 0; i < NumComponents_v<decltype(inPoint)>; ++i)
+    {
+      if (!IsVeryEqual(line_dir[i], static_cast<T>(0)))
+        return (inPoint[i] - inLine.GetOrigin()[i]) / line_dir[i];
+    }
+    return static_cast<T>(0);
   }
 
   template <typename TFrom, typename TTo, typename T>
@@ -204,6 +217,54 @@ constexpr T ClosestPointT(const Line<T, N>& inLine, const Segment<T, N>& inSegme
   return ClosestPointT(inLine, segment_closest_point);
 }
 
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox)
+{
+  return line_detail::GetT(inLine, ClosestPoint(inLine, inAAHyperBox));
+}
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const HyperBox<T, N>& inHyperBox)
+{
+  return line_detail::GetT(inLine, ClosestPoint(inLine, inHyperBox));
+}
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox)
+{
+  const auto aa_hyper_box_extents = inAAHyperBox.GetSize() / static_cast<T>(2);
+  const auto hyper_box = HyperBox<T, N> { Center(inAAHyperBox), aa_hyper_box_extents, RotationTypeIdentity<T, N>() };
+  return ClosestPoint(inLine, hyper_box);
+}
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const HyperBox<T, N>& inHyperBox)
+{
+  auto min_sq_distance_from_line_to_hyper_box_point = Max<T>();
+  auto closest_hyper_box_point_to_line = Max<Vec<T, N>>();
+  const auto hyper_box_center = Center(inHyperBox);
+  const auto hyper_box_orientation = Orientation(inHyperBox);
+  for (std::size_t i = 0; i < HyperBox<T, N>::NumPoints; ++i)
+  {
+    if constexpr (N == 2)
+    {
+      const auto hyper_box_point = (hyper_box_center + inHyperBox.GetExtents() * (MakeBinaryIndex<N, T>(i) * 2 - 1));
+      const auto hyper_box_point_rotated = Rotated(hyper_box_point, hyper_box_orientation);
+      const auto sq_distance_from_line_to_hyper_box_point = SqDistance(inLine, hyper_box_point_rotated);
+      if (sq_distance_from_line_to_hyper_box_point < min_sq_distance_from_line_to_hyper_box_point)
+      {
+        min_sq_distance_from_line_to_hyper_box_point = sq_distance_from_line_to_hyper_box_point;
+        closest_hyper_box_point_to_line = hyper_box_point_rotated;
+      }
+    }
+    else if constexpr (N == 3)
+    {
+      // TODO. Do same with edges.
+    }
+  }
+  return closest_hyper_box_point_to_line;
+}
+
 template <typename T, std::size_t N, typename TPrimitive>
 constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const TPrimitive& inPrimitive)
 {
@@ -215,7 +276,7 @@ template <typename T, std::size_t N, typename TPrimitive>
 constexpr T SqDistance(const Line<T, N>& inLine, const TPrimitive& inPrimitive)
 {
   const auto closest_point_on_line = ClosestPoint(inLine, inPrimitive);
-  const auto closest_point_on_primitive = ClosestPoint(inPrimitive, inLine);
+  const auto closest_point_on_primitive = ClosestPoint(inPrimitive, closest_point_on_line);
   return SqDistance(closest_point_on_line, closest_point_on_primitive);
 }
 
@@ -323,9 +384,11 @@ auto Intersect(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox)
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const Line<T, N>& inLine, const AAHyperCube<T, N>& inAAHyperCube)
+auto Intersect(const Line<T, N>& inLine, const HyperBox<T, N>& inHyperBox)
 {
-  return Intersect<TIntersectMode, T, N>(inLine, MakeAAHyperBoxFromAAHyperCube(inAAHyperCube));
+  const auto hyper_box_orientation_inv = -Orientation(inHyperBox);
+  return Intersect<TIntersectMode>(Rotated(inLine, hyper_box_orientation_inv),
+      MakeAAHyperBoxFromCenterSize(Rotated(Center(inHyperBox), hyper_box_orientation_inv), inHyperBox.GetSize()));
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
@@ -433,14 +496,10 @@ auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule)
   if constexpr (N == 3)
   {
     // Middle cylinder
-    mid_section_primitive = Cylinder<T> { inCapsule.GetOrigin(), inCapsule.GetDestiny(), inCapsule.GetRadius() };
-    if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-    {
-      return IntersectCheck(origin_hypersphere, inLine) || IntersectCheck(destiny_hypersphere, inLine)
-          || IntersectCheck(mid_section_primitive, inLine);
-    }
-    else if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS
-        || TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    const auto mid_cylinder = Cylinder<T> { inCapsule.GetOrigin(), inCapsule.GetDestiny(), inCapsule.GetRadius() };
+    mid_section_primitive = mid_cylinder;
+
+    if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST)
     {
       const auto line_local_mid_section = line_detail::GetLineInCylinderSpace(mid_section_primitive, inLine);
       intersections = line_detail::IntersectCylinderWithoutCaps(line_local_mid_section.GetOrigin(),
@@ -451,25 +510,38 @@ auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule)
   else if constexpr (N == 2)
   {
     // Middle rect
-    mid_section_primitive
-        = MakeAAHyperBoxFromCenterSize(Center(inCapsule), Vec<T, N> { Length(inCapsule), inCapsule.GetRadius() });
-    const auto line_local_mid_section
-        = Line<T, N> { inLine.GetOrigin(), NormalizedSafe(-Orientation(inCapsule) * Direction(inLine)) };
-
+    const auto capsule_length = Length(inCapsule);
+    const auto capsule_direction = Direction(inCapsule);
+    const auto capsule_perpendicular_direction = Perpendicular(capsule_direction);
+    const auto capsule_length_extent = (capsule_direction * capsule_length);
+    const auto capsule_radius_extent = (capsule_perpendicular_direction * inCapsule.GetRadius());
+    const auto mid_aarect_origin = inCapsule.GetOrigin() - capsule_radius_extent;
+    const auto mid_aarect = MakeAAHyperBoxFromMinSize(mid_aarect_origin, capsule_length_extent);
     if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST)
     {
-      intersections = IntersectAll(mid_section_primitive, line_local_mid_section);
+      for (int segmenti = 0; segmenti < 2; ++segmenti)
+      {
+        const auto offset = (segmenti == 0 ? Zero<Vec2<T>>() : capsule_radius_extent * static_cast<T>(2));
+        const auto mid_aarect_segment_origin = mid_aarect_origin + offset;
+        const auto mid_aarect_segment_destiny = mid_aarect_segment_origin + capsule_length_extent;
+        const auto mid_aarect_segment = Segment2<T> { mid_aarect_segment_origin, mid_aarect_segment_destiny };
+        const auto mid_aarect_segment_intersection = IntersectClosest(inLine, mid_aarect_segment);
+        if (mid_aarect_segment_intersection.has_value())
+          line_detail::AddIntersectionDistance(intersections, *mid_aarect_segment_intersection);
+      }
     }
-    else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-    {
-      return IntersectCheck(origin_hypersphere, inLine) || IntersectCheck(destiny_hypersphere, inLine)
-          || IntersectCheck(mid_section_primitive, line_local_mid_section);
-    }
+    mid_section_primitive = mid_aarect;
+  }
+
+  if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+  {
+    return IntersectCheck(origin_hypersphere, inLine) || IntersectCheck(destiny_hypersphere, inLine)
+        || IntersectCheck(mid_section_primitive, inLine);
   }
 
   if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST)
   {
-    // Caps
+    // HyperSphere caps
     for (const auto& hypersphere : { origin_hypersphere, destiny_hypersphere })
     {
       if (std::all_of(intersections.cbegin(), intersections.cend(), &line_detail::HasValue<T>))
@@ -501,5 +573,17 @@ bool Contains(const Line<T, N>& inLine, const Vec<T, N>& inPoint)
 {
   constexpr auto Epsilon = static_cast<T>(1e-7);
   return (SqDistance(inLine, inPoint) < Epsilon);
+}
+
+template <typename T, std::size_t N>
+constexpr Line<T, N> Translated(const Line<T, N>& inLine, const Vec<T, N>& inTranslation)
+{
+  return Line<T, N> { inLine.GetOrigin() + inTranslation, inLine.GetDirection() };
+}
+
+template <typename T, std::size_t N>
+constexpr Line<T, N> Rotated(const Line<T, N>& inLine, const RotationType_t<T, N>& inRotation)
+{
+  return Line<T, N> { Rotated(inLine.GetOrigin(), inRotation), Rotated(inLine.GetDirection(), inRotation) };
 }
 }

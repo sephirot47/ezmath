@@ -152,6 +152,11 @@ using Spherei = Sphere<int32_t>;
 template <typename T, std::size_t N>
 class Capsule;
 
+template <std::size_t N>
+using Capsulef = Capsule<float, N>;
+template <std::size_t N>
+using Capsuled = Capsule<double, N>;
+
 template <typename T>
 using Capsule2 = Capsule<T, 2>;
 using Capsule2f = Capsule2<float>;
@@ -194,29 +199,29 @@ using AABoxul = AABox<uint64_t>;
 using AABoxf = AABox<float>;
 using AABoxd = AABox<double>;
 
-// AAHyperCube
+// HyperBox
 template <typename T, std::size_t N>
-class AAHyperCube;
+class HyperBox;
 
-// AASquare
+// Rect
 template <typename T>
-using AASquare = AAHyperCube<T, 2>;
+using Rect = HyperBox<T, 2>;
 
-using AASquarei = AASquare<int32_t>;
-using AASquareui = AASquare<uint32_t>;
-using AASquareul = AASquare<uint64_t>;
-using AASquaref = AASquare<float>;
-using AASquared = AASquare<double>;
+using Recti = Rect<int32_t>;
+using Rectui = Rect<uint32_t>;
+using Rectul = Rect<uint64_t>;
+using Rectf = Rect<float>;
+using Rectd = Rect<double>;
 
-// AACube
+// Box
 template <typename T>
-using AACube = AAHyperCube<T, 3>;
+using Box = HyperBox<T, 3>;
 
-using AACubei = AACube<int32_t>;
-using AACubeui = AACube<uint32_t>;
-using AACubeul = AACube<uint64_t>;
-using AACubef = AACube<float>;
-using AACubed = AACube<double>;
+using Boxi = Box<int32_t>;
+using Boxui = Box<uint32_t>;
+using Boxul = Box<uint64_t>;
+using Boxf = Box<float>;
+using Boxd = Box<double>;
 
 // Octree
 template <typename TPrimitive>

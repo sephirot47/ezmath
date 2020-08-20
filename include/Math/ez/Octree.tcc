@@ -1,6 +1,7 @@
 #include "ez/HyperSphere.h"
 #include "ez/Math.h"
 #include "ez/Octree.h"
+#include "ez/Plane.h"
 #include <algorithm>
 #include <numeric>
 #include <stack>

@@ -44,6 +44,22 @@ constexpr RotationType_t<T, 3> Orientation(const Cylinder<T>& inCylinder)
 }
 
 template <typename T>
+constexpr Cylinder<T> Translated(const Cylinder<T>& inCylinder, const Vec3<T>& inTranslation)
+{
+  return Cylinder<T> { inCylinder.GetOrigin() + inTranslation,
+    inCylinder.GetDestiny() + inTranslation,
+    inCylinder.GetRadius() };
+}
+
+template <typename T>
+constexpr Cylinder<T> Rotated(const Cylinder<T>& inCylinder, const RotationType_t<T, 3>& inRotation)
+{
+  return Cylinder<T> { Rotated(inCylinder.GetOrigin(), inRotation),
+    Rotated(inCylinder.GetDestiny(), inRotation),
+    inCylinder.GetRadius() };
+}
+
+template <typename T>
 constexpr Vec3<T> Center(const Cylinder<T>& inCylinder)
 {
   return (inCylinder.GetOrigin() + inCylinder.GetDestiny()) / static_cast<T>(2);

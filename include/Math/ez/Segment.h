@@ -62,9 +62,6 @@ T SqDistance(const Segment<T, N>& inSegmentLHS, const Segment<T, N>& inSegmentRH
 template <typename T, std::size_t N, typename TPrimitive>
 T SqDistance(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive);
 
-template <typename T, std::size_t N, typename TPrimitive>
-T SqDistance(const TPrimitive& inPrimitive, const Segment<T, N>& inSegment);
-
 template <typename T, std::size_t N>
 constexpr RotationType_t<T, N> Orientation(const Segment<T, N>& inSegment);
 
@@ -79,7 +76,23 @@ template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::s
 auto Intersect(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive);
 
 template <typename T, std::size_t N>
+auto GetSATNormals(const Segment<T, N>& inSegment);
+
+template <typename T, std::size_t N>
+auto GetSATEdges(const Segment<T, N>& inSegment);
+
+template <typename T, std::size_t N>
+auto GetSATPoints(const Segment<T, N>& inSegment);
+
+template <typename T, std::size_t N>
 bool Contains(const Segment<T, N>& inSegment, const Vec<T, N>& inPoint);
+
+template <typename T, std::size_t N>
+constexpr Segment<T, N> Translated(const Segment<T, N>& inSegment, const Vec<T, N>& inTranslation);
+
+template <typename T, std::size_t N>
+constexpr Segment<T, N> Rotated(const Segment<T, N>& inSegment, const RotationType_t<T, N>& inRotation);
+
 }
 
 #include "ez/Segment.tcc"

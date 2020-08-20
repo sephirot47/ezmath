@@ -61,6 +61,12 @@ auto Intersect(const TPrimitive& inPrimitive, const Ray<T, N>& inRay);
 template <typename T, std::size_t N>
 bool Contains(const Ray<T, N>& inRay, const Vec<T, N>& inPoint);
 
+template <typename T, std::size_t N>
+constexpr Ray<T, N> Translated(const Ray<T, N>& inRay, const Vec<T, N>& inTranslation);
+
+template <typename T, std::size_t N>
+constexpr Ray<T, N> Rotated(const Ray<T, N>& inRay, const RotationType_t<T, N>& inRotation);
+
 // Transformation specializations
 template <typename T, std::size_t N>
 void Transform(Ray<T, N>& ioRayToTransform, const Transformation<ValueType_t<T>, N>& inTransformation);

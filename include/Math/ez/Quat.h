@@ -75,6 +75,9 @@ struct IsQuat<Quat<T>> : std::true_type
 template <typename T, std::size_t N>
 using RotationType_t = std::conditional_t<N == 2, T, Quat<T>>;
 
+template <typename T, std::size_t N>
+constexpr auto RotationTypeIdentity();
+
 // Math functions
 template <typename T>
 constexpr Quat<T> ToQuaternion(const Mat4<T>& inRotationMat);

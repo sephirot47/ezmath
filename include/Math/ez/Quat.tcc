@@ -155,6 +155,15 @@ std::ostream& operator<<(std::ostream& log, const Quat<T>& q)
   return log;
 }
 
+template <typename T, std::size_t N>
+constexpr auto RotationTypeIdentity()
+{
+  if constexpr (N == 3)
+    return Identity<Quat<T>>();
+  else if constexpr (N == 2)
+    return static_cast<T>(0);
+}
+
 template <typename T>
 constexpr Quat<T> ToQuaternion(const Mat4<T>& inRotationMat)
 {
@@ -339,8 +348,9 @@ constexpr std::tuple<Vec3<T>, Vec3<T>, Vec3<T>> Axes(const Quat<T>& inOrientatio
 template <typename T>
 constexpr Vec2<T> Rotated(const Vec2<T>& inVec, const AngleRads<T> inAngle)
 {
-  return Vec2<T> { inVec[0] * std::cos(inAngle) - inVec[1] * std::sin(inAngle),
-    inVec[0] * std::sin(inAngle) + inVec[1] * std::cos(inAngle) };
+  const auto angle_cos = std::cos(inAngle);
+  const auto angle_sin = std::sin(inAngle);
+  return Vec2<T> { inVec[0] * angle_cos - inVec[1] * angle_sin, inVec[0] * angle_sin + inVec[1] * angle_cos };
 }
 
 template <typename T>

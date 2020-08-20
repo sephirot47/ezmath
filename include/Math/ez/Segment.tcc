@@ -80,20 +80,14 @@ template <typename T, std::size_t N>
 T SqDistance(const Segment<T, N>& inSegmentLHS, const Segment<T, N>& inSegmentRHS)
 {
   const auto closest_point_in_segment_lhs = ClosestPoint(inSegmentLHS, inSegmentRHS);
-  return SqDistance(closest_point_in_segment_lhs, inSegmentRHS);
+  return SqDistance(inSegmentRHS, closest_point_in_segment_lhs);
 }
 
 template <typename T, std::size_t N, typename TPrimitive>
 T SqDistance(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
 {
   const auto closest_point_in_segment = ClosestPoint(inSegment, inPrimitive);
-  return SqDistance(closest_point_in_segment, inPrimitive);
-}
-
-template <typename T, std::size_t N, typename TPrimitive>
-T SqDistance(const TPrimitive& inPrimitive, const Segment<T, N>& inSegment)
-{
-  return SqDistance(inSegment, inPrimitive);
+  return SqDistance(inPrimitive, closest_point_in_segment);
 }
 
 // Intersection functions
@@ -166,9 +160,39 @@ auto Intersect(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
 }
 
 template <typename T, std::size_t N>
+auto GetSATNormals(const Segment<T, N>& inSegment)
+{
+  return std::array { NormalizedSafe(Perpendicular(inSegment.GetVector())) };
+}
+
+template <typename T, std::size_t N>
+auto GetSATEdges(const Segment<T, N>&)
+{
+  return std::array<Vec<T, N>, 0> {};
+}
+
+template <typename T, std::size_t N>
+auto GetSATPoints(const Segment<T, N>& inSegment)
+{
+  return std::array { inSegment.GetOrigin(), inSegment.GetDestiny() };
+}
+
+template <typename T, std::size_t N>
 constexpr RotationType_t<T, N> Orientation(const Segment<T, N>& inSegment)
 {
   return FromTo(Forward<Vec3<T>>(), Direction(inSegment));
+}
+
+template <typename T, std::size_t N>
+constexpr Segment<T, N> Translated(const Segment<T, N>& inSegment, const Vec<T, N>& inTranslation)
+{
+  return Segment<T, N> { inSegment.GetOrigin() + inTranslation, inSegment.GetDestiny() + inTranslation };
+}
+
+template <typename T, std::size_t N>
+constexpr Segment<T, N> Rotated(const Segment<T, N>& inSegment, const RotationType_t<T, N>& inRotation)
+{
+  return Segment<T, N> { Rotated(inSegment.GetOrigin(), inRotation), Rotated(inSegment.GetDestiny(), inRotation) };
 }
 
 template <typename T, std::size_t N>

@@ -116,11 +116,17 @@ template <typename T>
 constexpr bool IsVeryPerpendicular(const Vec3<T>& inDirection0, const Vec3<T>& inDirection1);
 
 template <typename T, std::size_t N>
+constexpr Vec<T, N> Direction(const Vec<T, N> &inVector);
+
+template <typename T, std::size_t N>
 constexpr auto Inverted(const Vec<T, N>& inValue);
 
 template <typename T>
 constexpr std::tuple<Vec3<T>, Vec3<T>, Vec3<T>> Axes(const Vec3<T>& inForwardVectorNormalized,
     const Vec3<T>& inUpVectorNormalized);
+
+template <typename T>
+constexpr Vec2<T> Perpendicular(const Vec2<T>& inVector);
 
 template <typename T>
 constexpr Vec3<T> Cross(const Vec3<T>& inLHS, const Vec3<T>& inRHS);

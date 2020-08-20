@@ -14,7 +14,7 @@ class AAHyperBox final
 {
 public:
   using ValueType = T;
-  static constexpr auto NumPoints = std::pow(static_cast<std::size_t>(2), N);
+  static constexpr auto NumPoints = static_cast<std::size_t>(std::pow(static_cast<std::size_t>(2), N));
   static constexpr auto NumComponents = N;
   static constexpr auto NumDimensions = N;
 
@@ -117,9 +117,6 @@ const auto MakeAAHyperBoxFromMinSize(const Vec<T, N>& inMin, const Vec<T, N>& in
 template <typename T, std::size_t N>
 const auto MakeAAHyperBoxFromMinMax(const Vec<T, N>& inMin, const Vec<T, N>& inMax);
 
-template <typename T, std::size_t N>
-const auto MakeAAHyperBoxFromAAHyperCube(const AAHyperCube<T, N>& inAAHyperCube);
-
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const AAHyperBox<T, N>& inAAHyperBoxLHS, const AAHyperBox<T, N>& inAAHyperBoxRHS);
@@ -137,7 +134,19 @@ template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& inHyperSphere);
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const AAHyperCube<T, N>& inAAHyperCube);
+auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const HyperBox<T, N>& inHyperBox);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Capsule<T, N>& inCapsule);
+
+template <typename T, std::size_t N>
+auto GetSATNormals(const AAHyperBox<T, N>& inAAHyperBox);
+
+template <typename T, std::size_t N>
+auto GetSATEdges(const AAHyperBox<T, N>& inAAHyperBox);
+
+template <typename T, std::size_t N>
+auto GetSATPoints(const AAHyperBox<T, N>& inAAHyperBox);
 
 template <typename T, std::size_t N>
 bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Vec<T, N>& inPoint);
@@ -146,10 +155,22 @@ template <typename T, std::size_t N>
 bool Contains(const AAHyperBox<T, N>& inAAHyperBoxContainer, const AAHyperBox<T, N>& inAAHyperBoxContainee);
 
 template <typename T, std::size_t N>
-bool Contains(const AAHyperBox<T, N>& inAAHyperBoxContainer, const AAHyperCube<T, N>& inAAHyperCubeContainee);
+constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Vec<T, N>& inPoint);
 
 template <typename T, std::size_t N>
-bool Contains(const AAHyperCube<T, N>& inAAHyperCubeContainer, const AAHyperBox<T, N>& inAAHyperBoxContainee);
+constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Line<T, N>& inLine);
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Ray<T, N>& inRay);
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Segment<T, N>& inSegment);
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Capsule<T, N>& inCapsule);
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr T SqDistance(const AAHyperBox<T, N>& inAAHyperBox, const TPrimitive& inPrimitive);
 
 template <typename T, std::size_t N>
 constexpr Vec<T, N> Center(const AAHyperBox<T, N>& inAAHyperBox);

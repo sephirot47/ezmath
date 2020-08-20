@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ez/AABox.h"
+#include "ez/AAHyperBox.h"
 #include "ez/BinaryIndex.h"
 #include "ez/IntersectMode.h"
 #include "ez/MathTypeTraits.h"
