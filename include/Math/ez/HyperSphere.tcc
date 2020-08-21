@@ -70,6 +70,16 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Capsule<T, N>& inCa
       < Sq(inHyperSphere.GetRadius() + inCapsule.GetRadius());
 }
 
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Triangle<T, N>& inTriangle)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  const auto hyper_sphere_sq_radius = Sq(inHyperSphere.GetRadius());
+  return (SqDistance(Segment<T, N> { inTriangle[0], inTriangle[1] }, Center(inHyperSphere)) <= hyper_sphere_sq_radius)
+      || (SqDistance(Segment<T, N> { inTriangle[1], inTriangle[2] }, Center(inHyperSphere)) <= hyper_sphere_sq_radius)
+      || (SqDistance(Segment<T, N> { inTriangle[2], inTriangle[0] }, Center(inHyperSphere)) <= hyper_sphere_sq_radius);
+}
+
 template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inPoint)
 {

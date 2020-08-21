@@ -93,11 +93,32 @@ constexpr Triangle<T, N> Rotated(const Triangle<T, N>& inTriangle, const Rotatio
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Triangle<T, N>& inTriangle, const Vec<T, N>& inPoint);
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Ray<T, 3>& inRay, const Triangle3<T>& inTriangle);
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const Line<T, N>& inLine);
 
-template <typename T>
-auto Intersect(const Triangle3<T>& inTriangle, const Ray<T, 3>& inRay);
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const Ray<T, N>& inRay);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const Segment<T, N>& inSegment);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const HyperSphere<T, N>& inHyperSphere);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const AAHyperBox<T, N>& inAAHyperBox);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const HyperBox<T, N>& inHyperBox);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const Capsule<T, N>& inCapsule);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangleLHS, const Triangle<T, N>& inTriangleRHS);
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const Vec<T, N>& inPoint);
 }
 
 #include "ez/Triangle.tcc"

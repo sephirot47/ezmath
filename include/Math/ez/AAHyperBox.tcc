@@ -229,6 +229,13 @@ auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& in
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const HyperBox<T, N>& inHyperBox)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return IntersectCheckSAT(inAAHyperBox, inHyperBox);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Capsule<T, N>& inCapsule)
 {
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
@@ -236,10 +243,10 @@ auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Capsule<T, N>& inCaps
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
-auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const HyperBox<T, N>& inHyperBox)
+auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Triangle<T, N>& inTriangle)
 {
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
-  return IntersectCheckSAT(inAAHyperBox, inHyperBox);
+  return IntersectCheckSAT(inAAHyperBox, inTriangle);
 }
 
 template <typename T, std::size_t N>

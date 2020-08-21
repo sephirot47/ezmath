@@ -71,7 +71,9 @@ Vec3<T> BarycentricCoordinates(const Triangle<T, N>& inTriangle, const Vec<T, N>
 template <typename T>
 auto GetSATNormals(const Triangle2<T>& inTriangle)
 {
-  return std::array<Vec2<T>, 0> {};
+  return std::array { Perpendicular(inTriangle[0] - inTriangle[1]),
+    Perpendicular(inTriangle[1] - inTriangle[2]),
+    Perpendicular(inTriangle[2] - inTriangle[0]) };
 }
 template <typename T>
 auto GetSATNormals(const Triangle3<T>& inTriangle)
@@ -111,20 +113,22 @@ template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Triangle<T, N>& inTriangle, const Vec<T, N>& inPoint)
 {
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
-
-  if constexpr (N == 2)
-  {
-    const auto side01 = IsOnPositiveSide(Segment2<T> { inTriangle[0], inTriangle[1] }, inPoint);
-    const auto side12 = IsOnPositiveSide(Segment2<T> { inTriangle[1], inTriangle[2] }, inPoint);
-    const auto side20 = IsOnPositiveSide(Segment2<T> { inTriangle[2], inTriangle[0] }, inPoint);
-    const auto intersects = (side01 == side12 && side12 == side20);
-    return intersects;
-  }
+  return Contains(inTriangle, inPoint);
 }
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Ray<T, 3>& inRay, const Triangle3<T>& inTriangle)
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const Line<T, N>& inLine)
 {
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return Intersect<TIntersectMode>(inLine, inTriangle);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const Ray<T, N>& inRay)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return Intersect<TIntersectMode>(inRay, inTriangle);
+  /*
   static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
           || TIntersectMode == EIntersectMode::ONLY_CHECK,
       "Unsupported EIntersectMode.");
@@ -145,11 +149,63 @@ auto Intersect(const Ray<T, 3>& inRay, const Triangle3<T>& inTriangle)
     return intersection_point_is_in_triangle;
   else
     return intersection_point_is_in_triangle ? ray_plane_intersection_distance : std::optional<T>();
+  */
 }
 
-template <typename T>
-auto Intersect(const Triangle3<T>& inTriangle, const Ray<T, 3>& inRay)
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const Segment<T, N>& inSegment)
 {
-  return Intersect(inRay, inTriangle);
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return Intersect<TIntersectMode>(inSegment, inTriangle);
 }
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const HyperSphere<T, N>& inHyperSphere)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return Intersect<TIntersectMode>(inHyperSphere, inTriangle);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const AAHyperBox<T, N>& inAAHyperBox)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return Intersect<TIntersectMode>(inAAHyperBox, inTriangle);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const HyperBox<T, N>& inHyperBox)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return Intersect<TIntersectMode>(inHyperBox, inTriangle);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const Capsule<T, N>& inCapsule)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return Intersect<TIntersectMode>(inCapsule, inTriangle);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangleLHS, const Triangle<T, N>& inTriangleRHS)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return IntersectCheckSAT(inTriangleLHS, inTriangleRHS);
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const Vec<T, N>& inPoint)
+{
+  if constexpr (N == 2)
+  {
+    const auto side01 = IsOnPositiveSide(Segment2<T> { inTriangle[0], inTriangle[1] }, inPoint);
+    const auto side12 = IsOnPositiveSide(Segment2<T> { inTriangle[1], inTriangle[2] }, inPoint);
+    const auto side20 = IsOnPositiveSide(Segment2<T> { inTriangle[2], inTriangle[0] }, inPoint);
+    const auto intersects = (side01 == side12 && side12 == side20);
+    return intersects;
+  }
+  return false;
+}
+
 }

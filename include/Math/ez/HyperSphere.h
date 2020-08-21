@@ -62,6 +62,9 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& i
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Capsule<T, N>& inCapsule);
 
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Triangle<T, N>& inTriangle);
+
 template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inPoint);
 

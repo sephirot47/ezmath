@@ -68,6 +68,9 @@ auto Intersect(const Capsule<T, N>& inCapsule, const HyperBox<T, N>& inHyperBox)
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Capsule<T, N>& inCapsuleLHS, const Capsule<T, N>& inCapsuleRHS);
 
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Capsule<T, N>& inCapsule, const Triangle<T, N>& inTriangle);
+
 template <typename T, std::size_t N>
 constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const Vec<T, N>& inPoint);
 

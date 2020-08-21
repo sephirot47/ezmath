@@ -63,6 +63,15 @@ namespace line_detail
   }
 
   template <typename T>
+  bool AddIntersectionDistance(std::array<std::optional<T>, 2>& ioIntersectionDistances,
+      const std::optional<T>& inIntersectionDistance)
+  {
+    if (!inIntersectionDistance.has_value())
+      return false;
+    return AddIntersectionDistance(ioIntersectionDistances, *inIntersectionDistance);
+  }
+
+  template <typename T>
   Line3<T> GetLineInCylinderSpace(const Cylinder<T>& inCylinder, const Line3<T>& inLine)
   {
     const auto cylinder_orientation_inv = -Orientation(inCylinder);
@@ -553,8 +562,7 @@ auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule)
         const auto mid_rect_segment_destiny = mid_rect_segment_origin + capsule_length_vec;
         const auto mid_rect_segment = Segment2<T> { mid_rect_segment_origin, mid_rect_segment_destiny };
         const auto mid_rect_segment_intersection = IntersectClosest(inLine, mid_rect_segment);
-        if (mid_rect_segment_intersection.has_value())
-          line_detail::AddIntersectionDistance(intersections, *mid_rect_segment_intersection);
+        line_detail::AddIntersectionDistance(intersections, *mid_rect_segment_intersection);
       }
     }
     mid_section_primitive = mid_rect;
@@ -592,6 +600,41 @@ auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule)
       return intersections;
     else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
       return line_detail::GetMinIntersectionDistance(intersections);
+  }
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Line<T, N>& inLine, const Triangle<T, N>& inTriangle)
+{
+  static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
+          || TIntersectMode == EIntersectMode::ONLY_CHECK,
+      "Unsupported EIntersectMode.");
+
+  if constexpr (N == 2)
+  {
+    if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    {
+      std::array<std::optional<T>, 2> intersections;
+      line_detail::AddIntersectionDistance(intersections,
+          IntersectClosest(inLine, Segment2<T> { inTriangle[0], inTriangle[1] }));
+      line_detail::AddIntersectionDistance(intersections,
+          IntersectClosest(inLine, Segment2<T> { inTriangle[1], inTriangle[2] }));
+      line_detail::AddIntersectionDistance(intersections,
+          IntersectClosest(inLine, Segment2<T> { inTriangle[2], inTriangle[0] }));
+
+      if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+        return intersections;
+      else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+        return line_detail::GetMinIntersectionDistance(intersections);
+    }
+    else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
+    {
+      const auto side01 = IsOnPositiveSide(inLine, inTriangle[0]);
+      const auto side12 = IsOnPositiveSide(inLine, inTriangle[1]);
+      const auto side20 = IsOnPositiveSide(inLine, inTriangle[2]);
+      const auto intersects = !(side01 == side12 && side12 == side20);
+      return intersects;
+    }
   }
 }
 

@@ -142,6 +142,9 @@ auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const HyperBox<T, N>& inHyp
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Capsule<T, N>& inCapsule);
 
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Triangle<T, N>& inTriangle);
+
 template <typename T, std::size_t N>
 auto GetSATNormals(const AAHyperBox<T, N>& inAAHyperBox);
 

@@ -65,6 +65,17 @@ auto Intersect(const Capsule<T, N>& inCapsule, const HyperBox<T, N>& inHyperBox)
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Capsule<T, N>& inCapsule, const Triangle<T, N>& inTriangle)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  const auto capsule_sq_radius = Sq(inCapsule.GetRadius());
+  const auto capsule_segment = inCapsule.GetSegment();
+  return (SqDistance(capsule_segment, Segment<T, N> { inTriangle[0], inTriangle[1] }) <= capsule_sq_radius)
+      || (SqDistance(capsule_segment, Segment<T, N> { inTriangle[1], inTriangle[2] }) <= capsule_sq_radius)
+      || (SqDistance(capsule_segment, Segment<T, N> { inTriangle[2], inTriangle[0] }) <= capsule_sq_radius);
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Capsule<T, N>& inCapsuleLHS, const Capsule<T, N>& inCapsuleRHS)
 {
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
