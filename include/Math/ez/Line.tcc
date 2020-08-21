@@ -32,6 +32,12 @@ constexpr RotationType_t<T, N> Orientation(const Line<T, N>& inLine)
   return FromTo(Forward<Vec3<T>>(), Direction(inLine));
 }
 
+template <typename T>
+bool IsOnPositiveSide(const Line2<T>& inLine, const Vec2<T>& inPoint)
+{
+  return Dot(Perpendicular(Direction(inLine)), (inPoint - inLine.GetOrigin())) > 0;
+}
+
 namespace line_detail
 {
   template <typename T>
@@ -208,8 +214,7 @@ constexpr T ClosestPointT(const Line<T, N>& inLine, const Segment<T, N>& inSegme
   if (IsVeryEqual(segment_sq_length, static_cast<T>(0)))
     return ClosestPointT(inLine, inSegment.GetOrigin());
 
-  const auto segment_line = Line<T, N> { inSegment.GetOrigin(), Direction(inSegment) };
-  const auto segment_line_closest_point_t = ClosestPointT(segment_line, inLine);
+  const auto segment_line_closest_point_t = ClosestPointT(inSegment.GetLine(), inLine);
   const auto segment_length = Sqrt(segment_sq_length);
   const auto segment_line_closest_point_t_clamped
       = Clamp(segment_line_closest_point_t, static_cast<T>(0), segment_length);

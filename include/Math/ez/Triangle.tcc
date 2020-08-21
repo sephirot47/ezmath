@@ -93,6 +93,35 @@ auto GetSATPoints(const Triangle<T, N>& inTriangle)
   return std::array { inTriangle[0], inTriangle[1], inTriangle[2] };
 }
 
+template <typename T, std::size_t N>
+constexpr Triangle<T, N> Translated(const Triangle<T, N>& inTriangle, const Vec<T, N>& inTranslation)
+{
+  return Triangle<T, N> { inTriangle[0] + inTranslation, inTriangle[1] + inTranslation, inTriangle[2] + inTranslation };
+}
+
+template <typename T, std::size_t N>
+constexpr Triangle<T, N> Rotated(const Triangle<T, N>& inTriangle, const RotationType_t<T, N>& inRotation)
+{
+  return Triangle<T, N> { Rotated(inTriangle[0], inRotation),
+    Rotated(inTriangle[1], inRotation),
+    Rotated(inTriangle[2], inRotation) };
+}
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const Vec<T, N>& inPoint)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+
+  if constexpr (N == 2)
+  {
+    const auto side01 = IsOnPositiveSide(Segment2<T> { inTriangle[0], inTriangle[1] }, inPoint);
+    const auto side12 = IsOnPositiveSide(Segment2<T> { inTriangle[1], inTriangle[2] }, inPoint);
+    const auto side20 = IsOnPositiveSide(Segment2<T> { inTriangle[2], inTriangle[0] }, inPoint);
+    const auto intersects = (side01 == side12 && side12 == side20);
+    return intersects;
+  }
+}
+
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Ray<T, 3>& inRay, const Triangle3<T>& inTriangle)
 {
@@ -104,26 +133,18 @@ auto Intersect(const Ray<T, 3>& inRay, const Triangle3<T>& inTriangle)
   if (!ray_plane_intersection_distance)
   {
     if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-    {
       return false;
-    }
     else
-    {
       return std::optional<T>();
-    }
   }
 
   const auto ray_plane_intersection_point = inRay.GetPoint(*ray_plane_intersection_distance);
   const auto barycentric_coordinates = BarycentricCoordinates(inTriangle, ray_plane_intersection_point);
   const auto intersection_point_is_in_triangle = IsBetween(barycentric_coordinates, Zero<Vec3<T>>(), One<Vec3<T>>());
   if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-  {
     return intersection_point_is_in_triangle;
-  }
   else
-  {
     return intersection_point_is_in_triangle ? ray_plane_intersection_distance : std::optional<T>();
-  }
 }
 
 template <typename T>
@@ -131,5 +152,4 @@ auto Intersect(const Triangle3<T>& inTriangle, const Ray<T, 3>& inRay)
 {
   return Intersect(inRay, inTriangle);
 }
-
 }

@@ -263,6 +263,11 @@ using Transformation3f = Transformation3<float>;
 template <typename T, std::size_t N>
 class Triangle;
 
+template <std::size_t N>
+using Trianglef = Triangle<float, N>;
+template <std::size_t N>
+using Triangled = Triangle<double, N>;
+
 template <typename T>
 using Triangle2 = Triangle<T, 2>;
 using Triangle2f = Triangle2<float>;

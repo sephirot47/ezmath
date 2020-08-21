@@ -109,6 +109,14 @@ struct IsCylinder final : std::false_type
 template <typename T>
 constexpr bool IsCylinder_v = IsCylinder<std::remove_cvref_t<T>>::value;
 
+// IsTriangle. Template specialization for Triangle is in "Triangle.h"
+template <typename T>
+struct IsTriangle final : std::false_type
+{
+};
+template <typename T>
+constexpr bool IsTriangle_v = IsTriangle<std::remove_cvref_t<T>>::value;
+
 // IsNumber
 template <typename T>
 constexpr auto IsNumber_v = std::is_arithmetic_v<std::remove_cvref_t<T>>;
@@ -130,7 +138,7 @@ constexpr auto _GetNumComponents()
       IsLine_v<T> || IsRay_v<T> || IsSegment_v<T> ||
       IsPlane_v<T> ||
       IsAAHyperBox_v<T> || IsHyperBox_v<T> ||
-      IsHyperSphere_v<T> || IsCylinder_v<T> || IsCapsule_v<T>)
+      IsHyperSphere_v<T> || IsCylinder_v<T> || IsCapsule_v<T> || IsTriangle_v<T>)
   // clang-format on
   {
     return T::NumComponents;

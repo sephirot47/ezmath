@@ -2,6 +2,7 @@
 
 #include "ez/IntersectMode.h"
 #include "ez/MathForward.h"
+#include "ez/Quat.h"
 #include "ez/Vec.h"
 #include <array>
 
@@ -12,6 +13,7 @@ class Triangle final
 {
 public:
   using ValueType = T;
+  static constexpr auto NumComponents = N;
   static constexpr auto NumDimensions = N;
 
   Triangle() = default;
@@ -42,6 +44,12 @@ public:
 
 private:
   std::array<Vec<T, N>, 3> mPoints;
+};
+
+// Traits
+template <typename T, std::size_t N>
+struct IsTriangle<Triangle<T, N>> : std::true_type
+{
 };
 
 template <typename T, std::size_t N>
@@ -75,6 +83,15 @@ auto GetSATEdges(const Triangle<T, N>& inTriangle);
 
 template <typename T, std::size_t N>
 auto GetSATPoints(const Triangle<T, N>& inTriangle);
+
+template <typename T, std::size_t N>
+constexpr Triangle<T, N> Translated(const Triangle<T, N>& inTriangle, const Vec<T, N>& inTranslation);
+
+template <typename T, std::size_t N>
+constexpr Triangle<T, N> Rotated(const Triangle<T, N>& inTriangle, const RotationType_t<T, N>& inRotation);
+
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Triangle<T, N>& inTriangle, const Vec<T, N>& inPoint);
 
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Ray<T, 3>& inRay, const Triangle3<T>& inTriangle);

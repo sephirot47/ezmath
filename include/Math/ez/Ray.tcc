@@ -25,6 +25,12 @@ constexpr Vec<T, N> Direction(const Ray<T, N>& inRay)
   return inRay.GetDirection();
 }
 
+template <typename T>
+bool IsOnPositiveSide(const Ray2<T>& inRay, const Vec2<T>& inPoint)
+{
+  return Dot(Perpendicular(Direction(inRay)), (inPoint - inRay.GetOrigin())) > 0;
+}
+
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Ray<T, N>& inRay, const Vec<T, N>& inPoint)
 {
@@ -45,8 +51,7 @@ auto Intersect(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
       "Unsupported EIntersectMode.");
 
   constexpr auto Epsilon = static_cast<T>(1e-7);
-  const auto ray_line = Line<T, N> { inRay.GetOrigin(), Direction(inRay) };
-  auto intersections = IntersectAll(ray_line, inPrimitive);
+  auto intersections = IntersectAll(inRay.GetLine(), inPrimitive);
 
   for (auto& intersection : intersections)
   {
@@ -74,8 +79,7 @@ auto Intersect(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
 template <typename T, std::size_t N, typename TPrimitive>
 auto ClosestPointT(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
 {
-  const auto ray_line = Line<T, N> { inRay.GetOrigin(), Direction(inRay) };
-  const auto line_closest_point_t = ClosestPointT(ray_line, inPrimitive);
+  const auto line_closest_point_t = ClosestPointT(inRay.GetLine(), inPrimitive);
   return Max(line_closest_point_t, static_cast<T>(0));
 }
 

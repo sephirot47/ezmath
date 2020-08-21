@@ -27,9 +27,10 @@ public:
   void SetOrigin(const Vec<T, N>& inOrigin) { mOrigin = inOrigin; }
   void SetDirection(const Vec<T, N>& inDirection);
 
-  Vec<T, N> GetPoint(const T& inDistance) const { return mOrigin + inDistance * mDirection; }
   const Vec<T, N>& GetOrigin() const { return mOrigin; }
   const Vec<T, N>& GetDirection() const { return mDirection; }
+  Vec<T, N> GetPoint(const T& inDistance) const { return mOrigin + inDistance * mDirection; }
+  Line<T, N> GetLine() const { return Line<T, N> { GetOrigin(), Direction(*this) }; }
 
 private:
   Vec<T, N> mOrigin = Zero<Vec<T, N>>();
@@ -50,6 +51,9 @@ inline std::ostream& operator<<(std::ostream& ioLHS, const Ray<T, N>& inRHS)
 
 template <typename T, std::size_t N>
 constexpr Vec<T, N> Direction(const Ray<T, N>& inRay);
+
+template <typename T>
+bool IsOnPositiveSide(const Ray2<T> &inRay, const Vec2<T> &inPoint);
 
 // Intersection functions
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>

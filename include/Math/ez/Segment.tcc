@@ -34,6 +34,12 @@ Vec<T, N> Segment<T, N>::GetPoint(const T& inDistanceFromOrigin) const
 }
 
 template <typename T, std::size_t N>
+Line<T, N> Segment<T, N>::GetLine() const
+{
+  return Line<T, N> { GetOrigin(), Direction(*this) };
+}
+
+template <typename T, std::size_t N>
 constexpr Vec<T, N> Direction(const Segment<T, N>& inSegment)
 {
   const auto direction = NormalizedSafe(inSegment.GetVector());
@@ -50,6 +56,12 @@ Vec3<T> Projected(const Vec3<T>& inPoint, const Segment3<T>& inSegment)
   return Lerp(origin, destiny, Clamp01(t));
 }
 
+template <typename T>
+bool IsOnPositiveSide(const Segment2<T> &inSegment, const Vec2<T> &inPoint)
+{
+  return Dot(Perpendicular(inSegment.GetVector()), (inPoint - inSegment.GetOrigin())) > 0;
+}
+
 template <typename T, std::size_t N>
 T SqLength(const Segment<T, N>& inSegment)
 {
@@ -63,8 +75,7 @@ constexpr T ClosestPointT(const Segment<T, N>& inSegment, const TPrimitive& inPr
   if (IsVeryEqual(segment_sq_length, static_cast<T>(0)))
     return static_cast<T>(0);
 
-  const auto segment_line = Line<T, N> { inSegment.GetOrigin(), Direction(inSegment) };
-  const auto line_closest_point_t = ClosestPointT(segment_line, inPrimitive);
+  const auto line_closest_point_t = ClosestPointT(inSegment.GetLine(), inPrimitive);
   const auto line_closest_point_t_clamped = Clamp(line_closest_point_t, static_cast<T>(0), Sqrt(segment_sq_length));
   return line_closest_point_t_clamped;
 }
@@ -144,8 +155,7 @@ auto Intersect(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
   constexpr auto Epsilon = static_cast<T>(1e-7);
   const auto segment_sq_length = SqLength(inSegment);
   const auto segment_direction = (segment_sq_length != 0.0f ? Direction(inSegment) : Right<Vec<T, N>>());
-  const auto segment_line = Line<T, N>(inSegment.GetOrigin(), segment_direction);
-  auto intersections = IntersectAll(segment_line, inPrimitive);
+  auto intersections = IntersectAll(inSegment.GetLine(), inPrimitive);
 
   // Invalidate points if outside the segment
   for (auto& intersection : intersections)

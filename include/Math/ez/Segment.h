@@ -30,6 +30,7 @@ public:
   Vec<T, N> GetDestiny() const;
   Vec<T, N> GetVector() const;
   Vec<T, N> GetPoint(const T& inDistanceFromOrigin) const;
+  Line<T, N> GetLine() const;
 
 private:
   Vec<T, N> mOrigin = Zero<Vec<T, N>>();
@@ -46,6 +47,9 @@ constexpr Vec<T, N> Direction(const Segment<T, N>& inSegment);
 
 template <typename T>
 Vec3<T> Projected(const Vec3<T>& inPoint, const Segment3<T>& inSegment);
+
+template <typename T>
+bool IsOnPositiveSide(const Segment2<T>& inSegment, const Vec2<T>& inPoint);
 
 template <typename T, std::size_t N>
 T SqLength(const Segment<T, N>& inSegment);

@@ -42,6 +42,9 @@ template <typename T, std::size_t N>
 constexpr RotationType_t<T, N> Orientation(const Line<T, N>& inLine);
 
 template <typename T>
+bool IsOnPositiveSide(const Line2<T> &inLine, const Vec2<T> &inPoint);
+
+template <typename T>
 constexpr T ClosestPointT(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS);
 
 template <typename T>
