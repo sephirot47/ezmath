@@ -68,7 +68,7 @@ std::ostream& operator<<(std::ostream& ioLHS, const HyperBox<T, N>& inHyperBox)
   return ioLHS;
 }
 
-// Intersection functions
+// Intersect
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperBox<T, N>& inHyperBox, const Vec<T, N>& inPoint)
 {
@@ -96,6 +96,30 @@ auto Intersect(const HyperBox<T, N>& inHyperBox, const TPrimitive& inPrimitive)
   const auto aa_hyper_box_center = Rotated(Center(inHyperBox), hyper_box_orientation_inv);
   const auto aa_hyper_box = MakeAAHyperBoxFromCenterHalfSize(aa_hyper_box_center, inHyperBox.GetExtents());
   return Intersect<TIntersectMode>(aa_hyper_box, local_primitive);
+}
+
+// Contains
+template <typename T, std::size_t N>
+bool Contains(const HyperBox<T, N>& inHyperBox, const AAHyperBox<T, N>& inAAHyperBox)
+{
+  const auto aa_hyper_box_size = inAAHyperBox.GetSize();
+  for (int i = 0; i < AAHyperBox<T, N>::NumPoints; ++i)
+  {
+    const auto aa_hyper_box_point = inAAHyperBox.GetMin() + MakeBinaryIndex<N, T>(i) * aa_hyper_box_size;
+    if (!Contains(inHyperBox, aa_hyper_box_point))
+      return false;
+  }
+  return true;
+}
+
+template <typename T, std::size_t N, typename TPrimitive>
+bool Contains(const HyperBox<T, N>& inHyperBox, const TPrimitive& inPrimitive)
+{
+  const auto hyper_box_orientation_inv = -Orientation(inHyperBox);
+  const auto local_primitive = Rotated(inPrimitive, hyper_box_orientation_inv);
+  const auto aa_hyper_box = MakeAAHyperBoxFromCenterHalfSize(Rotated(inHyperBox.GetCenter(), hyper_box_orientation_inv),
+      inHyperBox.GetExtents());
+  return Contains(aa_hyper_box, local_primitive);
 }
 
 template <typename T, std::size_t N>
@@ -139,16 +163,6 @@ auto GetSATPoints(const HyperBox<T, N>& inHyperBox)
   }
 
   return points;
-}
-
-template <typename T, std::size_t N, typename TPrimitive>
-bool Contains(const HyperBox<T, N>& inHyperBox, const TPrimitive& inPrimitive)
-{
-  const auto hyper_box_orientation_inv = -Orientation(inHyperBox);
-  const auto local_primitive = Rotated(inPrimitive, hyper_box_orientation_inv);
-  const auto aa_hyper_box = MakeAAHyperBoxFromCenterHalfSize(Rotated(inHyperBox.GetCenter(), hyper_box_orientation_inv),
-      inHyperBox.GetExtents());
-  return Contains(aa_hyper_box, local_primitive);
 }
 
 template <typename T, std::size_t N>

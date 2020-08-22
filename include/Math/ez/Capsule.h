@@ -72,6 +72,33 @@ template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Capsule<T, N>& inCapsule, const Triangle<T, N>& inTriangle);
 
 template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const Vec<T, N>& inPoint);
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const Line<T, N>& inLine);
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const Ray<T, N>& inRay);
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const Segment<T, N>& inSegment);
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const HyperSphere<T, N>& inHyperSphere);
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const AAHyperBox<T, N>& inAAHyperBox);
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const HyperBox<T, N>& inHyperBox);
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsuleContainer, const Capsule<T, N>& inCapsuleContainee);
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const Triangle<T, N>& inTriangle);
+
+template <typename T, std::size_t N>
 constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const Vec<T, N>& inPoint);
 
 template <typename T, std::size_t N>
@@ -79,9 +106,6 @@ constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const AAHyperBo
 
 template <typename T, std::size_t N>
 constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const HyperBox<T, N>& inHyperBox);
-
-template <typename T, std::size_t N>
-constexpr bool Contains(const Capsule<T, N>& inCapsule, const Vec<T, N>& inPoint);
 
 template <typename T, std::size_t N>
 constexpr RotationType_t<T, N> Orientation(const Capsule<T, N>& inCapsule);

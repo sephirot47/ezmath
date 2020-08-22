@@ -145,6 +145,34 @@ auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Capsule<T, N>& inCaps
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Triangle<T, N>& inTriangle);
 
+// Contains
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Vec<T, N>& inPoint);
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Line<T, N>& inLine);
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Ray<T, N>& inRay);
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Segment<T, N>& inSegment);
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& inHyperSphere);
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBoxContainer, const AAHyperBox<T, N>& inAAHyperBoxContainee);
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const HyperBox<T, N>& inHyperBox);
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Capsule<T, N>& inCapsule);
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Triangle<T, N>& inTriangle);
+
 template <typename T, std::size_t N>
 auto GetSATNormals(const AAHyperBox<T, N>& inAAHyperBox);
 
@@ -153,12 +181,6 @@ auto GetSATEdges(const AAHyperBox<T, N>& inAAHyperBox);
 
 template <typename T, std::size_t N>
 auto GetSATPoints(const AAHyperBox<T, N>& inAAHyperBox);
-
-template <typename T, std::size_t N>
-bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Vec<T, N>& inPoint);
-
-template <typename T, std::size_t N>
-bool Contains(const AAHyperBox<T, N>& inAAHyperBoxContainer, const AAHyperBox<T, N>& inAAHyperBoxContainee);
 
 template <typename T, std::size_t N>
 constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Vec<T, N>& inPoint);

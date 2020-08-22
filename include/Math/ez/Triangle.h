@@ -119,6 +119,31 @@ auto Intersect(const Triangle<T, N>& inTriangleLHS, const Triangle<T, N>& inTria
 
 template <typename T, std::size_t N>
 bool Contains(const Triangle<T, N>& inTriangle, const Vec<T, N>& inPoint);
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const Line<T, N>& inLine);
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const Ray<T, N>& inRay);
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const Segment<T, N>& inSegment);
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const HyperSphere<T, N>& inHyperSphere);
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const AAHyperBox<T, N>& inAAHyperBox);
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const HyperBox<T, N>& inHyperBox);
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const Capsule<T, N>& inCapsule);
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangleContainer, const Triangle<T, N>& inTriangleContainee);
+
 }
 
 #include "ez/Triangle.tcc"

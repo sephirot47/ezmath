@@ -69,7 +69,28 @@ template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inPoint);
 
 template <typename T, std::size_t N>
+bool Contains(const HyperSphere<T, N>& inHyperSphere, const Line<T, N>& inLine);
+
+template <typename T, std::size_t N>
+bool Contains(const HyperSphere<T, N>& inHyperSphere, const Ray<T, N>& inRay);
+
+template <typename T, std::size_t N>
+bool Contains(const HyperSphere<T, N>& inHyperSphere, const Segment<T, N>& inSegment);
+
+template <typename T, std::size_t N>
+bool Contains(const HyperSphere<T, N>& inHyperSphereContainer, const HyperSphere<T, N>& inHyperSphereContainee);
+
+template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& inAAHyperBox);
+
+template <typename T, std::size_t N>
+bool Contains(const HyperSphere<T, N>& inHyperSphere, const HyperBox<T, N>& inHyperBox);
+
+template <typename T, std::size_t N>
+bool Contains(const HyperSphere<T, N>& inHyperSphere, const Capsule<T, N>& inCapsule);
+
+template <typename T, std::size_t N>
+bool Contains(const HyperSphere<T, N>& inHyperSphere, const Triangle<T, N>& inTriangle);
 
 template <typename T, std::size_t N>
 constexpr HyperSphere<T, N> Translated(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inTranslation);

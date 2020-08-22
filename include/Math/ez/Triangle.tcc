@@ -208,4 +208,94 @@ bool Contains(const Triangle<T, N>& inTriangle, const Vec<T, N>& inPoint)
   return false;
 }
 
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const Line<T, N>& inLine)
+{
+  return false;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const Ray<T, N>& inRay)
+{
+  return false;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const Segment<T, N>& inSegment)
+{
+  return Contains(inTriangle, inSegment.GetOrigin()) && Contains(inTriangle, inSegment.GetDestiny());
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const HyperSphere<T, N>& inHyperSphere)
+{
+  if (!Contains(inTriangle, Center(inHyperSphere)))
+    return false;
+
+  const auto hyper_sphere_sq_radius = Sq(inHyperSphere.GetRadius());
+  for (int i = 0; i < 3; ++i)
+  {
+    if (SqDistance(Center(inHyperSphere), inTriangle[i]) < hyper_sphere_sq_radius)
+      return false;
+  }
+  return true;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const AAHyperBox<T, N>& inAAHyperBox)
+{
+  const auto aa_hyper_box_min = inAAHyperBox.GetMin();
+  const auto aa_hyper_box_size = inAAHyperBox.GetSize();
+  for (int i = 0; i < AAHyperBox<T, N>::NumPoints; ++i)
+  {
+    const auto aa_hyper_box_point = aa_hyper_box_min + aa_hyper_box_size * MakeBinaryIndex<N, T>(i);
+    if (!Contains(inTriangle, aa_hyper_box_point))
+      return false;
+  }
+  return true;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const HyperBox<T, N>& inHyperBox)
+{
+  const auto hyper_box_center = inHyperBox.GetCenter();
+  const auto hyper_box_extents = inHyperBox.GetExtents();
+  const auto hyper_box_orientation = Orientation(inHyperBox);
+  for (int i = 0; i < HyperBox<T, N>::NumPoints; ++i)
+  {
+    const auto rotated_extents = Rotated(hyper_box_extents * (MakeBinaryIndex<N, T>(i) * 2 - 1), hyper_box_orientation);
+    const auto hyper_box_point = hyper_box_center + rotated_extents;
+    if (!Contains(inTriangle, hyper_box_point))
+      return false;
+  }
+  return true;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangle, const Capsule<T, N>& inCapsule)
+{
+  if (!Contains(inTriangle, inCapsule.GetSegment()))
+    return false;
+
+  const auto capsule_sq_radius = Sq(inCapsule.GetRadius());
+  for (int i = 0; i < 3; ++i)
+  {
+    const auto origin_sq_distance = SqDistance(inCapsule.GetOrigin(), inTriangle[i]);
+    if (origin_sq_distance < capsule_sq_radius)
+      return false;
+
+    const auto destiny_sq_distance = SqDistance(inCapsule.GetDestiny(), inTriangle[i]);
+    if (destiny_sq_distance < capsule_sq_radius)
+      return false;
+  }
+  return true;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Triangle<T, N>& inTriangleContainer, const Triangle<T, N>& inTriangleContainee)
+{
+  return Contains(inTriangleContainer, inTriangleContainee[0]) && Contains(inTriangleContainer, inTriangleContainee[1])
+      && Contains(inTriangleContainer, inTriangleContainee[2]);
+}
+
 }

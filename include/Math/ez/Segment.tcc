@@ -101,7 +101,7 @@ T SqDistance(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
   return SqDistance(inPrimitive, closest_point_in_segment);
 }
 
-// Intersection functions
+// Intersect
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Segment<T, N>& inSegment, const Vec<T, N>& inPoint)
 {
@@ -181,6 +181,20 @@ auto Intersect(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
     return (Contains(inPrimitive, inSegment.GetOrigin()) || Contains(inPrimitive, inSegment.GetDestiny()));
 }
 
+// Contains
+template <typename T, std::size_t N>
+bool Contains(const Segment<T, N>& inSegment, const Vec<T, N>& inPoint)
+{
+  constexpr auto Epsilon = static_cast<T>(1e-7);
+  return (SqDistance(inSegment, inPoint) < Epsilon);
+}
+
+template <typename T, std::size_t N, typename TPrimitive>
+bool Contains(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
+{
+  return false;
+}
+
 template <typename T, std::size_t N>
 auto GetSATNormals(const Segment<T, N>& inSegment)
 {
@@ -221,12 +235,5 @@ template <typename T, std::size_t N>
 constexpr Vec<T, N> Center(const Segment<T, N>& inSegment)
 {
   return (inSegment.GetOrigin() + inSegment.GetDestiny()) / static_cast<T>(2);
-}
-
-template <typename T, std::size_t N>
-bool Contains(const Segment<T, N>& inSegment, const Vec<T, N>& inPoint)
-{
-  constexpr auto Epsilon = static_cast<T>(1e-7);
-  return (SqDistance(inSegment, inPoint) < Epsilon);
 }
 }

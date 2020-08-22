@@ -83,7 +83,35 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Triangle<T, N>& inT
 template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inPoint)
 {
-  return SqDistance(inPoint, Center(inHyperSphere)) <= Sq(inHyperSphere.GetRadius());
+  return SqDistance(Center(inHyperSphere), inPoint) <= Sq(inHyperSphere.GetRadius());
+}
+
+template <typename T, std::size_t N>
+bool Contains(const HyperSphere<T, N>& inHyperSphere, const Line<T, N>& inLine)
+{
+  return false;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const HyperSphere<T, N>& inHyperSphere, const Ray<T, N>& inRay)
+{
+  return false;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const HyperSphere<T, N>& inHyperSphere, const Segment<T, N>& inSegment)
+{
+  return Contains(inHyperSphere, inSegment.GetOrigin()) && Contains(inHyperSphere, inSegment.GetDestiny());
+}
+
+template <typename T, std::size_t N>
+bool Contains(const HyperSphere<T, N>& inHyperSphereContainer, const HyperSphere<T, N>& inHyperSphereContainee)
+{
+  const auto radius_diff = (inHyperSphereContainer.GetRadius() - inHyperSphereContainee.GetRadius());
+  if (radius_diff < static_cast<T>(0))
+    return false;
+
+  return (SqDistance(Center(inHyperSphereContainer), Center(inHyperSphereContainee)) <= Sq(radius_diff));
 }
 
 template <typename T, std::size_t N>
@@ -91,14 +119,55 @@ bool Contains(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& in
 {
   const auto aa_hyper_box_min = inAAHyperBox.GetMin();
   const auto aa_hyper_box_size = inAAHyperBox.GetSize();
-  constexpr auto all_binary_indices = AllBinaryIndices<N, T>();
-  for (const auto binary_index : all_binary_indices)
+  for (int i = 0; i < AAHyperBox<T, N>::NumPoints; ++i)
   {
-    const auto aa_hyper_box_point = aa_hyper_box_min + aa_hyper_box_size * binary_index;
+    const auto aa_hyper_box_point = aa_hyper_box_min + aa_hyper_box_size * MakeBinaryIndex<N, T>(i);
     if (!Contains(inHyperSphere, aa_hyper_box_point))
       return false;
   }
   return true;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const HyperSphere<T, N>& inHyperSphere, const HyperBox<T, N>& inHyperBox)
+{
+  const auto hyper_box_center = inHyperBox.GetCenter();
+  const auto hyper_box_extents = inHyperBox.GetExtents();
+  const auto hyper_box_orientation = Orientation(inHyperBox);
+  for (int i = 0; i < HyperBox<T, N>::NumPoints; ++i)
+  {
+    const auto rotated_extents = Rotated(hyper_box_extents * (MakeBinaryIndex<N, T>(i) * 2 - 1), hyper_box_orientation);
+    const auto hyper_box_point = hyper_box_center + rotated_extents;
+    if (!Contains(inHyperSphere, hyper_box_point))
+      return false;
+  }
+  return true;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const HyperSphere<T, N>& inHyperSphere, const Capsule<T, N>& inCapsule)
+{
+  if (!Contains(inHyperSphere, inCapsule.GetOrigin()))
+    return false;
+
+  if (!Contains(inHyperSphere, inCapsule.GetDestiny()))
+    return false;
+
+  const auto sphere_sq_half_radius = Sq(inHyperSphere.GetRadius() / static_cast<T>(2));
+  if (SqDistance(Center(inHyperSphere), inCapsule.GetOrigin()) >= sphere_sq_half_radius)
+    return false;
+
+  if (SqDistance(Center(inHyperSphere), inCapsule.GetDestiny()) >= sphere_sq_half_radius)
+    return false;
+
+  return true;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const HyperSphere<T, N>& inHyperSphere, const Triangle<T, N>& inTriangle)
+{
+  return Contains(inHyperSphere, inTriangle[0]) && Contains(inHyperSphere, inTriangle[1])
+      && Contains(inHyperSphere, inTriangle[2]);
 }
 
 template <typename T, std::size_t N>

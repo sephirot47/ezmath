@@ -76,6 +76,13 @@ auto Intersect(const HyperBox<T, N>& inHyperBox, const AAHyperBox<T, N>& inAAHyp
 template <EIntersectMode TIntersectMode, typename T, std::size_t N, typename TPrimitive>
 auto Intersect(const HyperBox<T, N>& inHyperBox, const TPrimitive& inPrimitive);
 
+// Contains
+template <typename T, std::size_t N>
+bool Contains(const HyperBox<T, N>& inHyperBox, const AAHyperBox<T, N>& inAAHyperBox);
+
+template <typename T, std::size_t N, typename TPrimitive>
+bool Contains(const HyperBox<T, N>& inHyperBox, const TPrimitive& inPrimitive);
+
 template <typename T, std::size_t N>
 auto GetSATNormals(const HyperBox<T, N>& inHyperBox);
 
@@ -84,9 +91,6 @@ auto GetSATEdges(const HyperBox<T, N>& inHyperBox);
 
 template <typename T, std::size_t N>
 auto GetSATPoints(const HyperBox<T, N>& inHyperBox);
-
-template <typename T, std::size_t N, typename TPrimitive>
-bool Contains(const HyperBox<T, N>& inHyperBox, const TPrimitive& inPrimitive);
 
 template <typename T, std::size_t N>
 constexpr HyperBox<T, N> Translated(const HyperBox<T, N>& inHyperBox, const Vec<T, N>& inTranslation);

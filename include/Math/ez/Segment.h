@@ -82,6 +82,13 @@ auto Intersect(const Segment<T, N>& inSegment, const Line<T, N>& inLine);
 template <EIntersectMode TIntersectMode, typename T, typename TPrimitive, std::size_t N>
 auto Intersect(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive);
 
+// Contains
+template <typename T, std::size_t N>
+bool Contains(const Segment<T, N>& inSegment, const Vec<T, N>& inPoint);
+
+template <typename T, std::size_t N, typename TPrimitive>
+bool Contains(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive);
+
 template <typename T, std::size_t N>
 auto GetSATNormals(const Segment<T, N>& inSegment);
 
@@ -90,9 +97,6 @@ auto GetSATEdges(const Segment<T, N>& inSegment);
 
 template <typename T, std::size_t N>
 auto GetSATPoints(const Segment<T, N>& inSegment);
-
-template <typename T, std::size_t N>
-bool Contains(const Segment<T, N>& inSegment, const Vec<T, N>& inPoint);
 
 template <typename T, std::size_t N>
 constexpr Segment<T, N> Translated(const Segment<T, N>& inSegment, const Vec<T, N>& inTranslation);

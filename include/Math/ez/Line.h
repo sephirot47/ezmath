@@ -110,8 +110,13 @@ auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule);
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Line<T, N>& inLine, const Triangle<T, N>& inTriangle);
 
+// Contains
+
 template <typename T, std::size_t N>
 bool Contains(const Line<T, N>& inLine, const Vec<T, N>& inPoint);
+
+template <typename T, std::size_t N, typename TPrimitive>
+bool Contains(const Line<T, N>& inLine, const TPrimitive& inPrimitive);
 
 template <typename T, std::size_t N>
 constexpr Line<T, N> Translated(const Line<T, N>& inLine, const Vec<T, N>& inTranslation);

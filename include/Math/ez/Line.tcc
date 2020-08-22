@@ -645,6 +645,12 @@ bool Contains(const Line<T, N>& inLine, const Vec<T, N>& inPoint)
   return (SqDistance(inLine, inPoint) < Epsilon);
 }
 
+template <typename T, std::size_t N, typename TPrimitive>
+bool Contains(const Line<T, N>& inLine, const TPrimitive& inPrimitive)
+{
+  return false;
+}
+
 template <typename T, std::size_t N>
 constexpr Line<T, N> Translated(const Line<T, N>& inLine, const Vec<T, N>& inTranslation)
 {

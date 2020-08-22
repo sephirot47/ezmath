@@ -84,6 +84,90 @@ auto Intersect(const Capsule<T, N>& inCapsuleLHS, const Capsule<T, N>& inCapsule
 }
 
 template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const Vec<T, N>& inPoint)
+{
+  return SqDistance(inCapsule.GetSegment(), inPoint) < Sq(inCapsule.GetRadius());
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const Line<T, N>& inLine)
+{
+  return false;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const Ray<T, N>& inRay)
+{
+  return false;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const Segment<T, N>& inSegment)
+{
+  return Contains(inCapsule, inSegment.GetOrigin()) && Contains(inCapsule, inSegment.GetDestiny());
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const HyperSphere<T, N>& inHyperSphere)
+{
+  if (!Contains(inCapsule, Center(inHyperSphere)))
+    return false;
+
+  const auto radius_diff = (inCapsule.GetRadius() - inHyperSphere.GetRadius());
+  if (radius_diff < static_cast<T>(0))
+    return false;
+
+  const auto radius_diff_sq = Sq(radius_diff);
+  return (SqDistance(Center(inHyperSphere), inCapsule.GetOrigin()) <= radius_diff_sq
+      && SqDistance(Center(inHyperSphere), inCapsule.GetDestiny()) <= radius_diff_sq);
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const AAHyperBox<T, N>& inAAHyperBox)
+{
+  const auto aa_hyper_box_min = inAAHyperBox.GetMin();
+  const auto aa_hyper_box_size = inAAHyperBox.GetSize();
+  for (int i = 0; i < AAHyperBox<T, N>::NumPoints; ++i)
+  {
+    const auto aa_hyper_box_point = aa_hyper_box_min + aa_hyper_box_size * MakeBinaryIndex<N, T>(i);
+    if (!Contains(inCapsule, aa_hyper_box_point))
+      return false;
+  }
+  return true;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const HyperBox<T, N>& inHyperBox)
+{
+  const auto hyper_box_center = inHyperBox.GetCenter();
+  const auto hyper_box_extents = inHyperBox.GetExtents();
+  const auto hyper_box_orientation = Orientation(inHyperBox);
+  for (int i = 0; i < HyperBox<T, N>::NumPoints; ++i)
+  {
+    const auto rotated_extents = Rotated(hyper_box_extents * (MakeBinaryIndex<N, T>(i) * 2 - 1), hyper_box_orientation);
+    const auto hyper_box_point = hyper_box_center + rotated_extents;
+    if (!Contains(inCapsule, hyper_box_point))
+      return false;
+  }
+  return true;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsuleContainer, const Capsule<T, N>& inCapsuleContainee)
+{
+  return Contains(inCapsuleContainer,
+             HyperSphere<T, N> { inCapsuleContainee.GetOrigin(), inCapsuleContainee.GetRadius() })
+      && Contains(inCapsuleContainer,
+          HyperSphere<T, N> { inCapsuleContainee.GetDestiny(), inCapsuleContainee.GetRadius() });
+}
+
+template <typename T, std::size_t N>
+bool Contains(const Capsule<T, N>& inCapsule, const Triangle<T, N>& inTriangle)
+{
+  return Contains(inCapsule, inTriangle[0]) && Contains(inCapsule, inTriangle[1]) && Contains(inCapsule, inTriangle[2]);
+}
+
+template <typename T, std::size_t N>
 constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const Vec<T, N>& inPoint)
 {
   const auto closest_point_in_segment = ClosestPoint(inCapsule.GetSegment(), inPoint);
@@ -103,12 +187,6 @@ template <typename T, std::size_t N>
 constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const HyperBox<T, N>& inHyperBox)
 {
   return ClosestPoint(inCapsule, ClosestPoint(inHyperBox, inCapsule));
-}
-
-template <typename T, std::size_t N>
-constexpr bool Contains(const Capsule<T, N>& inCapsule, const Vec<T, N>& inPoint)
-{
-  return SqDistance(inCapsule.GetSegment(), inPoint) < Sq(inCapsule.GetRadius());
 }
 
 template <typename T, std::size_t N>
@@ -150,5 +228,4 @@ constexpr Vec<T, N> Center(const Capsule<T, N>& inCapsule)
 {
   return (inCapsule.GetOrigin() + inCapsule.GetDestiny()) / static_cast<T>(2);
 }
-
 }

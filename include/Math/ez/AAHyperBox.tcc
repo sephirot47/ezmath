@@ -187,7 +187,7 @@ const auto MakeAAHyperBoxFromMinMax(const Vec<T, N>& inMin, const Vec<T, N>& inM
   return AAHyperBox<T, N>(inMin, inMax);
 }
 
-// Intersection functions
+// Intersect
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const AAHyperBox<T, N>& inAAHyperBoxLHS, const AAHyperBox<T, N>& inAAHyperBoxRHS)
 {
@@ -247,6 +247,100 @@ auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Triangle<T, N>& inTri
 {
   static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
   return IntersectCheckSAT(inAAHyperBox, inTriangle);
+}
+
+// Contains
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Vec<T, N>& inPoint)
+{
+  return inPoint >= inAAHyperBox.GetMin() && inPoint <= inAAHyperBox.GetMax();
+}
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Line<T, N>& inLine)
+{
+  return false;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Ray<T, N>& inRay)
+{
+  return false;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Segment<T, N>& inSegment)
+{
+  return Contains(inAAHyperBox, inSegment.GetOrigin()) && Contains(inAAHyperBox, inSegment.GetDestiny());
+}
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& inHyperSphere)
+{
+  if (!Contains(inAAHyperBox, inHyperSphere.GetCenter()))
+    return false;
+
+  const auto aa_hyper_box_size = inAAHyperBox.GetSize();
+  const auto hyper_sphere_sq_radius = Sq(inHyperSphere.GetRadius());
+  for (int i = 0; i < AAHyperBox<T, N>::NumPoints; ++i)
+  {
+    const auto aa_hyper_box_point = inAAHyperBox.GetMin() + MakeBinaryIndex<N, T>(i) * aa_hyper_box_size;
+    const auto sq_distance = SqDistance(Center(inHyperSphere), aa_hyper_box_point);
+    if (sq_distance < hyper_sphere_sq_radius)
+      return false;
+  }
+  return true;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBoxContainer, const AAHyperBox<T, N>& inAAHyperBoxContainee)
+{
+  return inAAHyperBoxContainee.GetMin() >= inAAHyperBoxContainer.GetMin()
+      && inAAHyperBoxContainee.GetMax() <= inAAHyperBoxContainer.GetMax();
+}
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const HyperBox<T, N>& inHyperBox)
+{
+  const auto hyper_box_center = inHyperBox.GetCenter();
+  const auto hyper_box_extents = inHyperBox.GetExtents();
+  const auto hyper_box_orientation = Orientation(inHyperBox);
+  for (int i = 0; i < HyperBox<T, N>::NumPoints; ++i)
+  {
+    const auto rotated_extents = Rotated(hyper_box_extents * (MakeBinaryIndex<N, T>(i) * 2 - 1), hyper_box_orientation);
+    const auto hyper_box_point = hyper_box_center + rotated_extents;
+    if (!Contains(inAAHyperBox, hyper_box_point))
+      return false;
+  }
+  return true;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Capsule<T, N>& inCapsule)
+{
+  if (!Contains(inAAHyperBox, inCapsule.GetSegment()))
+    return false;
+
+  const auto capsule_sq_radius = Sq(inCapsule.GetRadius());
+  const auto aa_hyper_box_size = inAAHyperBox.GetSize();
+  for (int i = 0; i < AAHyperBox<T, N>::NumPoints; ++i)
+  {
+    const auto aa_hyper_box_point = inAAHyperBox.GetMin() + MakeBinaryIndex<N, T>(i) * aa_hyper_box_size;
+    const auto origin_sq_distance = SqDistance(inCapsule.GetOrigin(), aa_hyper_box_point);
+    if (origin_sq_distance < capsule_sq_radius)
+      return false;
+    const auto destiny_sq_distance = SqDistance(inCapsule.GetDestiny(), aa_hyper_box_point);
+    if (destiny_sq_distance < capsule_sq_radius)
+      return false;
+  }
+  return true;
+}
+
+template <typename T, std::size_t N>
+bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Triangle<T, N>& inTriangle)
+{
+  return Contains(inAAHyperBox, inTriangle[0]) && Contains(inAAHyperBox, inTriangle[1])
+      && Contains(inAAHyperBox, inTriangle[2]);
 }
 
 template <typename T, std::size_t N>
@@ -319,19 +413,6 @@ constexpr T SqDistance(const AAHyperBox<T, N>& inAAHyperBox, const TPrimitive& i
   const auto closest_point_in_aa_hyper_box = ClosestPoint(inAAHyperBox, inPrimitive);
   const auto closest_point_in_primitive = ClosestPoint(inPrimitive, closest_point_in_aa_hyper_box);
   return SqDistance(closest_point_in_aa_hyper_box, closest_point_in_primitive);
-}
-
-template <typename T, std::size_t N>
-bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Vec<T, N>& inPoint)
-{
-  return inPoint >= inAAHyperBox.GetMin() && inPoint <= inAAHyperBox.GetMax();
-}
-
-template <typename T, std::size_t N>
-bool Contains(const AAHyperBox<T, N>& inAAHyperBoxContainer, const AAHyperBox<T, N>& inAAHyperBoxContainee)
-{
-  return inAAHyperBoxContainee.GetMin() >= inAAHyperBoxContainer.GetMin()
-      && inAAHyperBoxContainee.GetMax() <= inAAHyperBoxContainer.GetMax();
 }
 
 template <typename T>

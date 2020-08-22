@@ -31,6 +31,7 @@ bool IsOnPositiveSide(const Ray2<T>& inRay, const Vec2<T>& inPoint)
   return Dot(Perpendicular(Direction(inRay)), (inPoint - inRay.GetOrigin())) > 0;
 }
 
+// Intersect
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Ray<T, N>& inRay, const Vec<T, N>& inPoint)
 {
@@ -76,6 +77,20 @@ auto Intersect(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
     return Contains(inPrimitive, inRay.GetOrigin());
 }
 
+// Contains
+template <typename T, std::size_t N>
+bool Contains(const Ray<T, N>& inRay, const Vec<T, N>& inPoint)
+{
+  constexpr auto Epsilon = static_cast<T>(1e-7);
+  return (SqDistance(inRay, inPoint) < Epsilon);
+}
+
+template <typename T, std::size_t N, typename TPrimitive>
+bool Contains(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
+{
+  return false;
+}
+
 template <typename T, std::size_t N, typename TPrimitive>
 auto ClosestPointT(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
 {
@@ -102,13 +117,6 @@ template <typename T, std::size_t N, typename TPrimitive>
 auto SqDistance(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
 {
   return SqDistance(inRay, ClosestPoint(inRay, inPrimitive));
-}
-
-template <typename T, std::size_t N>
-bool Contains(const Ray<T, N>& inRay, const Vec<T, N>& inPoint)
-{
-  constexpr auto Epsilon = static_cast<T>(1e-7);
-  return (SqDistance(inRay, inPoint) < Epsilon);
 }
 
 template <typename T, std::size_t N>
