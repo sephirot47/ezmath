@@ -181,6 +181,9 @@ constexpr T SqDistance(const AAHyperBox<T, N>& inAAHyperBox, const TPrimitive& i
 template <typename T, std::size_t N>
 constexpr Vec<T, N> Center(const AAHyperBox<T, N>& inAAHyperBox);
 
+template <typename T, std::size_t N>
+constexpr AAHyperBox<T, N> Translated(const AAHyperBox<T, N>& inAAHyperBox, const Vec<T, N>& inTranslation);
+
 template <typename T>
 constexpr auto BoundingAAHyperBox(const T& inThingToBound);
 

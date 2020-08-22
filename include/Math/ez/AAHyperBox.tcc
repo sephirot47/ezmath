@@ -363,6 +363,12 @@ constexpr Vec<T, N> Center(const AAHyperBox<T, N>& inAAHyperBox)
 }
 
 template <typename T, std::size_t N>
+constexpr AAHyperBox<T, N> Translated(const AAHyperBox<T, N>& inAAHyperBox, const Vec<T, N>& inTranslation)
+{
+  return AAHyperBox<T, N> { inAAHyperBox.GetMin() + inTranslation, inAAHyperBox.GetMax() + inTranslation };
+}
+
+template <typename T, std::size_t N>
 constexpr auto BoundingAAHyperBox(const AAHyperBox<T, N>& inAAHyperBox)
 {
   return inAAHyperBox;
