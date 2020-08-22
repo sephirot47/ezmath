@@ -118,8 +118,7 @@ bool Contains(const Capsule<T, N>& inCapsule, const HyperSphere<T, N>& inHyperSp
     return false;
 
   const auto radius_diff_sq = Sq(radius_diff);
-  return (SqDistance(Center(inHyperSphere), inCapsule.GetOrigin()) <= radius_diff_sq
-      && SqDistance(Center(inHyperSphere), inCapsule.GetDestiny()) <= radius_diff_sq);
+  return (SqDistance(inCapsule.GetSegment(), Center(inHyperSphere)) <= radius_diff_sq);
 }
 
 template <typename T, std::size_t N>

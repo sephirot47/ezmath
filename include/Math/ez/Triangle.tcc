@@ -235,7 +235,8 @@ bool Contains(const Triangle<T, N>& inTriangle, const HyperSphere<T, N>& inHyper
   const auto hyper_sphere_sq_radius = Sq(inHyperSphere.GetRadius());
   for (int i = 0; i < 3; ++i)
   {
-    if (SqDistance(Center(inHyperSphere), inTriangle[i]) < hyper_sphere_sq_radius)
+    const auto segment = Segment<T, N> { inTriangle[i], inTriangle[(i + 1) % 3] };
+    if (SqDistance(segment, Center(inHyperSphere)) < hyper_sphere_sq_radius)
       return false;
   }
   return true;
@@ -274,21 +275,8 @@ bool Contains(const Triangle<T, N>& inTriangle, const HyperBox<T, N>& inHyperBox
 template <typename T, std::size_t N>
 bool Contains(const Triangle<T, N>& inTriangle, const Capsule<T, N>& inCapsule)
 {
-  if (!Contains(inTriangle, inCapsule.GetSegment()))
-    return false;
-
-  const auto capsule_sq_radius = Sq(inCapsule.GetRadius());
-  for (int i = 0; i < 3; ++i)
-  {
-    const auto origin_sq_distance = SqDistance(inCapsule.GetOrigin(), inTriangle[i]);
-    if (origin_sq_distance < capsule_sq_radius)
-      return false;
-
-    const auto destiny_sq_distance = SqDistance(inCapsule.GetDestiny(), inTriangle[i]);
-    if (destiny_sq_distance < capsule_sq_radius)
-      return false;
-  }
-  return true;
+  return Contains(inTriangle, HyperSphere<T, N> { inCapsule.GetOrigin(), inCapsule.GetRadius() })
+      && Contains(inTriangle, HyperSphere<T, N> { inCapsule.GetDestiny(), inCapsule.GetRadius() });
 }
 
 template <typename T, std::size_t N>

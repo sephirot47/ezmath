@@ -147,20 +147,8 @@ bool Contains(const HyperSphere<T, N>& inHyperSphere, const HyperBox<T, N>& inHy
 template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const Capsule<T, N>& inCapsule)
 {
-  if (!Contains(inHyperSphere, inCapsule.GetOrigin()))
-    return false;
-
-  if (!Contains(inHyperSphere, inCapsule.GetDestiny()))
-    return false;
-
-  const auto sphere_sq_half_radius = Sq(inHyperSphere.GetRadius() / static_cast<T>(2));
-  if (SqDistance(Center(inHyperSphere), inCapsule.GetOrigin()) >= sphere_sq_half_radius)
-    return false;
-
-  if (SqDistance(Center(inHyperSphere), inCapsule.GetDestiny()) >= sphere_sq_half_radius)
-    return false;
-
-  return true;
+  return Contains(inHyperSphere, HyperSphere<T, N> { inCapsule.GetOrigin(), inCapsule.GetRadius() })
+      && Contains(inHyperSphere, HyperSphere<T, N> { inCapsule.GetDestiny(), inCapsule.GetRadius() });
 }
 
 template <typename T, std::size_t N>

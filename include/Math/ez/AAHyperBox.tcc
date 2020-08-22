@@ -277,16 +277,15 @@ bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Segment<T, N>& inSegme
 template <typename T, std::size_t N>
 bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& inHyperSphere)
 {
-  if (!Contains(inAAHyperBox, inHyperSphere.GetCenter()))
-    return false;
-
-  const auto aa_hyper_box_size = inAAHyperBox.GetSize();
-  const auto hyper_sphere_sq_radius = Sq(inHyperSphere.GetRadius());
-  for (int i = 0; i < AAHyperBox<T, N>::NumPoints; ++i)
+  for (int i = 0; i < N; ++i)
   {
-    const auto aa_hyper_box_point = inAAHyperBox.GetMin() + MakeBinaryIndex<N, T>(i) * aa_hyper_box_size;
-    const auto sq_distance = SqDistance(Center(inHyperSphere), aa_hyper_box_point);
-    if (sq_distance < hyper_sphere_sq_radius)
+    const auto hyper_sphere_center_local_i = (Center(inHyperSphere)[i] - inAAHyperBox.GetMin()[i]);
+    const auto size_i = (inAAHyperBox.GetMax()[i] - inAAHyperBox.GetMin()[i]);
+
+    if (hyper_sphere_center_local_i - inHyperSphere.GetRadius() < static_cast<T>(0))
+      return false;
+
+    if (hyper_sphere_center_local_i + inHyperSphere.GetRadius() > size_i)
       return false;
   }
   return true;
@@ -318,22 +317,8 @@ bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const HyperBox<T, N>& inHype
 template <typename T, std::size_t N>
 bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Capsule<T, N>& inCapsule)
 {
-  if (!Contains(inAAHyperBox, inCapsule.GetSegment()))
-    return false;
-
-  const auto capsule_sq_radius = Sq(inCapsule.GetRadius());
-  const auto aa_hyper_box_size = inAAHyperBox.GetSize();
-  for (int i = 0; i < AAHyperBox<T, N>::NumPoints; ++i)
-  {
-    const auto aa_hyper_box_point = inAAHyperBox.GetMin() + MakeBinaryIndex<N, T>(i) * aa_hyper_box_size;
-    const auto origin_sq_distance = SqDistance(inCapsule.GetOrigin(), aa_hyper_box_point);
-    if (origin_sq_distance < capsule_sq_radius)
-      return false;
-    const auto destiny_sq_distance = SqDistance(inCapsule.GetDestiny(), aa_hyper_box_point);
-    if (destiny_sq_distance < capsule_sq_radius)
-      return false;
-  }
-  return true;
+  return Contains(inAAHyperBox, HyperSphere<T, N> { inCapsule.GetOrigin(), inCapsule.GetRadius() })
+      && Contains(inAAHyperBox, HyperSphere<T, N> { inCapsule.GetDestiny(), inCapsule.GetRadius() });
 }
 
 template <typename T, std::size_t N>
