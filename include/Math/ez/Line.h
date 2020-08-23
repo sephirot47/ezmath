@@ -44,39 +44,7 @@ constexpr RotationType_t<T, N> Orientation(const Line<T, N>& inLine);
 template <typename T>
 bool IsOnPositiveSide(const Line2<T> &inLine, const Vec2<T> &inPoint);
 
-template <typename T>
-constexpr T ClosestPointT(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS);
-
-template <typename T>
-constexpr T ClosestPointT(const Line3<T>& inLineLHS, const Line3<T>& inLineRHS);
-
-template <typename T, std::size_t N>
-constexpr T ClosestPointT(const Line<T, N>& inLine, const Vec<T, N>& inPoint);
-
-template <typename T, std::size_t N>
-constexpr T ClosestPointT(const Line<T, N>& inLine, const Ray<T, N>& inRay);
-
-template <typename T, std::size_t N>
-constexpr T ClosestPointT(const Line<T, N>& inLine, const Segment<T, N>& inSegment);
-
-template <typename T, std::size_t N>
-constexpr T ClosestPointT(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox);
-
-template <typename T, std::size_t N>
-constexpr T ClosestPointT(const Line<T, N>& inLine, const HyperBox<T, N>& inHyperBox);
-
-template <typename T, std::size_t N>
-constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox);
-
-template <typename T, std::size_t N>
-constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const HyperBox<T, N>& inHyperBox);
-
-template <typename T, std::size_t N, typename TPrimitive>
-constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const TPrimitive& inPrimitive);
-
-template <typename T, std::size_t N, typename TPrimitive>
-constexpr T SqDistance(const Line<T, N>& inLine, const TPrimitive& inPrimitive);
-
+// Intersect
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS);
 
@@ -111,12 +79,54 @@ template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Line<T, N>& inLine, const Triangle<T, N>& inTriangle);
 
 // Contains
-
 template <typename T, std::size_t N>
 bool Contains(const Line<T, N>& inLine, const Vec<T, N>& inPoint);
 
 template <typename T, std::size_t N, typename TPrimitive>
 bool Contains(const Line<T, N>& inLine, const TPrimitive& inPrimitive);
+
+// ClosestPoint
+template <typename T>
+constexpr T ClosestPointT(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS);
+
+template <typename T>
+constexpr T ClosestPointT(const Line3<T>& inLineLHS, const Line3<T>& inLineRHS);
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Vec<T, N>& inPoint);
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Ray<T, N>& inRay);
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Segment<T, N>& inSegment);
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const HyperSphere<T, N>& inHyperSphere);
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox);
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const HyperBox<T, N>& inHyperBox);
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule);
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Triangle<T, N>& inTriangle);
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox);
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const HyperBox<T, N>& inHyperBox);
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const TPrimitive& inPrimitive);
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr T SqDistance(const Line<T, N>& inLine, const TPrimitive& inPrimitive);
 
 template <typename T, std::size_t N>
 constexpr Line<T, N> Translated(const Line<T, N>& inLine, const Vec<T, N>& inTranslation);

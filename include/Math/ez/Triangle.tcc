@@ -245,31 +245,17 @@ bool Contains(const Triangle<T, N>& inTriangle, const HyperSphere<T, N>& inHyper
 template <typename T, std::size_t N>
 bool Contains(const Triangle<T, N>& inTriangle, const AAHyperBox<T, N>& inAAHyperBox)
 {
-  const auto aa_hyper_box_min = inAAHyperBox.GetMin();
-  const auto aa_hyper_box_size = inAAHyperBox.GetSize();
-  for (int i = 0; i < AAHyperBox<T, N>::NumPoints; ++i)
-  {
-    const auto aa_hyper_box_point = aa_hyper_box_min + aa_hyper_box_size * MakeBinaryIndex<N, T>(i);
-    if (!Contains(inTriangle, aa_hyper_box_point))
-      return false;
-  }
-  return true;
+  return std::all_of(MakePointsBegin(inAAHyperBox),
+      MakePointsEnd(inAAHyperBox),
+      [&](const auto& in_aa_hyper_box_point) { return Contains(inTriangle, in_aa_hyper_box_point); });
 }
 
 template <typename T, std::size_t N>
 bool Contains(const Triangle<T, N>& inTriangle, const HyperBox<T, N>& inHyperBox)
 {
-  const auto hyper_box_center = inHyperBox.GetCenter();
-  const auto hyper_box_extents = inHyperBox.GetExtents();
-  const auto hyper_box_orientation = Orientation(inHyperBox);
-  for (int i = 0; i < HyperBox<T, N>::NumPoints; ++i)
-  {
-    const auto rotated_extents = Rotated(hyper_box_extents * (MakeBinaryIndex<N, T>(i) * 2 - 1), hyper_box_orientation);
-    const auto hyper_box_point = hyper_box_center + rotated_extents;
-    if (!Contains(inTriangle, hyper_box_point))
-      return false;
-  }
-  return true;
+  return std::all_of(MakePointsBegin(inHyperBox), MakePointsEnd(inHyperBox), [&](const auto& in_hyper_box_point) {
+    return Contains(inTriangle, in_hyper_box_point);
+  });
 }
 
 template <typename T, std::size_t N>
@@ -284,6 +270,34 @@ bool Contains(const Triangle<T, N>& inTriangleContainer, const Triangle<T, N>& i
 {
   return Contains(inTriangleContainer, inTriangleContainee[0]) && Contains(inTriangleContainer, inTriangleContainee[1])
       && Contains(inTriangleContainer, inTriangleContainee[2]);
+}
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr Vec<T, N> ClosestPoint(const Triangle<T, N>& inTriangle, const TPrimitive& inPrimitive)
+{
+  auto closest_point_sq_distance = Max<T>();
+  auto closest_point = Max<Vec<T, N>>();
+  for (int i = 0; i < 3; ++i)
+  {
+    const auto triangle_segment = Segment<T, N> { inTriangle[i], inTriangle[(i + 1) % 3] };
+    const auto closest_point_on_triangle_segment = ClosestPoint(triangle_segment, inPrimitive);
+    const auto closest_point_on_primitive = ClosestPoint(inPrimitive, closest_point_on_triangle_segment);
+    const auto sq_distance = SqDistance(closest_point_on_triangle_segment, closest_point_on_primitive);
+    if (sq_distance < closest_point_sq_distance)
+    {
+      closest_point_sq_distance = sq_distance;
+      closest_point = closest_point_on_triangle_segment;
+    }
+  }
+  return closest_point;
+}
+
+// Points iterator
+template <typename T, std::size_t N>
+Vec<T, N> PointsIteratorSpecialization<Triangle<T, N>>::GetPoint(const Triangle<T, N>& inTriangle,
+    const std::size_t inPointIndex) const
+{
+  return inTriangle[inPointIndex];
 }
 
 }

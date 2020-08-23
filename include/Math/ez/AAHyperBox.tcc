@@ -120,34 +120,8 @@ void AAHyperBox<T, N>::Wrap(const TOther& inThingToBound)
   }
   else
   {
-    for (const auto& subthing_to_bound : inThingToBound) { Wrap(subthing_to_bound); }
+    for (const auto& thing_point : MakePointsRange(inThingToBound)) { Wrap(thing_point); }
   }
-}
-
-template <typename T, std::size_t N>
-template <bool IsConst>
-AAHyperBox<T, N>::GPointsIterator<IsConst>::GPointsIterator(AAHyperBoxType& ioHyperBox, const std::size_t inBeginIndex)
-    : mAAHyperBox { ioHyperBox }, mCurrentIndex(inBeginIndex)
-{
-}
-
-template <typename T, std::size_t N>
-template <bool IsConst>
-typename AAHyperBox<T, N>::template GPointsIterator<IsConst>& AAHyperBox<T, N>::GPointsIterator<IsConst>::operator++()
-{
-  EXPECTS((mCurrentIndex < AAHyperBox<T, N>::NumPoints));
-  ++mCurrentIndex;
-  return *this;
-}
-
-template <typename T, std::size_t N>
-template <bool IsConst>
-typename AAHyperBox<T, N>::template GPointsIterator<IsConst>::VecType
-    AAHyperBox<T, N>::GPointsIterator<IsConst>::operator*() const
-{
-  const auto current_binary_index = MakeBinaryIndex<N, T>(mCurrentIndex);
-  const auto point = mAAHyperBox.GetMin() + mAAHyperBox.GetSize() * current_binary_index;
-  return point;
 }
 
 template <typename T, std::size_t N>
@@ -301,17 +275,9 @@ bool Contains(const AAHyperBox<T, N>& inAAHyperBoxContainer, const AAHyperBox<T,
 template <typename T, std::size_t N>
 bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const HyperBox<T, N>& inHyperBox)
 {
-  const auto hyper_box_center = inHyperBox.GetCenter();
-  const auto hyper_box_extents = inHyperBox.GetExtents();
-  const auto hyper_box_orientation = Orientation(inHyperBox);
-  for (int i = 0; i < HyperBox<T, N>::NumPoints; ++i)
-  {
-    const auto rotated_extents = Rotated(hyper_box_extents * (MakeBinaryIndex<N, T>(i) * 2 - 1), hyper_box_orientation);
-    const auto hyper_box_point = hyper_box_center + rotated_extents;
-    if (!Contains(inAAHyperBox, hyper_box_point))
-      return false;
-  }
-  return true;
+  return std::all_of(MakePointsBegin(inHyperBox), MakePointsEnd(inHyperBox), [&](const auto& in_hyper_box_point) {
+    return Contains(inAAHyperBox, in_hyper_box_point);
+  });
 }
 
 template <typename T, std::size_t N>
@@ -324,8 +290,9 @@ bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Capsule<T, N>& inCapsu
 template <typename T, std::size_t N>
 bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Triangle<T, N>& inTriangle)
 {
-  return Contains(inAAHyperBox, inTriangle[0]) && Contains(inAAHyperBox, inTriangle[1])
-      && Contains(inAAHyperBox, inTriangle[2]);
+  return std::all_of(MakePointsBegin(inTriangle), MakePointsEnd(inTriangle), [&](const auto& in_triangle_point) {
+    return Contains(inAAHyperBox, in_triangle_point);
+  });
 }
 
 template <typename T, std::size_t N>
@@ -349,12 +316,8 @@ auto GetSATEdges(const AAHyperBox<T, N>&)
 template <typename T, std::size_t N>
 auto GetSATPoints(const AAHyperBox<T, N>& inAAHyperBox)
 {
-  const auto& aabox_min = inAAHyperBox.GetMin();
-  const auto aabox_size = inAAHyperBox.GetSize();
-
   std::array<Vec<T, N>, AAHyperBox<T, N>::NumPoints> points;
-  for (uint i = 0; i < points.size(); ++i) { points[i] = aabox_min + aabox_size * MakeBinaryIndex<N, T>(i); }
-
+  std::copy(MakePointsBegin(inAAHyperBox), MakePointsEnd(inAAHyperBox), points.begin());
   return points;
 }
 
@@ -385,11 +348,57 @@ constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Seg
 }
 
 template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& inHyperSphere)
+{
+  return ClosestPoint(inAAHyperBox, Center(inHyperSphere));
+}
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBoxLHS, const AAHyperBox<T, N>& inAAHyperBoxRHS)
+{
+  auto closest_point_in_lhs = Max<Vec<T, N>>();
+  auto closest_sq_distance = Max<T>();
+  for (const auto rhs_aa_hyper_box_point : MakePointsRange(inAAHyperBoxRHS))
+  {
+    const auto closest_point = ClosestPoint(inAAHyperBoxLHS, rhs_aa_hyper_box_point);
+    const auto sq_distance = SqDistance(rhs_aa_hyper_box_point, closest_point);
+    if (sq_distance < closest_sq_distance)
+    {
+      closest_point_in_lhs = closest_point;
+      closest_sq_distance = sq_distance;
+    }
+  }
+  return closest_point_in_lhs;
+}
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const HyperBox<T, N>& inHyperBox)
+{
+  auto closest_point_in_aa_hyper_box = Max<Vec<T, N>>();
+  auto closest_sq_distance = Max<T>();
+  for (const auto hyper_box_point : MakePointsRange(inHyperBox))
+  {
+    const auto closest_point = ClosestPoint(inAAHyperBox, hyper_box_point);
+    const auto sq_distance = SqDistance(hyper_box_point, closest_point);
+    if (sq_distance < closest_sq_distance)
+    {
+      closest_point_in_aa_hyper_box = closest_point;
+      closest_sq_distance = sq_distance;
+    }
+  }
+  return closest_point_in_aa_hyper_box;
+}
+
+template <typename T, std::size_t N>
 constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Capsule<T, N>& inCapsule)
 {
-  const auto closest_point_in_capsule_segment = ClosestPoint(inCapsule.GetSegment(), inAAHyperBox);
-  const auto closest_point_in_aa_hyper_box = ClosestPoint(inAAHyperBox, closest_point_in_capsule_segment);
-  return closest_point_in_aa_hyper_box;
+  return ClosestPoint(inAAHyperBox, inCapsule.GetSegment());
+}
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Triangle<T, N>& inTriangle)
+{
+  return ClosestPoint(inAAHyperBox, ClosestPoint(inTriangle, inAAHyperBox));
 }
 
 template <typename T, std::size_t N, typename TPrimitive>
@@ -500,5 +509,19 @@ void InverseTransform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const Transform
     transformed_hyper_box.Wrap(InverseTransformed(inPoint, inTransformation));
   });
   ioAAHyperBoxToTransform = transformed_hyper_box;
+}
+
+// Points iterator
+template <typename T, std::size_t N>
+PointsIteratorSpecialization<AAHyperBox<T, N>>::PointsIteratorSpecialization(const AAHyperBox<T, N>& inAAHyperBox)
+    : mAAHyperBoxSize { inAAHyperBox.GetSize() }
+{
+}
+
+template <typename T, std::size_t N>
+Vec<T, N> PointsIteratorSpecialization<AAHyperBox<T, N>>::GetPoint(const AAHyperBox<T, N>& inAAHyperBox,
+    const std::size_t inPointIndex) const
+{
+  return inAAHyperBox.GetMin() + MakeBinaryIndex<N, T>(inPointIndex) * mAAHyperBoxSize;
 }
 }

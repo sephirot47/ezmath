@@ -124,31 +124,17 @@ bool Contains(const Capsule<T, N>& inCapsule, const HyperSphere<T, N>& inHyperSp
 template <typename T, std::size_t N>
 bool Contains(const Capsule<T, N>& inCapsule, const AAHyperBox<T, N>& inAAHyperBox)
 {
-  const auto aa_hyper_box_min = inAAHyperBox.GetMin();
-  const auto aa_hyper_box_size = inAAHyperBox.GetSize();
-  for (int i = 0; i < AAHyperBox<T, N>::NumPoints; ++i)
-  {
-    const auto aa_hyper_box_point = aa_hyper_box_min + aa_hyper_box_size * MakeBinaryIndex<N, T>(i);
-    if (!Contains(inCapsule, aa_hyper_box_point))
-      return false;
-  }
-  return true;
+  return std::all_of(MakePointsBegin(inAAHyperBox),
+      MakePointsEnd(inAAHyperBox),
+      [&](const auto& in_aa_hyper_box_point) { return Contains(inCapsule, in_aa_hyper_box_point); });
 }
 
 template <typename T, std::size_t N>
 bool Contains(const Capsule<T, N>& inCapsule, const HyperBox<T, N>& inHyperBox)
 {
-  const auto hyper_box_center = inHyperBox.GetCenter();
-  const auto hyper_box_extents = inHyperBox.GetExtents();
-  const auto hyper_box_orientation = Orientation(inHyperBox);
-  for (int i = 0; i < HyperBox<T, N>::NumPoints; ++i)
-  {
-    const auto rotated_extents = Rotated(hyper_box_extents * (MakeBinaryIndex<N, T>(i) * 2 - 1), hyper_box_orientation);
-    const auto hyper_box_point = hyper_box_center + rotated_extents;
-    if (!Contains(inCapsule, hyper_box_point))
-      return false;
-  }
-  return true;
+  return std::all_of(MakePointsBegin(inHyperBox), MakePointsEnd(inHyperBox), [&](const auto& in_hyper_box_point) {
+    return Contains(inCapsule, in_hyper_box_point);
+  });
 }
 
 template <typename T, std::size_t N>
@@ -163,7 +149,9 @@ bool Contains(const Capsule<T, N>& inCapsuleContainer, const Capsule<T, N>& inCa
 template <typename T, std::size_t N>
 bool Contains(const Capsule<T, N>& inCapsule, const Triangle<T, N>& inTriangle)
 {
-  return Contains(inCapsule, inTriangle[0]) && Contains(inCapsule, inTriangle[1]) && Contains(inCapsule, inTriangle[2]);
+  return std::all_of(MakePointsBegin(inTriangle), MakePointsEnd(inTriangle), [&](const auto& in_triangle_point) {
+    return Contains(inCapsule, in_triangle_point);
+  });
 }
 
 template <typename T, std::size_t N>
@@ -176,16 +164,10 @@ constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const Vec<T, N>
   return closest_point_in_capsule;
 }
 
-template <typename T, std::size_t N>
-constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const AAHyperBox<T, N>& inAAHyperBox)
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const TPrimitive& inPrimitive)
 {
-  return ClosestPoint(inCapsule, ClosestPoint(inAAHyperBox, inCapsule));
-}
-
-template <typename T, std::size_t N>
-constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const HyperBox<T, N>& inHyperBox)
-{
-  return ClosestPoint(inCapsule, ClosestPoint(inHyperBox, inCapsule));
+  return ClosestPoint(inCapsule, ClosestPoint(inPrimitive, inCapsule.GetSegment()));
 }
 
 template <typename T, std::size_t N>

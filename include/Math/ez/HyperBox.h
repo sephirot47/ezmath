@@ -63,7 +63,7 @@ struct IsHyperBox<HyperBox<T, N>> : std::true_type
 {
 };
 
-// Intersection functions
+// Intersect
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperBox<T, N>& inHyperBox, const Vec<T, N>& inPoint);
 
@@ -82,6 +82,13 @@ bool Contains(const HyperBox<T, N>& inHyperBox, const AAHyperBox<T, N>& inAAHype
 
 template <typename T, std::size_t N, typename TPrimitive>
 bool Contains(const HyperBox<T, N>& inHyperBox, const TPrimitive& inPrimitive);
+
+// ClosestPoint
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const HyperBox<T, N>& inHyperBox, const AAHyperBox<T, N>& inAAHyperBox);
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr Vec<T, N> ClosestPoint(const HyperBox<T, N>& inHyperBox, const TPrimitive& inPrimitive);
 
 template <typename T, std::size_t N>
 auto GetSATNormals(const HyperBox<T, N>& inHyperBox);
@@ -103,6 +110,15 @@ constexpr Vec<T, N> Center(const HyperBox<T, N>& inHyperBox);
 
 template <typename T, std::size_t N>
 constexpr RotationType_t<T, N> Orientation(const HyperBox<T, N>& inHyperBox);
+
+// Points iterator
+template <typename T, std::size_t N>
+struct PointsIteratorSpecialization<HyperBox<T, N>>
+{
+  static constexpr std::size_t NumPoints = HyperBox<T, N>::NumPoints;
+  PointsIteratorSpecialization(const HyperBox<T, N>& inHyperBox) {}
+  Vec<T, N> GetPoint(const HyperBox<T, N>& inHyperBox, const std::size_t inPointIndex) const;
+};
 }
 
 #include "ez/HyperBox.tcc"

@@ -92,6 +92,13 @@ bool Contains(const HyperSphere<T, N>& inHyperSphere, const Capsule<T, N>& inCap
 template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const Triangle<T, N>& inTriangle);
 
+// ClosestPoint
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inPoint);
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr Vec<T, N> ClosestPoint(const HyperSphere<T, N>& inHyperSphere, const TPrimitive& inPrimitive);
+
 template <typename T, std::size_t N>
 constexpr HyperSphere<T, N> Translated(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inTranslation);
 

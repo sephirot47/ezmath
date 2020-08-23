@@ -102,14 +102,9 @@ auto Intersect(const HyperBox<T, N>& inHyperBox, const TPrimitive& inPrimitive)
 template <typename T, std::size_t N>
 bool Contains(const HyperBox<T, N>& inHyperBox, const AAHyperBox<T, N>& inAAHyperBox)
 {
-  const auto aa_hyper_box_size = inAAHyperBox.GetSize();
-  for (int i = 0; i < AAHyperBox<T, N>::NumPoints; ++i)
-  {
-    const auto aa_hyper_box_point = inAAHyperBox.GetMin() + MakeBinaryIndex<N, T>(i) * aa_hyper_box_size;
-    if (!Contains(inHyperBox, aa_hyper_box_point))
-      return false;
-  }
-  return true;
+  return std::all_of(MakePointsBegin(inAAHyperBox),
+      MakePointsEnd(inAAHyperBox),
+      [&](const auto& in_aa_hyper_box_point) { return Contains(inHyperBox, in_aa_hyper_box_point); });
 }
 
 template <typename T, std::size_t N, typename TPrimitive>
@@ -120,6 +115,24 @@ bool Contains(const HyperBox<T, N>& inHyperBox, const TPrimitive& inPrimitive)
   const auto aa_hyper_box = MakeAAHyperBoxFromCenterHalfSize(Rotated(inHyperBox.GetCenter(), hyper_box_orientation_inv),
       inHyperBox.GetExtents());
   return Contains(aa_hyper_box, local_primitive);
+}
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const HyperBox<T, N>& inHyperBox, const AAHyperBox<T, N>& inAAHyperBox)
+{
+  return ClosestPoint(inHyperBox, ClosestPoint(inAAHyperBox, inHyperBox));
+}
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr Vec<T, N> ClosestPoint(const HyperBox<T, N>& inHyperBox, const TPrimitive& inPrimitive)
+{
+  const auto hyper_box_orientation_inv = -Orientation(inHyperBox);
+  const auto local_primitive = Rotated(inPrimitive, hyper_box_orientation_inv);
+  const auto aa_hyper_box = MakeAAHyperBoxFromCenterHalfSize(Rotated(inHyperBox.GetCenter(), hyper_box_orientation_inv),
+      inHyperBox.GetExtents());
+  const auto closest_point_local = ClosestPoint(aa_hyper_box, local_primitive);
+  const auto closest_point = Rotated(closest_point_local, -hyper_box_orientation_inv);
+  return closest_point;
 }
 
 template <typename T, std::size_t N>
@@ -151,17 +164,8 @@ auto GetSATEdges(const HyperBox<T, N>& inHyperBox)
 template <typename T, std::size_t N>
 auto GetSATPoints(const HyperBox<T, N>& inHyperBox)
 {
-  const auto& center = inHyperBox.GetCenter();
-  const auto extents = inHyperBox.GetExtents();
-
-  const auto hyper_box_orientation = inHyperBox.GetOrientation();
   std::array<Vec<T, N>, HyperBox<T, N>::NumPoints> points;
-  for (uint i = 0; i < points.size(); ++i)
-  {
-    const auto extents_i = extents * (MakeBinaryIndex<N, T>(i) * 2 - 1);
-    points[i] = center + Rotated(extents_i, hyper_box_orientation);
-  }
-
+  std::copy(MakePointsBegin(inHyperBox), MakePointsEnd(inHyperBox), points.begin());
   return points;
 }
 
@@ -192,4 +196,14 @@ constexpr RotationType_t<T, N> Orientation(const HyperBox<T, N>& inHyperBox)
 {
   return inHyperBox.GetOrientation();
 }
+
+// Points iterator
+template <typename T, std::size_t N>
+Vec<T, N> PointsIteratorSpecialization<HyperBox<T, N>>::GetPoint(const HyperBox<T, N>& inHyperBox,
+    const std::size_t inPointIndex) const
+{
+  const auto point_extent = (MakeBinaryIndex<N, T>(inPointIndex) * 2 - 1) * inHyperBox.GetExtents();
+  return Center(inHyperBox) + Rotated(point_extent, Orientation(inHyperBox));
+}
+
 }

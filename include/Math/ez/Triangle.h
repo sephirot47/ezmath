@@ -2,7 +2,9 @@
 
 #include "ez/IntersectMode.h"
 #include "ez/MathForward.h"
+#include "ez/PointsIterator.h"
 #include "ez/Quat.h"
+#include "ez/Triangle.h"
 #include "ez/Vec.h"
 #include <array>
 
@@ -90,6 +92,7 @@ constexpr Triangle<T, N> Translated(const Triangle<T, N>& inTriangle, const Vec<
 template <typename T, std::size_t N>
 constexpr Triangle<T, N> Rotated(const Triangle<T, N>& inTriangle, const RotationType_t<T, N>& inRotation);
 
+// Intersect
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Triangle<T, N>& inTriangle, const Vec<T, N>& inPoint);
 
@@ -117,6 +120,7 @@ auto Intersect(const Triangle<T, N>& inTriangle, const Capsule<T, N>& inCapsule)
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Triangle<T, N>& inTriangleLHS, const Triangle<T, N>& inTriangleRHS);
 
+// Contains
 template <typename T, std::size_t N>
 bool Contains(const Triangle<T, N>& inTriangle, const Vec<T, N>& inPoint);
 
@@ -144,6 +148,18 @@ bool Contains(const Triangle<T, N>& inTriangle, const Capsule<T, N>& inCapsule);
 template <typename T, std::size_t N>
 bool Contains(const Triangle<T, N>& inTriangleContainer, const Triangle<T, N>& inTriangleContainee);
 
+// ClosestPoint
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr Vec<T, N> ClosestPoint(const Triangle<T, N>& inTriangle, const TPrimitive& inPrimitive);
+
+// Points iterator
+template <typename T, std::size_t N>
+struct PointsIteratorSpecialization<Triangle<T, N>>
+{
+  static constexpr std::size_t NumPoints = 3;
+  PointsIteratorSpecialization(const Triangle<T, N>& inTriangle) {}
+  Vec<T, N> GetPoint(const Triangle<T, N>& inTriangle, const std::size_t inPointIndex) const;
+};
 }
 
 #include "ez/Triangle.tcc"

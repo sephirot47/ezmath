@@ -57,7 +57,7 @@ Vec3<T> Projected(const Vec3<T>& inPoint, const Segment3<T>& inSegment)
 }
 
 template <typename T>
-bool IsOnPositiveSide(const Segment2<T> &inSegment, const Vec2<T> &inPoint)
+bool IsOnPositiveSide(const Segment2<T>& inSegment, const Vec2<T>& inPoint)
 {
   return Dot(Perpendicular(inSegment.GetVector()), (inPoint - inSegment.GetOrigin())) > 0;
 }
@@ -235,5 +235,13 @@ template <typename T, std::size_t N>
 constexpr Vec<T, N> Center(const Segment<T, N>& inSegment)
 {
   return (inSegment.GetOrigin() + inSegment.GetDestiny()) / static_cast<T>(2);
+}
+
+// Points iterator
+template <typename T, std::size_t N>
+Vec<T, N> PointsIteratorSpecialization<Segment<T, N>>::GetPoint(const Segment<T, N>& inSegment,
+    const std::size_t inPointIndex) const
+{
+  return inPointIndex == 0 ? inSegment.GetOrigin() : inSegment.GetDestiny();
 }
 }

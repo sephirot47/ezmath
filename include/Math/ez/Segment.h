@@ -4,6 +4,7 @@
 #include "ez/MathCommon.h"
 #include "ez/MathForward.h"
 #include "ez/MathInitializers.h"
+#include "ez/PointsIterator.h"
 #include "ez/Quat.h"
 #include "ez/Vec.h"
 #include <cstdint>
@@ -103,6 +104,15 @@ constexpr Segment<T, N> Translated(const Segment<T, N>& inSegment, const Vec<T, 
 
 template <typename T, std::size_t N>
 constexpr Segment<T, N> Rotated(const Segment<T, N>& inSegment, const RotationType_t<T, N>& inRotation);
+
+// Points iterator
+template <typename T, std::size_t N>
+struct PointsIteratorSpecialization<Segment<T, N>>
+{
+  static constexpr std::size_t NumPoints = 2;
+  PointsIteratorSpecialization(const Segment<T, N>& inSegment) {}
+  Vec<T, N> GetPoint(const Segment<T, N>& inSegment, const std::size_t inPointIndex) const;
+};
 
 }
 

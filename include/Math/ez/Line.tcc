@@ -173,127 +173,6 @@ namespace line_detail
   }
 }
 
-template <typename T>
-constexpr T ClosestPointT(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS)
-{
-  const auto intersection = IntersectClosest(inLineLHS, inLineRHS);
-  if (intersection.has_value())
-    return *intersection;
-
-  // Lines are parallel. Pick a consistent closest point even when commuting parameters.
-  auto line_lhs_less_than_line_rhs = false;
-  for (std::size_t i = 0; i < 2; ++i)
-  {
-    if (inLineLHS.GetOrigin()[i] < inLineRHS.GetOrigin()[i])
-      return ClosestPointT(inLineLHS, inLineRHS.GetOrigin());
-    else if (inLineLHS.GetOrigin()[i] > inLineRHS.GetOrigin()[i])
-      return static_cast<T>(0);
-  }
-  return static_cast<T>(0);
-}
-
-template <typename T>
-constexpr T ClosestPointT(const Line3<T>& inLineLHS, const Line3<T>& inLineRHS)
-{
-  return static_cast<T>(0); // TODO
-}
-
-template <typename T, std::size_t N>
-constexpr T ClosestPointT(const Line<T, N>& inLine, const Vec<T, N>& inPoint)
-{
-  const auto line_dir = Direction(inLine);
-  const auto point_origin_vector = (inPoint - inLine.GetOrigin());
-  return Dot(point_origin_vector, line_dir);
-}
-
-template <typename T, std::size_t N>
-constexpr T ClosestPointT(const Line<T, N>& inLine, const Ray<T, N>& inRay)
-{
-  const auto ray_line = Line<T, N> { inRay.GetOrigin(), Direction(inRay) };
-  const auto ray_line_closest_point_t = ClosestPointT(ray_line, inLine);
-  const auto ray_line_closest_point_t_clamped = Max(ray_line_closest_point_t, static_cast<T>(0));
-  const auto ray_closest_point = inRay.GetPoint(ray_line_closest_point_t_clamped);
-  return ClosestPointT(inLine, ray_closest_point);
-}
-
-template <typename T, std::size_t N>
-constexpr T ClosestPointT(const Line<T, N>& inLine, const Segment<T, N>& inSegment)
-{
-  const auto segment_sq_length = SqLength(inSegment);
-  if (IsVeryEqual(segment_sq_length, static_cast<T>(0)))
-    return ClosestPointT(inLine, inSegment.GetOrigin());
-
-  const auto segment_line_closest_point_t = ClosestPointT(inSegment.GetLine(), inLine);
-  const auto segment_length = Sqrt(segment_sq_length);
-  const auto segment_line_closest_point_t_clamped
-      = Clamp(segment_line_closest_point_t, static_cast<T>(0), segment_length);
-  const auto segment_closest_point = inSegment.GetPoint(segment_line_closest_point_t_clamped);
-  return ClosestPointT(inLine, segment_closest_point);
-}
-
-template <typename T, std::size_t N>
-constexpr T ClosestPointT(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox)
-{
-  return line_detail::GetT(inLine, ClosestPoint(inLine, inAAHyperBox));
-}
-
-template <typename T, std::size_t N>
-constexpr T ClosestPointT(const Line<T, N>& inLine, const HyperBox<T, N>& inHyperBox)
-{
-  return line_detail::GetT(inLine, ClosestPoint(inLine, inHyperBox));
-}
-
-template <typename T, std::size_t N>
-constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox)
-{
-  const auto aa_hyper_box_extents = inAAHyperBox.GetSize() / static_cast<T>(2);
-  const auto hyper_box = HyperBox<T, N> { Center(inAAHyperBox), aa_hyper_box_extents, RotationTypeIdentity<T, N>() };
-  return ClosestPoint(inLine, hyper_box);
-}
-
-template <typename T, std::size_t N>
-constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const HyperBox<T, N>& inHyperBox)
-{
-  auto min_sq_distance_from_line_to_hyper_box_point = Max<T>();
-  auto closest_hyper_box_point_to_line = Max<Vec<T, N>>();
-  const auto hyper_box_center = Center(inHyperBox);
-  const auto hyper_box_orientation = Orientation(inHyperBox);
-  for (std::size_t i = 0; i < HyperBox<T, N>::NumPoints; ++i)
-  {
-    if constexpr (N == 2)
-    {
-      const auto hyper_box_point = (hyper_box_center + inHyperBox.GetExtents() * (MakeBinaryIndex<N, T>(i) * 2 - 1));
-      const auto hyper_box_point_rotated = Rotated(hyper_box_point, hyper_box_orientation);
-      const auto sq_distance_from_line_to_hyper_box_point = SqDistance(inLine, hyper_box_point_rotated);
-      if (sq_distance_from_line_to_hyper_box_point < min_sq_distance_from_line_to_hyper_box_point)
-      {
-        min_sq_distance_from_line_to_hyper_box_point = sq_distance_from_line_to_hyper_box_point;
-        closest_hyper_box_point_to_line = hyper_box_point_rotated;
-      }
-    }
-    else if constexpr (N == 3)
-    {
-      // TODO. Do same with edges.
-    }
-  }
-  return closest_hyper_box_point_to_line;
-}
-
-template <typename T, std::size_t N, typename TPrimitive>
-constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const TPrimitive& inPrimitive)
-{
-  const auto t = ClosestPointT(inLine, inPrimitive);
-  return inLine.GetPoint(t);
-}
-
-template <typename T, std::size_t N, typename TPrimitive>
-constexpr T SqDistance(const Line<T, N>& inLine, const TPrimitive& inPrimitive)
-{
-  const auto closest_point_on_line = ClosestPoint(inLine, inPrimitive);
-  const auto closest_point_on_primitive = ClosestPoint(inPrimitive, closest_point_on_line);
-  return SqDistance(closest_point_on_line, closest_point_on_primitive);
-}
-
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS)
 {
@@ -649,6 +528,172 @@ template <typename T, std::size_t N, typename TPrimitive>
 bool Contains(const Line<T, N>& inLine, const TPrimitive& inPrimitive)
 {
   return false;
+}
+
+template <typename T>
+constexpr T ClosestPointT(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS)
+{
+  const auto intersection = IntersectClosest(inLineLHS, inLineRHS);
+  if (intersection.has_value())
+    return *intersection;
+
+  // Lines are parallel. Pick a consistent closest point even when commuting parameters.
+  auto line_lhs_less_than_line_rhs = false;
+  for (std::size_t i = 0; i < 2; ++i)
+  {
+    if (inLineLHS.GetOrigin()[i] < inLineRHS.GetOrigin()[i])
+      return ClosestPointT(inLineLHS, inLineRHS.GetOrigin());
+    else if (inLineLHS.GetOrigin()[i] > inLineRHS.GetOrigin()[i])
+      return static_cast<T>(0);
+  }
+  return static_cast<T>(0);
+}
+
+template <typename T>
+constexpr T ClosestPointT(const Line3<T>& inLineLHS, const Line3<T>& inLineRHS)
+{
+  return static_cast<T>(0); // TODO
+}
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Vec<T, N>& inPoint)
+{
+  const auto line_dir = Direction(inLine);
+  const auto point_origin_vector = (inPoint - inLine.GetOrigin());
+  return Dot(point_origin_vector, line_dir);
+}
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Ray<T, N>& inRay)
+{
+  const auto ray_line = Line<T, N> { inRay.GetOrigin(), Direction(inRay) };
+  const auto ray_line_closest_point_t = ClosestPointT(ray_line, inLine);
+  const auto ray_line_closest_point_t_clamped = Max(ray_line_closest_point_t, static_cast<T>(0));
+  const auto ray_closest_point = inRay.GetPoint(ray_line_closest_point_t_clamped);
+  return ClosestPointT(inLine, ray_closest_point);
+}
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Segment<T, N>& inSegment)
+{
+  const auto segment_sq_length = SqLength(inSegment);
+  if (IsVeryEqual(segment_sq_length, static_cast<T>(0)))
+    return ClosestPointT(inLine, inSegment.GetOrigin());
+
+  const auto segment_line_closest_point_t = ClosestPointT(inSegment.GetLine(), inLine);
+  const auto segment_length = Sqrt(segment_sq_length);
+  const auto segment_line_closest_point_t_clamped
+      = Clamp(segment_line_closest_point_t, static_cast<T>(0), segment_length);
+  const auto segment_closest_point = inSegment.GetPoint(segment_line_closest_point_t_clamped);
+  return ClosestPointT(inLine, segment_closest_point);
+}
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const HyperSphere<T, N>& inHyperSphere)
+{
+  return ClosestPointT(inLine, Center(inHyperSphere));
+}
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox)
+{
+  return line_detail::GetT(inLine, ClosestPoint(inLine, inAAHyperBox));
+}
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const HyperBox<T, N>& inHyperBox)
+{
+  return line_detail::GetT(inLine, ClosestPoint(inLine, inHyperBox));
+}
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule)
+{
+  return ClosestPointT(inLine, inCapsule.GetSegment());
+}
+
+template <typename T, std::size_t N>
+constexpr T ClosestPointT(const Line<T, N>& inLine, const Triangle<T, N>& inTriangle)
+{
+  return ClosestPointT(inLine, ClosestPoint(inTriangle, inLine));
+}
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const AAHyperBox<T, N>& inAAHyperBox)
+{
+  const auto aa_hyper_box_extents = inAAHyperBox.GetSize() / static_cast<T>(2);
+  const auto hyper_box = HyperBox<T, N> { Center(inAAHyperBox), aa_hyper_box_extents, RotationTypeIdentity<T, N>() };
+  return ClosestPoint(inLine, hyper_box);
+}
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const HyperBox<T, N>& inHyperBox)
+{
+  auto min_sq_distance_from_line_to_hyper_box = Max<T>();
+  auto closest_point_in_line_to_hyper_box = Max<Vec<T, N>>();
+  if constexpr (N == 2)
+  {
+    for (const auto hyper_box_point : MakePointsRange(inHyperBox))
+    {
+      const auto closest_point_in_line_to_hyper_box_point = ClosestPoint(inLine, hyper_box_point);
+      const auto sq_distance_from_line_to_hyper_box_point
+          = SqDistance(hyper_box_point, closest_point_in_line_to_hyper_box_point);
+      if (sq_distance_from_line_to_hyper_box_point < min_sq_distance_from_line_to_hyper_box)
+      {
+        min_sq_distance_from_line_to_hyper_box = sq_distance_from_line_to_hyper_box_point;
+        closest_point_in_line_to_hyper_box = closest_point_in_line_to_hyper_box_point;
+      }
+    }
+  }
+  else if constexpr (N == 3)
+  {
+    const auto hyper_box_center = Center(inHyperBox);
+    const auto hyper_box_orientation = Orientation(inHyperBox);
+    const auto hyper_box_extents_rotated = Rotated(inHyperBox.GetExtents(), hyper_box_orientation);
+    for (int i = 0; i < HyperBox<T, N>::NumPoints; ++i)
+    {
+      const auto bin_index_0 = (MakeBinaryIndex<N, T>(i));
+      for (int j = 0; j < N; ++j)
+      {
+        auto bin_index_increment = Zero<Vec<T, N>>();
+        for (int k = 0; k < N; ++k) bin_index_increment[k] = static_cast<T>((k == j) ? 1 : 0);
+
+        const auto bin_index_1 = bin_index_0 + bin_index_increment;
+        if (bin_index_1 > One<Vec<T, N>>())
+          continue;
+
+        const auto hyper_box_point_0 = (hyper_box_center + hyper_box_extents_rotated * (bin_index_0 * 2 - 1));
+        const auto hyper_box_point_1 = (hyper_box_center + hyper_box_extents_rotated * (bin_index_1 * 2 - 1));
+        const auto hyper_box_segment = Segment<T, N> { hyper_box_point_0, hyper_box_point_1 };
+        const auto closest_point_in_hyper_box_segment_to_line = ClosestPoint(hyper_box_segment, inLine);
+        const auto closest_point_in_line_to_hyper_box_segment
+            = ClosestPoint(inLine, closest_point_in_hyper_box_segment_to_line);
+        const auto sq_distance_from_line_to_hyper_box_segment
+            = SqDistance(closest_point_in_hyper_box_segment_to_line, closest_point_in_line_to_hyper_box_segment);
+        if (sq_distance_from_line_to_hyper_box_segment < min_sq_distance_from_line_to_hyper_box)
+        {
+          min_sq_distance_from_line_to_hyper_box = sq_distance_from_line_to_hyper_box_segment;
+          closest_point_in_line_to_hyper_box = closest_point_in_line_to_hyper_box_segment;
+        }
+      }
+    }
+  }
+  return closest_point_in_line_to_hyper_box;
+}
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const TPrimitive& inPrimitive)
+{
+  const auto t = ClosestPointT(inLine, inPrimitive);
+  return inLine.GetPoint(t);
+}
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr T SqDistance(const Line<T, N>& inLine, const TPrimitive& inPrimitive)
+{
+  const auto closest_point_on_line = ClosestPoint(inLine, inPrimitive);
+  const auto closest_point_on_primitive = ClosestPoint(inPrimitive, closest_point_on_line);
+  return SqDistance(closest_point_on_line, closest_point_on_primitive);
 }
 
 template <typename T, std::size_t N>

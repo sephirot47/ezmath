@@ -43,7 +43,7 @@ constexpr Vec<T, N> Direction(const Capsule<T, N>& inCapsule);
 template <typename T, std::size_t N>
 constexpr T SqLength(const Capsule<T, N>& inCapsule);
 
-// Intersection functions
+// Intersect
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Capsule<T, N>& inCapsule, const Vec<T, N>& inPoint);
 
@@ -71,6 +71,7 @@ auto Intersect(const Capsule<T, N>& inCapsuleLHS, const Capsule<T, N>& inCapsule
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Capsule<T, N>& inCapsule, const Triangle<T, N>& inTriangle);
 
+// Contains
 template <typename T, std::size_t N>
 bool Contains(const Capsule<T, N>& inCapsule, const Vec<T, N>& inPoint);
 
@@ -98,14 +99,12 @@ bool Contains(const Capsule<T, N>& inCapsuleContainer, const Capsule<T, N>& inCa
 template <typename T, std::size_t N>
 bool Contains(const Capsule<T, N>& inCapsule, const Triangle<T, N>& inTriangle);
 
+// ClosestPoint
 template <typename T, std::size_t N>
 constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const Vec<T, N>& inPoint);
 
-template <typename T, std::size_t N>
-constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const AAHyperBox<T, N>& inAAHyperBox);
-
-template <typename T, std::size_t N>
-constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const HyperBox<T, N>& inHyperBox);
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr Vec<T, N> ClosestPoint(const Capsule<T, N>& inCapsule, const TPrimitive& inPrimitive);
 
 template <typename T, std::size_t N>
 constexpr RotationType_t<T, N> Orientation(const Capsule<T, N>& inCapsule);

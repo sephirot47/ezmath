@@ -117,31 +117,17 @@ bool Contains(const HyperSphere<T, N>& inHyperSphereContainer, const HyperSphere
 template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& inAAHyperBox)
 {
-  const auto aa_hyper_box_min = inAAHyperBox.GetMin();
-  const auto aa_hyper_box_size = inAAHyperBox.GetSize();
-  for (int i = 0; i < AAHyperBox<T, N>::NumPoints; ++i)
-  {
-    const auto aa_hyper_box_point = aa_hyper_box_min + aa_hyper_box_size * MakeBinaryIndex<N, T>(i);
-    if (!Contains(inHyperSphere, aa_hyper_box_point))
-      return false;
-  }
-  return true;
+  return std::all_of(MakePointsBegin(inAAHyperBox),
+      MakePointsEnd(inAAHyperBox),
+      [&](const auto& in_aa_hyper_box_point) { return Contains(inHyperSphere, in_aa_hyper_box_point); });
 }
 
 template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const HyperBox<T, N>& inHyperBox)
 {
-  const auto hyper_box_center = inHyperBox.GetCenter();
-  const auto hyper_box_extents = inHyperBox.GetExtents();
-  const auto hyper_box_orientation = Orientation(inHyperBox);
-  for (int i = 0; i < HyperBox<T, N>::NumPoints; ++i)
-  {
-    const auto rotated_extents = Rotated(hyper_box_extents * (MakeBinaryIndex<N, T>(i) * 2 - 1), hyper_box_orientation);
-    const auto hyper_box_point = hyper_box_center + rotated_extents;
-    if (!Contains(inHyperSphere, hyper_box_point))
-      return false;
-  }
-  return true;
+  return std::all_of(MakePointsBegin(inHyperBox), MakePointsEnd(inHyperBox), [&](const auto& in_hyper_box_point) {
+    return Contains(inHyperSphere, in_hyper_box_point);
+  });
 }
 
 template <typename T, std::size_t N>
@@ -154,8 +140,21 @@ bool Contains(const HyperSphere<T, N>& inHyperSphere, const Capsule<T, N>& inCap
 template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const Triangle<T, N>& inTriangle)
 {
-  return Contains(inHyperSphere, inTriangle[0]) && Contains(inHyperSphere, inTriangle[1])
-      && Contains(inHyperSphere, inTriangle[2]);
+  return std::all_of(MakePointsBegin(inTriangle), MakePointsEnd(inTriangle), [&](const auto& in_triangle_point) {
+    return Contains(inHyperSphere, in_triangle_point);
+  });
+}
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inPoint)
+{
+  return Center(inHyperSphere) + Direction(inPoint - Center(inHyperSphere)) * inHyperSphere.GetRadius();
+}
+
+template <typename T, std::size_t N, typename TPrimitive>
+constexpr Vec<T, N> ClosestPoint(const HyperSphere<T, N>& inHyperSphere, const TPrimitive& inPrimitive)
+{
+  return ClosestPoint(inHyperSphere, ClosestPoint(inPrimitive, Center(inHyperSphere)));
 }
 
 template <typename T, std::size_t N>

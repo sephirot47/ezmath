@@ -3,6 +3,7 @@
 #include "ez/IntersectMode.h"
 #include "ez/MathMultiComponent.h"
 #include "ez/MathTypeTraits.h"
+#include "ez/PointsIterator.h"
 #include "ez/Vec.h"
 
 namespace ez
@@ -61,33 +62,6 @@ public:
   AAHyperBox operator/(const Vec<T, N>& inRHS) { return (*this) * (static_cast<T>(1) / inRHS); }
   AAHyperBox& operator*=(const Vec<T, N>& inRHS);
   AAHyperBox& operator/=(const Vec<T, N>& inRHS) { return ((*this) *= (static_cast<T>(1) / inRHS)); }
-
-  template <bool IsConst>
-  class GPointsIterator
-  {
-  public:
-    using AAHyperBoxType = std::conditional_t<IsConst, const AAHyperBox, AAHyperBox>;
-    using VecType = std::conditional_t<IsConst, const Vec<T, N>, Vec<T, N>>;
-
-    GPointsIterator(AAHyperBoxType& ioHyperBox, const std::size_t inBeginIndex);
-    GPointsIterator& operator++();
-    bool operator==(const GPointsIterator& inRHS) const { return mCurrentIndex == inRHS.mCurrentIndex; }
-    bool operator!=(const GPointsIterator& inRHS) const { return !(*this == inRHS); }
-    VecType operator*() const;
-
-  private:
-    AAHyperBoxType& mAAHyperBox;
-    std::size_t mCurrentIndex = 0;
-  };
-  using PointsIterator = GPointsIterator<false>;
-  using PointsConstIterator = GPointsIterator<true>;
-
-  AAHyperBox::PointsIterator begin() { return PointsIterator(*this, 0); }
-  AAHyperBox::PointsIterator end() { return PointsIterator(*this, NumPoints); }
-  AAHyperBox::PointsConstIterator begin() const { return cbegin(); }
-  AAHyperBox::PointsConstIterator end() const { return cend(); }
-  AAHyperBox::PointsConstIterator cbegin() const { return PointsConstIterator(*this, 0); }
-  AAHyperBox::PointsConstIterator cend() const { return PointsConstIterator(*this, NumPoints); }
 
 private:
   std::array<Vec<T, N>, 2> mMinMax = { Max<Vec<T, N>>(), Min<Vec<T, N>>() }; // Init with invalid
@@ -195,7 +169,19 @@ template <typename T, std::size_t N>
 constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Segment<T, N>& inSegment);
 
 template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& inHyperSphere);
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBoxLHS, const AAHyperBox<T, N>& inAAHyperBoxRHS);
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const HyperBox<T, N>& inHyperBox);
+
+template <typename T, std::size_t N>
 constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Capsule<T, N>& inCapsule);
+
+template <typename T, std::size_t N>
+constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Triangle<T, N>& inTriangle);
 
 template <typename T, std::size_t N, typename TPrimitive>
 constexpr T SqDistance(const AAHyperBox<T, N>& inAAHyperBox, const TPrimitive& inPrimitive);
@@ -231,6 +217,18 @@ void Transform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const Transformation<T
 
 template <typename T, std::size_t N>
 void InverseTransform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const Transformation<T, N>& inTransformation);
+
+// Points iterator
+template <typename T, std::size_t N>
+struct PointsIteratorSpecialization<AAHyperBox<T, N>>
+{
+  static constexpr std::size_t NumPoints = AAHyperBox<T, N>::NumPoints;
+  PointsIteratorSpecialization(const AAHyperBox<T, N>& inAAHyperBox);
+  Vec<T, N> GetPoint(const AAHyperBox<T, N>& inAAHyperBox, const std::size_t inPointIndex) const;
+
+private:
+  Vec<T, N> mAAHyperBoxSize;
+};
 }
 
 #include "ez/AAHyperBox.tcc"
