@@ -27,9 +27,9 @@ public:
   template <std::size_t NOther, std::size_t NBegin, std::size_t NEnd>
   constexpr static VecPart<T, N> Create(Vec<T, NOther>& ioRHS)
   {
-    static_assert(NEnd - NBegin + 1 == N);
-    static_assert(NBegin < NOther);
-    static_assert(NEnd < NOther);
+    static_assert(NEnd - NBegin == N);
+    static_assert(NBegin <= NOther);
+    static_assert(NEnd <= NOther);
 
     VecPart part;
     for (std::size_t i = 0; i < N; ++i) { part.mComponentsPtrs[i] = &ioRHS[i + NBegin]; }
@@ -137,29 +137,46 @@ template <typename T, std::size_t N>
 using MaybeVec_t = typename MaybeVec<T, N>::type;
 
 template <std::size_t NBegin, std::size_t NEnd, typename T, std::size_t N>
-constexpr decltype(auto) WithPart(const Vec<T, N>& inLHS, const MaybeVec_t<T, (NEnd - NBegin + 1)>& inNewPart)
+constexpr Vec<T, N> WithPart(const Vec<T, N>& inLHS, const MaybeVec_t<T, (NEnd - NBegin)>& inNewPart)
 {
   auto vec = inLHS;
-  Part<NBegin, NEnd>(vec) = inNewPart;
+  for (std::size_t i = NBegin; i < NEnd; ++i)
+  {
+    if constexpr (IsNumber_v<decltype(inNewPart)>)
+      vec[i] = inNewPart;
+    else
+      vec[i] = inNewPart[i - NBegin];
+  }
   return vec;
 }
 
-/*
-template <std::size_t NBegin, std::size_t NEnd, typename T, std::size_t N>
-constexpr decltype(auto) WithPart(Vec<T, N>&& inLHS, const MaybeVec_t<T, (NEnd - NBegin + 1)>& inNewPart)
+template <typename T, std::size_t N, std::size_t NPart>
+constexpr Vec<T, N> WithPart(const Vec<T, N>& inLHS,
+    const std::size_t inBegin,
+    const std::size_t inEnd,
+    const MaybeVec_t<T, NPart>& inNewPart)
 {
-  return WithPart<NBegin, NEnd, T, N>(static_cast<const Vec<T, N>&>(inLHS), inNewPart);
+  assert((inEnd - inBegin) == NPart);
+
+  auto vec = inLHS;
+  for (std::size_t i = inBegin; i < inEnd; ++i)
+  {
+    if constexpr (IsNumber_v<decltype(inNewPart)>)
+      vec[i] = inNewPart;
+    else
+      vec[i] = inNewPart[i - inBegin];
+  }
+  return vec;
 }
-*/
 
 template <std::size_t NBegin, std::size_t NEnd, typename T, std::size_t N>
 constexpr auto Part(const Vec<T, N>& inRHS)
 {
   static_assert(NBegin < N);
-  static_assert(NEnd < N);
-  static_assert(NEnd >= NBegin);
+  static_assert(NEnd <= N);
+  static_assert(NEnd > NBegin);
 
-  constexpr auto PartN = (NEnd - NBegin + 1);
+  constexpr auto PartN = (NEnd - NBegin);
   static_assert(PartN >= 1);
 
   if constexpr (PartN == 1)
@@ -190,7 +207,7 @@ constexpr decltype(auto) Part(Vec<T, N>& ioRHS)
   }
   else
   {
-    return VecPart<T, (NEnd - NBegin + 1)>::template Create<N, NBegin, NEnd>(ioRHS);
+    return VecPart<T, (NEnd - NBegin)>::template Create<N, NBegin, NEnd>(ioRHS);
   }
 }
 }

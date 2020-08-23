@@ -119,6 +119,15 @@ struct PointsIteratorSpecialization<HyperBox<T, N>>
   PointsIteratorSpecialization(const HyperBox<T, N>& inHyperBox) {}
   Vec<T, N> GetPoint(const HyperBox<T, N>& inHyperBox, const std::size_t inPointIndex) const;
 };
+
+// Segments iterator
+template <typename T, std::size_t N>
+struct SegmentsIteratorSpecialization<HyperBox<T, N>>
+{
+  static constexpr std::size_t NumSegments = (N * (HyperBox<T, N>::NumPoints / 2));
+  SegmentsIteratorSpecialization(const HyperBox<T, N>& inHyperBox) {}
+  Segment<T, N> GetSegment(const HyperBox<T, N>& inHyperBox, const std::size_t inSegmentIndex) const;
+};
 }
 
 #include "ez/HyperBox.tcc"

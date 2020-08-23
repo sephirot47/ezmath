@@ -6,6 +6,7 @@
 #include "ez/MathInitializers.h"
 #include "ez/PointsIterator.h"
 #include "ez/Quat.h"
+#include "ez/SegmentsIterator.h"
 #include "ez/Vec.h"
 #include <cstdint>
 #include <type_traits>
@@ -42,6 +43,9 @@ template <typename T, std::size_t N>
 struct IsSegment<Segment<T, N>> : std::true_type
 {
 };
+
+template <typename T, std::size_t N>
+inline std::ostream& operator<<(std::ostream& ioLHS, const Segment<T, N>& inRHS);
 
 template <typename T, std::size_t N>
 constexpr Vec<T, N> Direction(const Segment<T, N>& inSegment);
@@ -112,6 +116,15 @@ struct PointsIteratorSpecialization<Segment<T, N>>
   static constexpr std::size_t NumPoints = 2;
   PointsIteratorSpecialization(const Segment<T, N>& inSegment) {}
   Vec<T, N> GetPoint(const Segment<T, N>& inSegment, const std::size_t inPointIndex) const;
+};
+
+// Segments iterator
+template <typename T, std::size_t N>
+struct SegmentsIteratorSpecialization<Segment<T, N>>
+{
+  static constexpr std::size_t NumSegments = 1;
+  SegmentsIteratorSpecialization(const Segment<T, N>& inSegment) {}
+  Segment<T, N> GetSegment(const Segment<T, N>& inSegment, const std::size_t inSegmentIndex) const { return inSegment; }
 };
 
 }

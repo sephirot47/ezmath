@@ -40,6 +40,13 @@ Line<T, N> Segment<T, N>::GetLine() const
 }
 
 template <typename T, std::size_t N>
+inline std::ostream& operator<<(std::ostream& ioLHS, const Segment<T, N>& inRHS)
+{
+  ioLHS << "(" << inRHS.GetOrigin() << ", " << inRHS.GetDestiny() << ")";
+  return ioLHS;
+}
+
+template <typename T, std::size_t N>
 constexpr Vec<T, N> Direction(const Segment<T, N>& inSegment)
 {
   const auto direction = NormalizedSafe(inSegment.GetVector());

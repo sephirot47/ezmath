@@ -4,6 +4,7 @@
 #include "ez/MathMultiComponent.h"
 #include "ez/MathTypeTraits.h"
 #include "ez/PointsIterator.h"
+#include "ez/SegmentsIterator.h"
 #include "ez/Vec.h"
 
 namespace ez
@@ -227,7 +228,19 @@ struct PointsIteratorSpecialization<AAHyperBox<T, N>>
   Vec<T, N> GetPoint(const AAHyperBox<T, N>& inAAHyperBox, const std::size_t inPointIndex) const;
 
 private:
-  Vec<T, N> mAAHyperBoxSize;
+  const Vec<T, N> mAAHyperBoxSize;
+};
+
+// Segments iterator
+template <typename T, std::size_t N>
+struct SegmentsIteratorSpecialization<AAHyperBox<T, N>>
+{
+  static constexpr std::size_t NumSegments = (N * (AAHyperBox<T, N>::NumPoints / 2));
+  SegmentsIteratorSpecialization(const AAHyperBox<T, N>& inAAHyperBox);
+  Segment<T, N> GetSegment(const AAHyperBox<T, N>& inAAHyperBox, const std::size_t inSegmentIndex) const;
+
+private:
+  const Vec<T, N> mAAHyperBoxSize;
 };
 }
 

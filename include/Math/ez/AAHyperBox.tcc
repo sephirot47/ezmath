@@ -358,10 +358,10 @@ constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBoxLHS, const 
 {
   auto closest_point_in_lhs = Max<Vec<T, N>>();
   auto closest_sq_distance = Max<T>();
-  for (const auto rhs_aa_hyper_box_point : MakePointsRange(inAAHyperBoxRHS))
+  for (const auto rhs_aa_hyper_box_segment : MakeSegmentsRange(inAAHyperBoxRHS))
   {
-    const auto closest_point = ClosestPoint(inAAHyperBoxLHS, rhs_aa_hyper_box_point);
-    const auto sq_distance = SqDistance(rhs_aa_hyper_box_point, closest_point);
+    const auto closest_point = ClosestPoint(inAAHyperBoxLHS, rhs_aa_hyper_box_segment);
+    const auto sq_distance = SqDistance(rhs_aa_hyper_box_segment, closest_point);
     if (sq_distance < closest_sq_distance)
     {
       closest_point_in_lhs = closest_point;
@@ -376,10 +376,10 @@ constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Hyp
 {
   auto closest_point_in_aa_hyper_box = Max<Vec<T, N>>();
   auto closest_sq_distance = Max<T>();
-  for (const auto hyper_box_point : MakePointsRange(inHyperBox))
+  for (const auto hyper_box_segment : MakeSegmentsRange(inHyperBox))
   {
-    const auto closest_point = ClosestPoint(inAAHyperBox, hyper_box_point);
-    const auto sq_distance = SqDistance(hyper_box_point, closest_point);
+    const auto closest_point = ClosestPoint(inAAHyperBox, hyper_box_segment);
+    const auto sq_distance = SqDistance(hyper_box_segment, closest_point);
     if (sq_distance < closest_sq_distance)
     {
       closest_point_in_aa_hyper_box = closest_point;
@@ -523,5 +523,37 @@ Vec<T, N> PointsIteratorSpecialization<AAHyperBox<T, N>>::GetPoint(const AAHyper
     const std::size_t inPointIndex) const
 {
   return inAAHyperBox.GetMin() + MakeBinaryIndex<N, T>(inPointIndex) * mAAHyperBoxSize;
+}
+
+// Segments iterator
+template <typename T, std::size_t N>
+SegmentsIteratorSpecialization<AAHyperBox<T, N>>::SegmentsIteratorSpecialization(const AAHyperBox<T, N>& inAAHyperBox)
+    : mAAHyperBoxSize { inAAHyperBox.GetSize() }
+{
+}
+
+template <typename T, std::size_t N>
+Segment<T, N> SegmentsIteratorSpecialization<AAHyperBox<T, N>>::GetSegment(const AAHyperBox<T, N>& inAAHyperBox,
+    const std::size_t inSegmentIndex) const
+{
+  Vec<T, N> bin_index_0, bin_index_1;
+  {
+    const auto dimension = (inSegmentIndex / (AAHyperBox<T, N>::NumPoints / 2));
+    const auto point_i = (inSegmentIndex % (AAHyperBox<T, N>::NumPoints / 2));
+
+    int j = 0;
+    const auto low_bin_index_0 = MakeBinaryIndex<N - 1, T>(point_i);
+    for (std::size_t i = 0; i < N; ++i) { bin_index_0[i] = ((i == dimension) ? 0 : low_bin_index_0[j++]); }
+
+    bin_index_1 = bin_index_0;
+    ++bin_index_1[dimension];
+
+    assert(IsBetween(bin_index_0, Zero<Vec<T, N>>(), One<Vec<T, N>>()));
+    assert(IsBetween(bin_index_1, Zero<Vec<T, N>>(), One<Vec<T, N>>()));
+  }
+
+  const auto aa_hyper_box_point_0 = (inAAHyperBox.GetMin() + mAAHyperBoxSize * bin_index_0);
+  const auto aa_hyper_box_point_1 = (inAAHyperBox.GetMin() + mAAHyperBoxSize * bin_index_1);
+  return Segment<T, N> { aa_hyper_box_point_0, aa_hyper_box_point_1 };
 }
 }

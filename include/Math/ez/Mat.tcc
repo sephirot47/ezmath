@@ -386,13 +386,13 @@ constexpr auto Inverted(const T& inValue)
 template <typename T>
 constexpr auto Translation(const SquareMat<T, 3>& inMat)
 {
-  return Part<0, 1>(Column<2>(inMat));
+  return Part<0, 2>(Column<2>(inMat));
 }
 
 template <typename T>
 constexpr auto Translation(const SquareMat<T, 4>& inMat)
 {
-  return Part<0, 2>(Column<3>(inMat));
+  return Part<0, 3>(Column<3>(inMat));
 }
 
 template <typename T>

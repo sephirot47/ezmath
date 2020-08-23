@@ -14,14 +14,6 @@ struct PointsIteratorSpecialization
 };
 
 template <typename TPrimitive>
-constexpr Vec<ValueType_t<TPrimitive>, NumComponents_v<TPrimitive>> GetPointsIteratorPoint(const TPrimitive& inSegment,
-    const std::size_t inPointIndex)
-{
-  static_assert(!std::is_same_v<TPrimitive, TPrimitive>, "Please specialize this function");
-  return Zero<Vec<ValueType_t<TPrimitive>, NumComponents_v<TPrimitive>>>();
-}
-
-template <typename TPrimitive>
 class PointsIterator
 {
 public:
@@ -33,7 +25,7 @@ public:
 
   using iterator_category = std::forward_iterator_tag;
   using difference_type = std::size_t;
-  using value_type = Vec<ValueType, NumComponents>;
+  using value_type = VecType;
   using pointer = void;
   using reference = const VecType&;
 

@@ -419,19 +419,19 @@ constexpr Vec3<T> Cross(const Vec3<T>& inLHS, const Vec3<T>& inRHS)
 template <typename T>
 constexpr auto Right()
 {
-  return WithPart<0, 0>(Zero<T>(), static_cast<ValueType_t<T>>(1));
+  return WithPart<0, 1>(Zero<T>(), static_cast<ValueType_t<T>>(1));
 }
 
 template <typename T>
 constexpr auto Up()
 {
-  return WithPart<1, 1>(Zero<T>(), static_cast<ValueType_t<T>>(1));
+  return WithPart<1, 2>(Zero<T>(), static_cast<ValueType_t<T>>(1));
 }
 
 template <typename T>
 constexpr auto Forward()
 {
-  return WithPart<2, 2>(Zero<T>(), static_cast<ValueType_t<T>>(-1));
+  return WithPart<2, 3>(Zero<T>(), static_cast<ValueType_t<T>>(-1));
 }
 
 template <typename T>

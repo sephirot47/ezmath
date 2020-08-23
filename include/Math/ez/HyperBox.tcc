@@ -206,4 +206,34 @@ Vec<T, N> PointsIteratorSpecialization<HyperBox<T, N>>::GetPoint(const HyperBox<
   return Center(inHyperBox) + Rotated(point_extent, Orientation(inHyperBox));
 }
 
+// Segment iterator
+template <typename T, std::size_t N>
+Segment<T, N> SegmentsIteratorSpecialization<HyperBox<T, N>>::GetSegment(const HyperBox<T, N>& inHyperBox,
+    const std::size_t inSegmentIndex) const
+{
+  Vec<T, N> bin_index_0, bin_index_1;
+  {
+    const auto dimension = (inSegmentIndex / (HyperBox<T, N>::NumPoints / 2));
+    const auto point_i = (inSegmentIndex % (HyperBox<T, N>::NumPoints / 2));
+
+    int j = 0;
+    const auto low_bin_index_0 = MakeBinaryIndex<N - 1, T>(point_i);
+    for (std::size_t i = 0; i < N; ++i) { bin_index_0[i] = ((i == dimension) ? 0 : low_bin_index_0[j++]); }
+
+    bin_index_1 = bin_index_0;
+    ++bin_index_1[dimension];
+
+    bin_index_0 = bin_index_0 * 2 - 1;
+    bin_index_1 = bin_index_1 * 2 - 1;
+
+    assert(IsBetween(bin_index_0, -One<Vec<T, N>>(), One<Vec<T, N>>()));
+    assert(IsBetween(bin_index_1, -One<Vec<T, N>>(), One<Vec<T, N>>()));
+  }
+
+  const auto rotated_extents_0 = Rotated(inHyperBox.GetExtents() * bin_index_0, Orientation(inHyperBox));
+  const auto rotated_extents_1 = Rotated(inHyperBox.GetExtents() * bin_index_1, Orientation(inHyperBox));
+  const auto hyper_box_point_0 = (Center(inHyperBox) + rotated_extents_0);
+  const auto hyper_box_point_1 = (Center(inHyperBox) + rotated_extents_1);
+  return Segment<T, N> { hyper_box_point_0, hyper_box_point_1 };
+}
 }

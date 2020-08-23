@@ -5,10 +5,10 @@ namespace ez
 template <typename T, std::size_t N>
 Color<T, N> RGBToHSV(const Color<T, N>& inColorRGB)
 {
-  EXPECTS(IsBetween(Part<0, 2>(inColorRGB), Zero<Color3<T>>(), One<Color3<T>>()));
+  EXPECTS(IsBetween(Part<0, 3>(inColorRGB), Zero<Color3<T>>(), One<Color3<T>>()));
 
   auto result_hsv = inColorRGB;
-  Part<0, 2>(result_hsv) = Zero<Color3<T>>();
+  Part<0, 3>(result_hsv) = Zero<Color3<T>>();
 
   const auto max_rgb_comp = Max(inColorRGB);
   const auto result_value = max_rgb_comp;
@@ -48,7 +48,7 @@ Color<T, N> RGBToHSV(const Color<T, N>& inColorRGB)
 template <typename T, std::size_t N>
 Color<T, N> HSVToRGB(const Color<T, N>& inColorHSV)
 {
-  EXPECTS(IsBetween(Part<0, 2>(inColorHSV), Zero<Color3<T>>(), One<Color3<T>>()));
+  EXPECTS(IsBetween(Part<0, 3>(inColorHSV), Zero<Color3<T>>(), One<Color3<T>>()));
 
   auto result_rgb = inColorHSV;
 
@@ -108,7 +108,7 @@ Color<T, N> HSVToRGB(const Color<T, N>& inColorHSV)
 template <typename TColor>
 constexpr TColor Black()
 {
-  return WithPart<0, 2>(One<TColor>(),
+  return WithPart<0, 3>(One<TColor>(),
       Color3<ValueType_t<TColor>>(static_cast<ValueType_t<TColor>>(0),
           static_cast<ValueType_t<TColor>>(0),
           static_cast<ValueType_t<TColor>>(0)));
@@ -117,7 +117,7 @@ constexpr TColor Black()
 template <typename TColor>
 constexpr TColor Gray()
 {
-  return WithPart<0, 2>(One<TColor>(),
+  return WithPart<0, 3>(One<TColor>(),
       Color3<ValueType_t<TColor>>(static_cast<ValueType_t<TColor>>(0.5),
           static_cast<ValueType_t<TColor>>(0.5),
           static_cast<ValueType_t<TColor>>(0.5)));
@@ -126,7 +126,7 @@ constexpr TColor Gray()
 template <typename TColor>
 constexpr TColor White()
 {
-  return WithPart<0, 2>(One<TColor>(),
+  return WithPart<0, 3>(One<TColor>(),
       Color3<ValueType_t<TColor>>(static_cast<ValueType_t<TColor>>(1),
           static_cast<ValueType_t<TColor>>(1),
           static_cast<ValueType_t<TColor>>(1)));
@@ -135,7 +135,7 @@ constexpr TColor White()
 template <typename TColor>
 constexpr TColor Red()
 {
-  return WithPart<0, 2>(One<TColor>(),
+  return WithPart<0, 3>(One<TColor>(),
       Color3<ValueType_t<TColor>>(static_cast<ValueType_t<TColor>>(1),
           static_cast<ValueType_t<TColor>>(0),
           static_cast<ValueType_t<TColor>>(0)));
@@ -144,7 +144,7 @@ constexpr TColor Red()
 template <typename TColor>
 constexpr TColor Green()
 {
-  return WithPart<0, 2>(One<TColor>(),
+  return WithPart<0, 3>(One<TColor>(),
       Color3<ValueType_t<TColor>>(static_cast<ValueType_t<TColor>>(0),
           static_cast<ValueType_t<TColor>>(1),
           static_cast<ValueType_t<TColor>>(0)));
@@ -153,7 +153,7 @@ constexpr TColor Green()
 template <typename TColor>
 constexpr TColor Blue()
 {
-  return WithPart<0, 2>(One<TColor>(),
+  return WithPart<0, 3>(One<TColor>(),
       Color3<ValueType_t<TColor>>(static_cast<ValueType_t<TColor>>(0),
           static_cast<ValueType_t<TColor>>(0),
           static_cast<ValueType_t<TColor>>(1)));
@@ -162,7 +162,7 @@ constexpr TColor Blue()
 template <typename TColor>
 constexpr TColor Cyan()
 {
-  return WithPart<0, 2>(One<TColor>(),
+  return WithPart<0, 3>(One<TColor>(),
       Color3<ValueType_t<TColor>>(static_cast<ValueType_t<TColor>>(0),
           static_cast<ValueType_t<TColor>>(1),
           static_cast<ValueType_t<TColor>>(1)));
@@ -171,7 +171,7 @@ constexpr TColor Cyan()
 template <typename TColor>
 constexpr TColor Magenta()
 {
-  return WithPart<0, 2>(One<TColor>(),
+  return WithPart<0, 3>(One<TColor>(),
       Color3<ValueType_t<TColor>>(static_cast<ValueType_t<TColor>>(1),
           static_cast<ValueType_t<TColor>>(0),
           static_cast<ValueType_t<TColor>>(1)));
@@ -180,7 +180,7 @@ constexpr TColor Magenta()
 template <typename TColor>
 constexpr TColor Yellow()
 {
-  return WithPart<0, 2>(One<TColor>(),
+  return WithPart<0, 3>(One<TColor>(),
       Color3<ValueType_t<TColor>>(static_cast<ValueType_t<TColor>>(1),
           static_cast<ValueType_t<TColor>>(1),
           static_cast<ValueType_t<TColor>>(0)));
@@ -189,7 +189,7 @@ constexpr TColor Yellow()
 template <typename TColor>
 constexpr TColor Brown()
 {
-  return WithPart<0, 2>(One<TColor>(),
+  return WithPart<0, 3>(One<TColor>(),
       Color3<ValueType_t<TColor>>(static_cast<ValueType_t<TColor>>(0.5),
           static_cast<ValueType_t<TColor>>(0.25),
           static_cast<ValueType_t<TColor>>(0)));
@@ -198,7 +198,7 @@ constexpr TColor Brown()
 template <typename TColor>
 constexpr TColor Orange()
 {
-  return WithPart<0, 2>(One<TColor>(),
+  return WithPart<0, 3>(One<TColor>(),
       Color3<ValueType_t<TColor>>(static_cast<ValueType_t<TColor>>(1),
           static_cast<ValueType_t<TColor>>(0.5),
           static_cast<ValueType_t<TColor>>(0)));
@@ -207,7 +207,7 @@ constexpr TColor Orange()
 template <typename TColor>
 constexpr TColor Purple()
 {
-  return WithPart<0, 2>(One<TColor>(),
+  return WithPart<0, 3>(One<TColor>(),
       Color3<ValueType_t<TColor>>(static_cast<ValueType_t<TColor>>(0.5),
           static_cast<ValueType_t<TColor>>(0),
           static_cast<ValueType_t<TColor>>(1)));
@@ -216,7 +216,7 @@ constexpr TColor Purple()
 template <typename TColor>
 constexpr TColor Pink()
 {
-  return WithPart<0, 2>(One<TColor>(),
+  return WithPart<0, 3>(One<TColor>(),
       Color3<ValueType_t<TColor>>(static_cast<ValueType_t<TColor>>(1),
           static_cast<ValueType_t<TColor>>(0.5),
           static_cast<ValueType_t<TColor>>(0.5)));
@@ -233,6 +233,6 @@ constexpr TColor WithAlpha(const TColor& inColor, const typename TColor::ValueTy
 template <typename TColor>
 constexpr TColor WithValue(const TColor& inColor, const typename TColor::ValueType inValue)
 {
-  return WithPart<0, 2>(inColor, Part<0, 2>(inColor) * inValue);
+  return WithPart<0, 3>(inColor, Part<0, 3>(inColor) * inValue);
 }
 }
