@@ -1,12 +1,12 @@
 #pragma once
 
-#include "ez/BinaryIndex.h"
-#include "ez/IntersectMode.h"
-#include "ez/MathCommon.h"
-#include "ez/MathForward.h"
-#include "ez/MathInitializers.h"
-#include "ez/Quat.h"
-#include "ez/Vec.h"
+#include <ez/BinaryIndex.h>
+#include <ez/IntersectMode.h>
+#include <ez/MathCommon.h>
+#include <ez/MathForward.h>
+#include <ez/MathInitializers.h>
+#include <ez/Quat.h>
+#include <ez/Vec.h>
 #include <array>
 #include <optional>
 

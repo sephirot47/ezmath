@@ -1,4 +1,4 @@
-#include "ez/Capsule.h"
+#include <ez/Capsule.h>
 
 namespace ez
 {

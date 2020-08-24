@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ez/CommonTypeTraits.h"
+#include <ez/CommonTypeTraits.h>
 #include <type_traits>
 
 namespace ez

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ez/Flags.h"
+#include <ez/Flags.h>
 
 namespace ez
 {

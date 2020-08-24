@@ -1,11 +1,11 @@
 #pragma once
 
-#include "ez/IntersectMode.h"
-#include "ez/MathMultiComponent.h"
-#include "ez/MathTypeTraits.h"
-#include "ez/PointsIterator.h"
-#include "ez/SegmentsIterator.h"
-#include "ez/Vec.h"
+#include <ez/IntersectMode.h>
+#include <ez/MathMultiComponent.h>
+#include <ez/MathTypeTraits.h>
+#include <ez/PointsIterator.h>
+#include <ez/SegmentsIterator.h>
+#include <ez/Vec.h>
 
 namespace ez
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ez/Vec.h"
+#include <ez/Vec.h>
 #include <cstdint>
 
 namespace ez

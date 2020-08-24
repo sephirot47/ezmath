@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ez/Macros.h"
-#include "ez/Vec.h"
+#include <ez/Macros.h>
+#include <ez/Vec.h>
 #include <type_traits>
 
 namespace ez

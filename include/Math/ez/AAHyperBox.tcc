@@ -1,8 +1,8 @@
-#include "ez/AAHyperBox.h"
-#include "ez/BinaryIndex.h"
-#include "ez/Macros.h"
-#include "ez/MathTypeTraits.h"
-#include "ez/SATIntersect.h"
+#include <ez/AAHyperBox.h>
+#include <ez/BinaryIndex.h>
+#include <ez/Macros.h>
+#include <ez/MathTypeTraits.h>
+#include <ez/SATIntersect.h>
 
 namespace ez
 {

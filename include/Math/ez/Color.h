@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ez/MathForward.h"
-#include "ez/Vec.h"
+#include <ez/MathForward.h>
+#include <ez/Vec.h>
 #include <cstdint>
 
 namespace ez

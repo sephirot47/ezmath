@@ -1,10 +1,10 @@
 #pragma once
 
-#include "ez/IntersectMode.h"
-#include "ez/Macros.h"
-#include "ez/MathForward.h"
-#include "ez/MathInitializers.h"
-#include "ez/Vec.h"
+#include <ez/IntersectMode.h>
+#include <ez/Macros.h>
+#include <ez/MathForward.h>
+#include <ez/MathInitializers.h>
+#include <ez/Vec.h>
 #include <optional>
 #include <type_traits>
 

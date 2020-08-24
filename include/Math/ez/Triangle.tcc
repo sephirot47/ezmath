@@ -1,4 +1,4 @@
-#include "ez/Triangle.h"
+#include <ez/Triangle.h>
 
 namespace ez
 {

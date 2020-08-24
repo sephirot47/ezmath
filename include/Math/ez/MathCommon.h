@@ -1,10 +1,10 @@
 #pragma once
 
-#include "ez/MathForward.h"
-#include "ez/MathInitializers.h"
-#include "ez/MathMultiComponent.h"
-#include "ez/MathRandom.h"
-#include "ez/MathTypeTraits.h"
+#include <ez/MathForward.h>
+#include <ez/MathInitializers.h>
+#include <ez/MathMultiComponent.h>
+#include <ez/MathRandom.h>
+#include <ez/MathTypeTraits.h>
 #include <cmath>
 #include <cstdint>
 #include <tuple>

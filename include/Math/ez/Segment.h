@@ -1,13 +1,13 @@
 #pragma once
 
-#include "ez/IntersectMode.h"
-#include "ez/MathCommon.h"
-#include "ez/MathForward.h"
-#include "ez/MathInitializers.h"
-#include "ez/PointsIterator.h"
-#include "ez/Quat.h"
-#include "ez/SegmentsIterator.h"
-#include "ez/Vec.h"
+#include <ez/IntersectMode.h>
+#include <ez/MathCommon.h>
+#include <ez/MathForward.h>
+#include <ez/MathInitializers.h>
+#include <ez/PointsIterator.h>
+#include <ez/Quat.h>
+#include <ez/SegmentsIterator.h>
+#include <ez/Vec.h>
 #include <cstdint>
 #include <type_traits>
 

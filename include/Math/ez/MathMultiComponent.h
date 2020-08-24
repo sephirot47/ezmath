@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ez/MathInitializers.h"
-#include "ez/MathTypeTraits.h"
+#include <ez/MathInitializers.h>
+#include <ez/MathTypeTraits.h>
 #include <array>
 #include <cmath>
 #include <limits>

@@ -1,5 +1,5 @@
-#include "ez/Macros.h"
-#include "ez/Quat.h"
+#include <ez/Macros.h>
+#include <ez/Quat.h>
 #include <cmath>
 
 namespace ez

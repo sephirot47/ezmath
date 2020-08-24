@@ -1,6 +1,6 @@
-#include "ez/Line.h"
-#include "ez/Ray.h"
-#include "ez/Segment.h"
+#include <ez/Line.h>
+#include <ez/Ray.h>
+#include <ez/Segment.h>
 
 namespace ez
 {

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "ez/MathForward.h"
-#include "ez/MathInitializerTokens.h"
-#include "ez/MathTypeTraits.h"
-#include "ez/VariadicRepeat.h"
+#include <ez/MathForward.h>
+#include <ez/MathInitializerTokens.h>
+#include <ez/MathTypeTraits.h>
+#include <ez/VariadicRepeat.h>
 #include <array>
 #include <cstdint>
 #include <initializer_list>

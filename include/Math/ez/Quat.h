@@ -1,10 +1,10 @@
 #pragma once
 
-#include "ez/Mat.h"
-#include "ez/MathForward.h"
-#include "ez/MathInitializerTokens.h"
-#include "ez/MathTypeTraits.h"
-#include "ez/Vec.h"
+#include <ez/Mat.h>
+#include <ez/MathForward.h>
+#include <ez/MathInitializerTokens.h>
+#include <ez/MathTypeTraits.h>
+#include <ez/Vec.h>
 #include <array>
 #include <ostream>
 #include <tuple>

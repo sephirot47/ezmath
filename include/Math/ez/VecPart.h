@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ez/Macros.h"
-#include "ez/VariadicRepeat.h"
+#include <ez/Macros.h>
+#include <ez/VariadicRepeat.h>
 #include <array>
 #include <cstdlib>
 

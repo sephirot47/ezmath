@@ -1,11 +1,11 @@
 #pragma once
 
-#include "ez/IntersectMode.h"
-#include "ez/MathForward.h"
-#include "ez/MathInitializerTokens.h"
-#include "ez/MathTypeTraits.h"
-#include "ez/VariadicRepeat.h"
-#include "ez/VecPart.h"
+#include <ez/IntersectMode.h>
+#include <ez/MathForward.h>
+#include <ez/MathInitializerTokens.h>
+#include <ez/MathTypeTraits.h>
+#include <ez/VariadicRepeat.h>
+#include <ez/VecPart.h>
 #include <array>
 #include <cstdint>
 #include <initializer_list>

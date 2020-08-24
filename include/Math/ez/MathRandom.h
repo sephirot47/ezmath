@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ez/MathCommon.h"
-#include "ez/MathInitializers.h"
-#include "ez/MathMultiComponent.h"
+#include <ez/MathCommon.h>
+#include <ez/MathInitializers.h>
+#include <ez/MathMultiComponent.h>
 
 namespace ez
 {

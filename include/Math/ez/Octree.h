@@ -1,10 +1,10 @@
 #pragma once
 
-#include "ez/AAHyperBox.h"
-#include "ez/BinaryIndex.h"
-#include "ez/IntersectMode.h"
-#include "ez/MathTypeTraits.h"
-#include "ez/Span.h"
+#include <ez/AAHyperBox.h>
+#include <ez/BinaryIndex.h>
+#include <ez/IntersectMode.h>
+#include <ez/MathTypeTraits.h>
+#include <ez/Span.h>
 #include <array>
 #include <memory>
 #include <optional>

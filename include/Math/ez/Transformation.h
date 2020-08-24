@@ -1,10 +1,10 @@
 #pragma once
 
-#include "ez/Mat.h"
-#include "ez/MathForward.h"
-#include "ez/MathInitializers.h"
-#include "ez/Quat.h"
-#include "ez/Vec.h"
+#include <ez/Mat.h>
+#include <ez/MathForward.h>
+#include <ez/MathInitializers.h>
+#include <ez/Quat.h>
+#include <ez/Vec.h>
 
 namespace ez
 {

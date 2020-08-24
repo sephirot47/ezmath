@@ -1,7 +1,7 @@
-#include "ez/Mat.h"
-#include "ez/MathInitializers.h"
-#include "ez/StreamOperators.h"
-#include "ez/VariadicRepeat.h"
+#include <ez/Mat.h>
+#include <ez/MathInitializers.h>
+#include <ez/StreamOperators.h>
+#include <ez/VariadicRepeat.h>
 #include <cmath>
 
 namespace ez

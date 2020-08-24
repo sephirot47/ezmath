@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ez/IntersectMode.h"
-#include "ez/Vec.h"
+#include <ez/IntersectMode.h>
+#include <ez/Vec.h>
 #include <functional>
 #include <type_traits>
 

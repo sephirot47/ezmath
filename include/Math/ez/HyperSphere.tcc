@@ -1,4 +1,4 @@
-#include "ez/HyperSphere.h"
+#include <ez/HyperSphere.h>
 
 namespace ez
 {

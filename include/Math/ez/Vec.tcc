@@ -1,6 +1,6 @@
-#include "ez/MathCommon.h"
-#include "ez/MathInitializers.h"
-#include "ez/Vec.h"
+#include <ez/MathCommon.h>
+#include <ez/MathInitializers.h>
+#include <ez/Vec.h>
 #include <cmath>
 
 namespace ez

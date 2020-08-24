@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ez/MathTypeTraits.h"
+#include <ez/MathTypeTraits.h>
 #include <cstdlib>
 #include <iterator>
 #include <type_traits>
