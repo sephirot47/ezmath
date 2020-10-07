@@ -2,6 +2,7 @@
 #include <ez/Line.h>
 #include <ez/Macros.h>
 #include <ez/Quat.h>
+#include <algorithm>
 
 namespace ez
 {
@@ -427,8 +428,8 @@ auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule)
     const auto capsule_direction = Direction(inCapsule);
     const auto capsule_perpendicular_direction = Perpendicular(capsule_direction);
     const auto capsule_length_vec = (capsule_direction * capsule_length);
-    const auto capsule_radius_extent = (capsule_perpendicular_direction * inCapsule.GetRadius());
-    const auto mid_rect_origin = inCapsule.GetOrigin() - capsule_radius_extent;
+    const auto capsule_radius_vec = (capsule_perpendicular_direction * inCapsule.GetRadius());
+    const auto mid_rect_origin = inCapsule.GetOrigin() - capsule_radius_vec;
     const auto mid_rect_center = Center(inCapsule);
     const auto mid_rect_extents = Vec2<T> { capsule_length / static_cast<T>(2), inCapsule.GetRadius() };
     const auto mid_rect = HyperBox<T, N> { mid_rect_center, mid_rect_extents, Orientation(inCapsule) };
@@ -436,12 +437,12 @@ auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule)
     {
       for (int segmenti = 0; segmenti < 2; ++segmenti)
       {
-        const auto offset = (segmenti == 0 ? Zero<Vec2<T>>() : capsule_radius_extent * static_cast<T>(2));
+        const auto offset = (segmenti == 0 ? Zero<Vec2<T>>() : capsule_radius_vec * static_cast<T>(2));
         const auto mid_rect_segment_origin = mid_rect_origin + offset;
         const auto mid_rect_segment_destiny = mid_rect_segment_origin + capsule_length_vec;
         const auto mid_rect_segment = Segment2<T> { mid_rect_segment_origin, mid_rect_segment_destiny };
         const auto mid_rect_segment_intersection = IntersectClosest(inLine, mid_rect_segment);
-        line_detail::AddIntersectionDistance(intersections, *mid_rect_segment_intersection);
+        line_detail::AddIntersectionDistance(intersections, mid_rect_segment_intersection);
       }
     }
     mid_section_primitive = mid_rect;
@@ -455,23 +456,23 @@ auto Intersect(const Line<T, N>& inLine, const Capsule<T, N>& inCapsule)
 
   if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST)
   {
-    // HyperSphere caps
-    for (const auto& hypersphere : { origin_hypersphere, destiny_hypersphere })
+    if (!std::all_of(intersections.cbegin(), intersections.cend(), &line_detail::HasValue<T>))
     {
-      if (std::all_of(intersections.cbegin(), intersections.cend(), &line_detail::HasValue<T>))
-        break;
-
-      const auto hypersphere_intersections = Intersect<EIntersectMode::ALL_INTERSECTIONS>(inLine, hypersphere);
-      for (const auto& hypersphere_intersection : hypersphere_intersections)
+      // HyperSphere caps
+      for (const auto& hypersphere : { origin_hypersphere, destiny_hypersphere })
       {
-        if (!hypersphere_intersection.has_value())
-          continue;
+        const auto hypersphere_intersections = Intersect<EIntersectMode::ALL_INTERSECTIONS>(inLine, hypersphere);
+        for (const auto& hypersphere_intersection : hypersphere_intersections)
+        {
+          if (!hypersphere_intersection.has_value())
+            continue;
 
-        if (Contains(mid_section_primitive, inLine.GetPoint(*hypersphere_intersection)))
-          continue;
+          if (Contains(mid_section_primitive, inLine.GetPoint(*hypersphere_intersection)))
+            continue;
 
-        if (!line_detail::AddIntersectionDistance(intersections, *hypersphere_intersection))
-          break;
+          if (!line_detail::AddIntersectionDistance(intersections, *hypersphere_intersection))
+            break;
+        }
       }
     }
 

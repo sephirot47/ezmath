@@ -11,7 +11,7 @@ struct IsVec final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsVec_v = IsVec<std::remove_cvref_t<T>>::value;
+constexpr bool IsVec_v = IsVec<std::remove_cv_t<std::decay_t<T>>>::value;
 
 // IsMat. Template specialization for Mat is in "Mat.h"
 template <typename T>
@@ -19,7 +19,7 @@ struct IsMat final : std::false_type
 {
 };
 template <typename T>
-inline constexpr bool IsMat_v = IsMat<std::remove_cvref_t<T>>::value;
+inline constexpr bool IsMat_v = IsMat<std::remove_cv_t<std::decay_t<T>>>::value;
 
 // IsQuat. Template specialization for Quat is in "Quat.h"
 template <typename T>
@@ -27,7 +27,7 @@ struct IsQuat final : std::false_type
 {
 };
 template <typename T>
-inline constexpr bool IsQuat_v = IsQuat<std::remove_cvref_t<T>>::value;
+inline constexpr bool IsQuat_v = IsQuat<std::remove_cv_t<std::decay_t<T>>>::value;
 
 // IsLine. Template specialization for Line is in "Line.h"
 template <typename T>
@@ -35,7 +35,7 @@ struct IsLine final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsLine_v = IsLine<std::remove_cvref_t<T>>::value;
+constexpr bool IsLine_v = IsLine<std::remove_cv_t<std::decay_t<T>>>::value;
 
 // IsRay. Template specialization for Ray is in "Ray.h"
 template <typename T>
@@ -43,7 +43,7 @@ struct IsRay final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsRay_v = IsRay<std::remove_cvref_t<T>>::value;
+constexpr bool IsRay_v = IsRay<std::remove_cv_t<std::decay_t<T>>>::value;
 
 // IsSegment. Template specialization for Segment is in "Segment.h"
 template <typename T>
@@ -51,7 +51,7 @@ struct IsSegment final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsSegment_v = IsSegment<std::remove_cvref_t<T>>::value;
+constexpr bool IsSegment_v = IsSegment<std::remove_cv_t<std::decay_t<T>>>::value;
 
 // IsPlane. Template specialization for Plane is in "Plane.h"
 template <typename T>
@@ -59,7 +59,7 @@ struct IsPlane final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsPlane_v = IsPlane<std::remove_cvref_t<T>>::value;
+constexpr bool IsPlane_v = IsPlane<std::remove_cv_t<std::decay_t<T>>>::value;
 
 // IsAAHyperBox. Template specialization for AAHyperBox is in "AAHyperBox.h"
 template <typename T>
@@ -67,7 +67,7 @@ struct IsAAHyperBox final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsAAHyperBox_v = IsAAHyperBox<std::remove_cvref_t<T>>::value;
+constexpr bool IsAAHyperBox_v = IsAAHyperBox<std::remove_cv_t<std::decay_t<T>>>::value;
 
 // IsHyperBox. Template specialization for HyperBox is in "HyperBox.h"
 template <typename T>
@@ -75,7 +75,7 @@ struct IsHyperBox final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsHyperBox_v = IsHyperBox<std::remove_cvref_t<T>>::value;
+constexpr bool IsHyperBox_v = IsHyperBox<std::remove_cv_t<std::decay_t<T>>>::value;
 
 // IsTransformation. Template specialization for Transformation is in "Transformation.h"
 template <typename T>
@@ -83,7 +83,7 @@ struct IsTransformation final : std::false_type
 {
 };
 template <typename T>
-inline constexpr bool IsTransformation_v = IsTransformation<std::remove_cvref_t<T>>::value;
+inline constexpr bool IsTransformation_v = IsTransformation<std::remove_cv_t<std::decay_t<T>>>::value;
 
 // IsHyperSphere. Template specialization for HyperSphere is in "HyperSphere.h"
 template <typename T>
@@ -91,7 +91,7 @@ struct IsHyperSphere final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsHyperSphere_v = IsHyperSphere<std::remove_cvref_t<T>>::value;
+constexpr bool IsHyperSphere_v = IsHyperSphere<std::remove_cv_t<std::decay_t<T>>>::value;
 
 // IsCapsule. Template specialization for Capsule is in "Capsule.h"
 template <typename T>
@@ -99,7 +99,7 @@ struct IsCapsule final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsCapsule_v = IsCapsule<std::remove_cvref_t<T>>::value;
+constexpr bool IsCapsule_v = IsCapsule<std::remove_cv_t<std::decay_t<T>>>::value;
 
 // IsCylinder. Template specialization for Cylinder is in "Cylinder.h"
 template <typename T>
@@ -107,7 +107,7 @@ struct IsCylinder final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsCylinder_v = IsCylinder<std::remove_cvref_t<T>>::value;
+constexpr bool IsCylinder_v = IsCylinder<std::remove_cv_t<std::decay_t<T>>>::value;
 
 // IsTriangle. Template specialization for Triangle is in "Triangle.h"
 template <typename T>
@@ -115,11 +115,11 @@ struct IsTriangle final : std::false_type
 {
 };
 template <typename T>
-constexpr bool IsTriangle_v = IsTriangle<std::remove_cvref_t<T>>::value;
+constexpr bool IsTriangle_v = IsTriangle<std::remove_cv_t<std::decay_t<T>>>::value;
 
 // IsNumber
 template <typename T>
-constexpr auto IsNumber_v = std::is_arithmetic_v<std::remove_cvref_t<T>>;
+constexpr auto IsNumber_v = std::is_arithmetic_v<std::remove_cv_t<std::decay_t<T>>>;
 
 // IsVecOrMat
 template <typename T>
@@ -150,7 +150,7 @@ constexpr auto _GetNumComponents()
 }
 
 template <typename... TArgs>
-constexpr auto NumComponents_v = (_GetNumComponents<std::remove_cvref_t<TArgs>>() + ... + 0);
+constexpr auto NumComponents_v = (_GetNumComponents<std::remove_cv_t<std::decay_t<TArgs>>>() + ... + 0);
 
 template <typename T>
 auto _GetValueType()
@@ -166,7 +166,7 @@ auto _GetValueType()
 }
 
 template <typename T>
-using ValueType_t = decltype(_GetValueType<std::remove_cvref_t<T>>());
+using ValueType_t = decltype(_GetValueType<std::remove_cv_t<std::decay_t<T>>>());
 
 template <typename T>
 constexpr std::size_t _GetNumDimensions()
@@ -186,6 +186,6 @@ constexpr std::size_t _GetNumDimensions()
 };
 
 template <typename... TArgs>
-static constexpr auto NumDimensions_v = (_GetNumDimensions<std::remove_cvref_t<TArgs>>() + ... + 0);
+static constexpr auto NumDimensions_v = (_GetNumDimensions<std::remove_cv_t<std::decay_t<TArgs>>>() + ... + 0);
 
 }
