@@ -2,6 +2,7 @@
 #include <ez/MathInitializers.h>
 #include <ez/StreamOperators.h>
 #include <ez/VariadicRepeat.h>
+#include <ez/VecPart.h>
 #include <cmath>
 
 namespace ez

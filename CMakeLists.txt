@@ -36,7 +36,7 @@ target_include_directories(ezmath INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include
 # ezcommon
 if (NOT TARGET ezcommon)
   add_subdirectory(deps/ezcommon)
-  target_link_libraries(ezmath INTERFACE ezcommon)
+  target_link_libraries(ezmath ezcommon)
 endif()
 
 # ======================================================================
