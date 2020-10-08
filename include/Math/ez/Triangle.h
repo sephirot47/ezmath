@@ -58,7 +58,7 @@ template <typename T, std::size_t N>
 T Area(const Triangle<T, N>& inTriangle);
 
 template <typename T, std::size_t N>
-T Perimeter(const Triangle<T, N>& inTriangle);
+T GetPerimeter(const Triangle<T, N>& inTriangle);
 
 template <typename T, std::size_t N>
 T Barycenter(const Triangle<T, N>& inTriangle);
