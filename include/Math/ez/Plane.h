@@ -93,6 +93,18 @@ template <typename T>
 bool Contains(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS);
 
 template <typename T>
+bool Contains(const Plane<T>& inPlane, const Sphere<T>& inSphere);
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const AABox<T>& inAABox);
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Box<T>& inBox);
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Triangle3<T>& inTriangle);
+
+template <typename T>
 Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Vec3<T>& inPoint);
 
 template <typename T>
@@ -106,6 +118,9 @@ Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Segment3<T>& inSegment);
 
 template <typename T>
 Vec3<T> ClosestPoint(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS);
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const AABox<T>& inAABox);
 
 }
 

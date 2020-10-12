@@ -158,6 +158,30 @@ bool Contains(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS)
 }
 
 template <typename T>
+bool Contains(const Plane<T>& inPlane, const Sphere<T>& inSphere)
+{
+  return false;
+}
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const AABox<T>& inAABox)
+{
+  return false;
+}
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Box<T>& inBox)
+{
+  return false;
+}
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Triangle3<T>& inTriangle)
+{
+  return IsVeryParallel(Normal(inPlane), Normal(inTriangle)) && Contains(inPlane, inTriangle[0]);
+}
+
+template <typename T>
 Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Vec3<T>& inPoint)
 {
   return Projected(inPoint, inPlane);
@@ -185,6 +209,12 @@ template <typename T>
 Vec3<T> ClosestPoint(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS)
 {
   return inPlaneLHS.GetArbitraryPoint();
+}
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const AABox<T>& inAABox)
+{
+  return ClosestPoint(inPlane, ClosestPoint(inAABox, inPlane));
 }
 
 }
