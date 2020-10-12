@@ -266,6 +266,12 @@ bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Segment<T, N>& inSegme
   return Contains(inAAHyperBox, inSegment.GetOrigin()) && Contains(inAAHyperBox, inSegment.GetDestiny());
 }
 
+template <typename T>
+bool Contains(const AAHyperBox<T, 3>& inAABox, const Plane<T>& inPlane)
+{
+  return false;
+}
+
 template <typename T, std::size_t N>
 bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& inHyperSphere)
 {

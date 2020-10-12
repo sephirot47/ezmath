@@ -136,6 +136,9 @@ bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Ray<T, N>& inRay);
 template <typename T, std::size_t N>
 bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Segment<T, N>& inSegment);
 
+template <typename T>
+bool Contains(const AAHyperBox<T, 3>& inAABox, const Plane<T>& inPlane);
+
 template <typename T, std::size_t N>
 bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& inHyperSphere);
 

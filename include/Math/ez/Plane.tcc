@@ -127,6 +127,12 @@ auto Intersect(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS)
   return !IsVeryParallel(Normal(inPlaneLHS), Normal(inPlaneRHS));
 }
 
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const AAHyperBox<T, 3>& inAABox)
+{
+  return Intersect<TIntersectMode>(inAABox, inPlane);
+}
+
 template <typename T>
 bool Contains(const Plane<T>& inPlane, const Vec3<T>& inPoint)
 {

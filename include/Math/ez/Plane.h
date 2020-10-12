@@ -77,6 +77,9 @@ auto Intersect(const Plane<T>& inPlane, const Segment3<T>& inSegment);
 template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS);
 
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const AAHyperBox<T, 3>& inAABox);
+
 template <typename T>
 bool Contains(const Plane<T>& inPlane, const Vec3<T>& inPoint);
 
