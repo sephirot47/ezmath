@@ -64,6 +64,15 @@ Vec3<T> Projected(const Vec3<T>& inPoint, const Plane<T>& inPlaneToProjectTo);
 template <typename T>
 bool Contains(const Plane<T>& inPlane, const Vec3<T>& inPoint);
 
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Line3<T>& inLine);
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Ray3<T>& inRay);
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Segment3<T>& inSegment);
+
 }
 
 #include "ez/Plane.tcc"

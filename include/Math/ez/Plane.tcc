@@ -98,4 +98,21 @@ bool Contains(const Plane<T>& inPlane, const Vec3<T>& inPoint)
   return IsVeryEqual(Distance(inPoint, inPlane), static_cast<T>(0));
 }
 
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Line3<T>& inLine)
+{
+  return IsVeryEqual(Dot(Normal(inPlane), Direction(inLine)), static_cast<T>(0));
+}
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Ray3<T>& inRay)
+{
+  return Contains(inPlane, inRay.GetLine());
+}
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Segment3<T>& inSegment)
+{
+  return Contains(inPlane, inSegment.GetLine());
+}
 }
