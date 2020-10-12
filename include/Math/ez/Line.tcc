@@ -1,8 +1,8 @@
+#include <algorithm>
 #include <ez/BinaryIndex.h>
 #include <ez/Line.h>
 #include <ez/Macros.h>
 #include <ez/Quat.h>
-#include <algorithm>
 
 namespace ez
 {
@@ -174,7 +174,7 @@ namespace line_detail
   }
 }
 
-template <EIntersectMode TIntersectMode, typename T, std::size_t N >
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Line<T, N>& inLineLHS, const Line<T, N>& inLineRHS)
 {
   static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
@@ -215,7 +215,7 @@ auto Intersect(const Line<T, N>& inLineLHS, const Line<T, N>& inLineRHS)
     point_matches = IsVeryEqual(inLineLHS.GetPoint(tLHS), inLineRHS.GetPoint(tRHS));
 
   if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
-    return (point_matches ? std::array{ std::make_optional(tLHS) } : std::array { std::optional<T>() });
+    return (point_matches ? std::array { std::make_optional(tLHS) } : std::array { std::optional<T>() });
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
     return (point_matches ? std::make_optional(tLHS) : std::optional<T>());
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
@@ -602,6 +602,15 @@ constexpr T ClosestPointT(const Line<T, N>& inLine, const Segment<T, N>& inSegme
   return ClosestPointT(inLine, segment_closest_point);
 }
 
+template <typename T>
+constexpr T ClosestPointT(const Line3<T>& inLine, const Plane<T>& inPlane)
+{
+  const auto intersection = IntersectClosest(inLine, inPlane);
+  if (intersection.has_value())
+    return *intersection;
+  return static_cast<T>(0);
+}
+
 template <typename T, std::size_t N>
 constexpr T ClosestPointT(const Line<T, N>& inLine, const HyperSphere<T, N>& inHyperSphere)
 {
@@ -693,6 +702,15 @@ constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const HyperBox<T, N>&
     }
   }
   return closest_point_in_line_to_hyper_box;
+}
+
+template <typename T>
+constexpr Vec3<T> ClosestPoint(const Line3<T>& inLine, const Plane<T>& inPlane)
+{
+  const auto intersection = IntersectClosest(inLine, inPlane);
+  if (intersection.has_value())
+    return inLine.GetPoint(*intersection);
+  return inLine.GetOrigin();
 }
 
 template <typename T, std::size_t N, typename TPrimitive>

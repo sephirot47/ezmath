@@ -92,16 +92,51 @@ Vec3<T> Projected(const Vec3<T>& inPoint, const Plane<T>& inPlaneToProjectTo)
   return point_projected_to_plane_normal;
 }
 
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const Vec3<T>& inPoint)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return Contains(inPlane, inPoint);
+}
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const Line3<T>& inLine)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return Intersect<TIntersectMode>(inLine, inPlane);
+}
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const Ray3<T>& inRay)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return Intersect<TIntersectMode>(inRay, inPlane);
+}
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const Segment3<T>& inSegment)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return Intersect<TIntersectMode>(inSegment, inPlane);
+}
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return !IsVeryParallel(Normal(inPlaneLHS), Normal(inPlaneRHS));
+}
+
 template <typename T>
 bool Contains(const Plane<T>& inPlane, const Vec3<T>& inPoint)
 {
-  return IsVeryEqual(Distance(inPoint, inPlane), static_cast<T>(0));
+  return IsVeryEqual(SqDistance(inPoint, inPlane), static_cast<T>(0));
 }
 
 template <typename T>
 bool Contains(const Plane<T>& inPlane, const Line3<T>& inLine)
 {
-  return IsVeryEqual(Dot(Normal(inPlane), Direction(inLine)), static_cast<T>(0));
+  return IsVeryPerpendicular(Normal(inPlane), Direction(inLine)) && Contains(inPlane, inLine.GetOrigin());
 }
 
 template <typename T>
@@ -115,4 +150,41 @@ bool Contains(const Plane<T>& inPlane, const Segment3<T>& inSegment)
 {
   return Contains(inPlane, inSegment.GetLine());
 }
+
+template <typename T>
+bool Contains(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS)
+{
+  return Contains(inPlaneLHS, inPlaneRHS.GetArbitraryPoint()) && IsVeryEqual(Normal(inPlaneLHS), Normal(inPlaneRHS));
+}
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Vec3<T>& inPoint)
+{
+  return Projected(inPoint, inPlane);
+}
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Line3<T>& inLine)
+{
+  return ClosestPoint(inPlane, ClosestPoint(inLine, inPlane));
+}
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Ray3<T>& inRay)
+{
+  return ClosestPoint(inPlane, ClosestPoint(inRay, inPlane));
+}
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Segment3<T>& inSegment)
+{
+  return ClosestPoint(inPlane, ClosestPoint(inSegment, inPlane));
+}
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS)
+{
+  return inPlaneLHS.GetArbitraryPoint();
+}
+
 }

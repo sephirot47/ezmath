@@ -16,6 +16,7 @@ class Plane final
 public:
   using ValueType = T;
   static constexpr auto NumDimensions = 3;
+  static constexpr auto NumComponents = 3;
 
   Plane() = default;
   Plane(const Vec3<T>& inNormal, const T inDistanceFromOriginInNormalDirection);
@@ -61,6 +62,21 @@ T SqDistance(const Plane<T>& inPlane, const Vec3<T>& inPoint);
 template <typename T>
 Vec3<T> Projected(const Vec3<T>& inPoint, const Plane<T>& inPlaneToProjectTo);
 
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const Vec3<T>& inPoint);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const Line3<T>& inLine);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const Ray3<T>& inRay);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const Segment3<T>& inSegment);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS);
+
 template <typename T>
 bool Contains(const Plane<T>& inPlane, const Vec3<T>& inPoint);
 
@@ -72,6 +88,24 @@ bool Contains(const Plane<T>& inPlane, const Ray3<T>& inRay);
 
 template <typename T>
 bool Contains(const Plane<T>& inPlane, const Segment3<T>& inSegment);
+
+template <typename T>
+bool Contains(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS);
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Vec3<T>& inPoint);
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Line3<T>& inLine);
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Ray3<T>& inRay);
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Segment3<T>& inSegment);
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS);
 
 }
 
