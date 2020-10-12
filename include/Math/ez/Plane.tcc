@@ -133,6 +133,12 @@ auto Intersect(const Plane<T>& inPlane, const AAHyperBox<T, 3>& inAABox)
   return Intersect<TIntersectMode>(inAABox, inPlane);
 }
 
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const HyperBox<T, 3>& inBox)
+{
+  return Intersect<TIntersectMode>(inBox, inPlane);
+}
+
 template <typename T>
 bool Contains(const Plane<T>& inPlane, const Vec3<T>& inPoint)
 {
@@ -223,4 +229,21 @@ Vec3<T> ClosestPoint(const Plane<T>& inPlane, const AABox<T>& inAABox)
   return ClosestPoint(inPlane, ClosestPoint(inAABox, inPlane));
 }
 
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Box<T>& inBox)
+{
+  return ClosestPoint(inPlane, ClosestPoint(inBox, inPlane));
+}
+
+template <typename T>
+Plane<T> Translated(const Plane<T>& inPlane, const Vec3<T>& inTranslation)
+{
+  return Plane<T> { Normal(inPlane), inPlane.GetArbitraryPoint() + inTranslation };
+}
+
+template <typename T>
+Plane<T> Rotated(const Plane<T>& inPlane, const RotationType_t<T, 3>& inRotation)
+{
+  return Plane<T> { Rotated(Normal(inPlane), inRotation), Rotated(inPlane.GetArbitraryPoint(), inRotation) };
+}
 }
