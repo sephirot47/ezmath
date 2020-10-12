@@ -4,7 +4,7 @@ namespace ez
 {
 
 template <typename T, std::size_t N>
-T Perimeter(const Triangle<T, N>& inTriangle)
+T GetPerimeter(const Triangle<T, N>& inTriangle)
 {
   const auto length_01 = Distance(inTriangle[0], inTriangle[1]);
   const auto length_02 = Distance(inTriangle[0], inTriangle[2]);

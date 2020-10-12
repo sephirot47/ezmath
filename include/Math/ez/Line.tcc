@@ -2,6 +2,7 @@
 #include <ez/Line.h>
 #include <ez/Macros.h>
 #include <ez/Quat.h>
+#include <algorithm>
 
 namespace ez
 {

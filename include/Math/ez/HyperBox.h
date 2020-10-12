@@ -34,6 +34,7 @@ public:
   void SetCenter(const Vec<T, N>& inCenter) { mCenter = inCenter; }
   void SetExtents(const Vec<T, N>& inExtents) { mExtents = inExtents; }
   void SetSize(const Vec<T, N>& inSize) { SetExtents(inSize / static_cast<T>(2)); }
+  void SetOrientation(const RotationType_t<T, N>& inOrientation) { mOrientation = inOrientation; }
 
   const Vec<T, N>& GetCenter() const { return mCenter; }
   const Vec<T, N>& GetExtents() const { return mExtents; }
