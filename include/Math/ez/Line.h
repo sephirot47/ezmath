@@ -45,8 +45,8 @@ template <typename T>
 bool IsOnPositiveSide(const Line2<T> &inLine, const Vec2<T> &inPoint);
 
 // Intersect
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS);
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Line<T, N>& inLineLHS, const Line<T, N>& inLineRHS);
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Line<T, N>& inLine, const Vec<T, N>& inPoint);

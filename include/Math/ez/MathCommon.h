@@ -66,7 +66,7 @@ constexpr auto Distance(const TLHS& inLHS, const TRHS& inRHS)
 
 template <typename T>
 constexpr bool
-IsVeryEqual(const T& inLHS, const T& inRHS, const T& inEpsilon = All<T>(static_cast<ValueType_t<T>>(1e-6)))
+IsVeryEqual(const T& inLHS, const T& inRHS, const T& inEpsilon = All<T>(static_cast<ValueType_t<T>>(1e-4)))
 {
   return Abs(inLHS - inRHS) < inEpsilon;
 }
