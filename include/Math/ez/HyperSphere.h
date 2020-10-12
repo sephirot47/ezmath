@@ -40,7 +40,7 @@ struct IsHyperSphere<HyperSphere<T, N>> : std::true_type
 {
 };
 
-// Intersection functions
+// Intersect
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperSphere<T, N>& inHyperSphereLHS, const HyperSphere<T, N>& inHyperSphereRHS);
 
@@ -56,6 +56,9 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Ray<T, N>& inRay);
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Segment<T, N>& inSegment);
 
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Sphere<T>& inSphere, const Plane<T>& inPlane);
+
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& inAAHyperBox);
 
@@ -65,6 +68,7 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Capsule<T, N>& inCa
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Triangle<T, N>& inTriangle);
 
+// Contains
 template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const Vec<T, N>& inPoint);
 
@@ -76,6 +80,9 @@ bool Contains(const HyperSphere<T, N>& inHyperSphere, const Ray<T, N>& inRay);
 
 template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const Segment<T, N>& inSegment);
+
+template <typename T>
+bool Contains(const HyperSphere<T, 3>& inSphere, const Plane<T>& inPlane);
 
 template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphereContainer, const HyperSphere<T, N>& inHyperSphereContainee);

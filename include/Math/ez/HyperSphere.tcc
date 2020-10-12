@@ -34,6 +34,12 @@ auto Intersect(const HyperSphere<T, N>& inHyperSphere, const Segment<T, N>& inSe
   return Intersect<TIntersectMode>(inSegment, inHyperSphere);
 }
 
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Sphere<T>& inSphere, const Plane<T>& inPlane)
+{
+  return Intersect<TIntersectMode>(inPlane, inSphere);
+}
+
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const HyperSphere<T, N>& inHyperSphere, const AAHyperBox<T, N>& inAAHyperBox)
 {
@@ -102,6 +108,12 @@ template <typename T, std::size_t N>
 bool Contains(const HyperSphere<T, N>& inHyperSphere, const Segment<T, N>& inSegment)
 {
   return Contains(inHyperSphere, inSegment.GetOrigin()) && Contains(inHyperSphere, inSegment.GetDestiny());
+}
+
+template <typename T>
+bool Contains(const HyperSphere<T, 3>& inSphere, const Plane<T>& inPlane)
+{
+  return false;
 }
 
 template <typename T, std::size_t N>

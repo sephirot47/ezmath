@@ -128,6 +128,13 @@ auto Intersect(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS)
 }
 
 template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const Sphere<T>& inSphere)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+  return SqDistance(inPlane, Center(inSphere)) < Sq(inSphere.GetRadius());
+}
+
+template <EIntersectMode TIntersectMode, typename T>
 auto Intersect(const Plane<T>& inPlane, const AAHyperBox<T, 3>& inAABox)
 {
   return Intersect<TIntersectMode>(inAABox, inPlane);
@@ -221,6 +228,12 @@ template <typename T>
 Vec3<T> ClosestPoint(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS)
 {
   return inPlaneLHS.GetArbitraryPoint();
+}
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Sphere<T>& inSphere)
+{
+  return Projected(Center(inSphere), inPlane);
 }
 
 template <typename T>
