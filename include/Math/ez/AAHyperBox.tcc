@@ -196,6 +196,24 @@ auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Segment<T, N>& inSegm
   return Intersect<TIntersectMode>(inSegment, inAAHyperBox);
 }
 
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const AAHyperBox<T, 3>& inAABox, const Plane<T>& inPlane)
+{
+  static_assert(TIntersectMode == EIntersectMode::ONLY_CHECK, "Unsupported EIntersectMode.");
+
+  int i = 0;
+  bool first_dot_positive = false;
+  for (const auto& aabox_point : MakePointsRange(inAABox))
+  {
+    const auto dot = Dot(Normal(inPlane), (aabox_point - inPlane.GetArbitraryPoint()));
+    if (i++ == 0)
+      first_dot_positive = (dot >= 0);
+    else if (first_dot_positive != (dot > 0))
+      return true;
+  }
+  return false;
+}
+
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& inHyperSphere)
 {
@@ -246,6 +264,12 @@ template <typename T, std::size_t N>
 bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Segment<T, N>& inSegment)
 {
   return Contains(inAAHyperBox, inSegment.GetOrigin()) && Contains(inAAHyperBox, inSegment.GetDestiny());
+}
+
+template <typename T>
+bool Contains(const AAHyperBox<T, 3>& inAABox, const Plane<T>& inPlane)
+{
+  return false;
 }
 
 template <typename T, std::size_t N>
@@ -345,6 +369,23 @@ template <typename T, std::size_t N>
 constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Segment<T, N>& inSegment)
 {
   return ClosestPoint(inAAHyperBox, ClosestPoint(inSegment, inAAHyperBox));
+}
+
+template <typename T>
+constexpr Vec3<T> ClosestPoint(const AAHyperBox<T, 3>& inAABox, const Plane<T>& inPlane)
+{
+  auto closest_point_in_aabox = Max<Vec3<T>>();
+  auto closest_sq_distance = Max<T>();
+  for (const auto& aabox_point : MakePointsRange(inAABox))
+  {
+    const auto sq_distance = SqDistance(aabox_point, inPlane);
+    if (sq_distance < closest_sq_distance)
+    {
+      closest_point_in_aabox = aabox_point;
+      closest_sq_distance = sq_distance;
+    }
+  }
+  return closest_point_in_aabox;
 }
 
 template <typename T, std::size_t N>

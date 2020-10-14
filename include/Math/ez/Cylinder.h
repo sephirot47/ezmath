@@ -58,6 +58,34 @@ constexpr Cylinder<T> Rotated(const Cylinder<T>& inCylinder, const RotationType_
 template <typename T>
 constexpr Vec3<T> Center(const Cylinder<T>& inCylinder);
 
+// Intersect
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const Vec3<T>& inPoint);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const Line3<T>& inLine);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const Ray3<T>& inRay);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const Segment3<T>& inSegment);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const HyperSphere<T, 3>& inHyperSphere);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const AAHyperBox<T, 3>& inAAHyperBox);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const HyperBox<T, 3>& inHyperBox);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinderLHS, const Cylinder<T>& inCylinderRHS);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const Triangle<T, 3>& inTriangle);
+
 }
 
 #include "ez/Cylinder.tcc"

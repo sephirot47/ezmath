@@ -92,6 +92,11 @@ template <EIntersectMode TIntersectMode, typename T, std::size_t N, typename TPr
 auto Intersect(const HyperBox<T, N>& inHyperBox, const TPrimitive& inPrimitive)
 {
   const auto hyper_box_orientation_inv = -Orientation(inHyperBox);
+  if constexpr (N >= 3)
+  {
+    assert(IsNormalized(Orientation(inHyperBox)));
+    assert(IsNormalized(hyper_box_orientation_inv));
+  }
   const auto local_primitive = Rotated(inPrimitive, hyper_box_orientation_inv);
   const auto aa_hyper_box_center = Rotated(Center(inHyperBox), hyper_box_orientation_inv);
   const auto aa_hyper_box = MakeAAHyperBoxFromCenterHalfSize(aa_hyper_box_center, inHyperBox.GetExtents());

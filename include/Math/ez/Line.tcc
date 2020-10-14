@@ -1,8 +1,8 @@
+#include <algorithm>
 #include <ez/BinaryIndex.h>
 #include <ez/Line.h>
 #include <ez/Macros.h>
 #include <ez/Quat.h>
-#include <algorithm>
 
 namespace ez
 {
@@ -174,16 +174,27 @@ namespace line_detail
   }
 }
 
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS)
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Line<T, N>& inLineLHS, const Line<T, N>& inLineRHS)
 {
   static_assert(TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST
           || TIntersectMode == EIntersectMode::ONLY_CHECK,
       "Unsupported EIntersectMode.");
 
   const auto lhs_dir = Direction(inLineLHS);
+  auto fi = 0;
+  for (int i = 0; i < N; ++i)
+  {
+    if (IsVeryEqual(lhs_dir[i], static_cast<T>(0)))
+      continue;
+    fi = i;
+    break;
+  }
+  const auto si = ((fi + 1) % N);
+
+  const auto sf_slope = (lhs_dir[si] / lhs_dir[fi]);
   const auto rhs_dir = Direction(inLineRHS);
-  const auto denominator = (lhs_dir[0] * rhs_dir[1] - lhs_dir[1] * rhs_dir[0]);
+  const auto denominator = (sf_slope * rhs_dir[fi] - rhs_dir[si]);
   if (IsVeryEqual(denominator, static_cast<T>(0)))
   {
     if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
@@ -194,19 +205,21 @@ auto Intersect(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS)
       return false;
   }
 
-  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS || TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-  {
-    const auto& lhs_ori = inLineLHS.GetOrigin();
-    const auto& rhs_ori = inLineRHS.GetOrigin();
-    const auto numerator = (rhs_dir[0] * (lhs_ori[1] - rhs_ori[1]) + rhs_dir[1] * (rhs_ori[0] - lhs_ori[0]));
-    const auto t = (numerator / denominator);
-    if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
-      return std::array { std::make_optional(t) };
-    else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
-      return std::make_optional(t);
-  }
+  const auto& lhs_ori = inLineLHS.GetOrigin();
+  const auto& rhs_ori = inLineRHS.GetOrigin();
+  const auto tRHS = (sf_slope * (lhs_ori[fi] - rhs_ori[fi]) - lhs_ori[si] + rhs_ori[si]) / denominator;
+  const auto tLHS = (rhs_dir[fi] * tRHS + rhs_ori[fi] - lhs_ori[fi]) / lhs_dir[fi];
+
+  auto point_matches = true;
+  if constexpr (N >= 3)
+    point_matches = IsVeryEqual(inLineLHS.GetPoint(tLHS), inLineRHS.GetPoint(tRHS));
+
+  if constexpr (TIntersectMode == EIntersectMode::ALL_INTERSECTIONS)
+    return (point_matches ? std::array { std::make_optional(tLHS) } : std::array { std::optional<T>() });
+  else if constexpr (TIntersectMode == EIntersectMode::ONLY_CLOSEST)
+    return (point_matches ? std::make_optional(tLHS) : std::optional<T>());
   else if constexpr (TIntersectMode == EIntersectMode::ONLY_CHECK)
-    return true;
+    return point_matches;
 }
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
@@ -589,6 +602,15 @@ constexpr T ClosestPointT(const Line<T, N>& inLine, const Segment<T, N>& inSegme
   return ClosestPointT(inLine, segment_closest_point);
 }
 
+template <typename T>
+constexpr T ClosestPointT(const Line3<T>& inLine, const Plane<T>& inPlane)
+{
+  const auto intersection = IntersectClosest(inLine, inPlane);
+  if (intersection.has_value())
+    return *intersection;
+  return static_cast<T>(0);
+}
+
 template <typename T, std::size_t N>
 constexpr T ClosestPointT(const Line<T, N>& inLine, const HyperSphere<T, N>& inHyperSphere)
 {
@@ -682,6 +704,15 @@ constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const HyperBox<T, N>&
   return closest_point_in_line_to_hyper_box;
 }
 
+template <typename T>
+constexpr Vec3<T> ClosestPoint(const Line3<T>& inLine, const Plane<T>& inPlane)
+{
+  const auto intersection = IntersectClosest(inLine, inPlane);
+  if (intersection.has_value())
+    return inLine.GetPoint(*intersection);
+  return inLine.GetOrigin();
+}
+
 template <typename T, std::size_t N, typename TPrimitive>
 constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const TPrimitive& inPrimitive)
 {
@@ -706,6 +737,6 @@ constexpr Line<T, N> Translated(const Line<T, N>& inLine, const Vec<T, N>& inTra
 template <typename T, std::size_t N>
 constexpr Line<T, N> Rotated(const Line<T, N>& inLine, const RotationType_t<T, N>& inRotation)
 {
-  return Line<T, N> { Rotated(inLine.GetOrigin(), inRotation), Rotated(inLine.GetDirection(), inRotation) };
+  return Line<T, N> { Rotated(inLine.GetOrigin(), inRotation), Rotated(Direction(inLine), inRotation) };
 }
 }

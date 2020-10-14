@@ -65,4 +65,57 @@ constexpr Vec3<T> Center(const Cylinder<T>& inCylinder)
   return (inCylinder.GetOrigin() + inCylinder.GetDestiny()) / static_cast<T>(2);
 }
 
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const Vec3<T>& inPoint)
+{
+  return Intersect<TIntersectMode>(inPoint, inCylinder);
+}
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const Line3<T>& inLine)
+{
+  return Intersect<TIntersectMode>(inLine, inCylinder);
+}
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const Ray3<T>& inRay)
+{
+  return Intersect<TIntersectMode>(inRay, inCylinder);
+}
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const Segment3<T>& inSegment)
+{
+  return Intersect<TIntersectMode>(inSegment, inCylinder);
+}
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const HyperSphere<T, 3>& inHyperSphere)
+{
+  return Intersect<TIntersectMode>(inHyperSphere, inCylinder);
+}
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const AAHyperBox<T, 3>& inAAHyperBox)
+{
+  return Intersect<TIntersectMode>(inAAHyperBox, inCylinder);
+}
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const HyperBox<T, 3>& inHyperBox)
+{
+  return Intersect<TIntersectMode>(inHyperBox, inCylinder);
+}
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinderLHS, const Cylinder<T>& inCylinderRHS)
+{
+  return Intersect<TIntersectMode>(inCylinderLHS, inCylinderRHS);
+}
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Cylinder<T>& inCylinder, const Triangle<T, 3>& inTriangle)
+{
+  return Intersect<TIntersectMode>(inTriangle, inCylinder);
+}
 }

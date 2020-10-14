@@ -139,7 +139,7 @@ auto Intersect(const Segment<T, N>& inSegment, const Line<T, N>& inLine)
       return false;
   }
 
-  auto intersection = IntersectClosest(Line2<T> { inSegment.GetOrigin(), Direction(inSegment) }, inLine);
+  auto intersection = IntersectClosest(Line<T, N> { inSegment.GetOrigin(), Direction(inSegment) }, inLine);
   const auto segment_length = Sqrt(segment_sq_length);
   const auto intersects
       = (intersection.has_value() && (*intersection >= static_cast<T>(0)) && (*intersection <= segment_length));

@@ -108,6 +108,9 @@ auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Ray<T, N>& inRay);
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const Segment<T, N>& inSegment);
 
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const AAHyperBox<T, 3>& inAABox, const Plane<T>& inPlane);
+
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& inHyperSphere);
 
@@ -132,6 +135,9 @@ bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Ray<T, N>& inRay);
 
 template <typename T, std::size_t N>
 bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const Segment<T, N>& inSegment);
+
+template <typename T>
+bool Contains(const AAHyperBox<T, 3>& inAABox, const Plane<T>& inPlane);
 
 template <typename T, std::size_t N>
 bool Contains(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& inHyperSphere);
@@ -168,6 +174,9 @@ constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Ray
 
 template <typename T, std::size_t N>
 constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const Segment<T, N>& inSegment);
+
+template <typename T>
+constexpr Vec3<T> ClosestPoint(const AAHyperBox<T, 3>& inAABox, const Plane<T>& inP);
 
 template <typename T, std::size_t N>
 constexpr Vec<T, N> ClosestPoint(const AAHyperBox<T, N>& inAAHyperBox, const HyperSphere<T, N>& inHyperSphere);

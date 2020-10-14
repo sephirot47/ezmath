@@ -42,11 +42,11 @@ template <typename T, std::size_t N>
 constexpr RotationType_t<T, N> Orientation(const Line<T, N>& inLine);
 
 template <typename T>
-bool IsOnPositiveSide(const Line2<T> &inLine, const Vec2<T> &inPoint);
+bool IsOnPositiveSide(const Line2<T>& inLine, const Vec2<T>& inPoint);
 
 // Intersect
-template <EIntersectMode TIntersectMode, typename T>
-auto Intersect(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS);
+template <EIntersectMode TIntersectMode, typename T, std::size_t N>
+auto Intersect(const Line<T, N>& inLineLHS, const Line<T, N>& inLineRHS);
 
 template <EIntersectMode TIntersectMode, typename T, std::size_t N>
 auto Intersect(const Line<T, N>& inLine, const Vec<T, N>& inPoint);
@@ -101,6 +101,9 @@ constexpr T ClosestPointT(const Line<T, N>& inLine, const Ray<T, N>& inRay);
 template <typename T, std::size_t N>
 constexpr T ClosestPointT(const Line<T, N>& inLine, const Segment<T, N>& inSegment);
 
+template <typename T>
+constexpr T ClosestPointT(const Line3<T>& inLine, const Plane<T>& inPlane);
+
 template <typename T, std::size_t N>
 constexpr T ClosestPointT(const Line<T, N>& inLine, const HyperSphere<T, N>& inHyperSphere);
 
@@ -121,6 +124,9 @@ constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const AAHyperBox<T, N
 
 template <typename T, std::size_t N>
 constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const HyperBox<T, N>& inHyperBox);
+
+template <typename T>
+constexpr Vec3<T> ClosestPoint(const Line3<T>& inLine, const Plane<T>& inPlane);
 
 template <typename T, std::size_t N, typename TPrimitive>
 constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const TPrimitive& inPrimitive);

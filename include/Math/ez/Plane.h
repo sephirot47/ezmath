@@ -16,6 +16,7 @@ class Plane final
 public:
   using ValueType = T;
   static constexpr auto NumDimensions = 3;
+  static constexpr auto NumComponents = 3;
 
   Plane() = default;
   Plane(const Vec3<T>& inNormal, const T inDistanceFromOriginInNormalDirection);
@@ -61,8 +62,89 @@ T SqDistance(const Plane<T>& inPlane, const Vec3<T>& inPoint);
 template <typename T>
 Vec3<T> Projected(const Vec3<T>& inPoint, const Plane<T>& inPlaneToProjectTo);
 
+// Intersect
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const Vec3<T>& inPoint);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const Line3<T>& inLine);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const Ray3<T>& inRay);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const Segment3<T>& inSegment);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const Sphere<T>& inSphere);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const AAHyperBox<T, 3>& inAABox);
+
+template <EIntersectMode TIntersectMode, typename T>
+auto Intersect(const Plane<T>& inPlane, const HyperBox<T, 3>& inBox);
+
+// Contains
 template <typename T>
 bool Contains(const Plane<T>& inPlane, const Vec3<T>& inPoint);
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Line3<T>& inLine);
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Ray3<T>& inRay);
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Segment3<T>& inSegment);
+
+template <typename T>
+bool Contains(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS);
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Sphere<T>& inSphere);
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const AABox<T>& inAABox);
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Box<T>& inBox);
+
+template <typename T>
+bool Contains(const Plane<T>& inPlane, const Triangle3<T>& inTriangle);
+
+// ClosestPoint
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Vec3<T>& inPoint);
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Line3<T>& inLine);
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Ray3<T>& inRay);
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Segment3<T>& inSegment);
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlaneLHS, const Plane<T>& inPlaneRHS);
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Sphere<T>& inSphere);
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const AABox<T>& inAABox);
+
+template <typename T>
+Vec3<T> ClosestPoint(const Plane<T>& inPlane, const Box<T>& inBox);
+
+template <typename T>
+Plane<T> Translated(const Plane<T>& inPlane, const Vec3<T>& inTranslation);
+
+template <typename T>
+Plane<T> Rotated(const Plane<T>& inPlane, const RotationType_t<T, 3>& inRotation);
 
 }
 
