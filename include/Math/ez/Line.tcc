@@ -183,7 +183,7 @@ auto Intersect(const Line<T, N>& inLineLHS, const Line<T, N>& inLineRHS)
 
   const auto lhs_dir = Direction(inLineLHS);
   auto fi = 0;
-  for (int i = 0; i < N; ++i)
+  for (std::size_t i = 0; i < N; ++i)
   {
     if (IsVeryEqual(lhs_dir[i], static_cast<T>(0)))
       continue;
@@ -673,13 +673,13 @@ constexpr Vec<T, N> ClosestPoint(const Line<T, N>& inLine, const HyperBox<T, N>&
     const auto hyper_box_center = Center(inHyperBox);
     const auto hyper_box_orientation = Orientation(inHyperBox);
     const auto hyper_box_extents_rotated = Rotated(inHyperBox.GetExtents(), hyper_box_orientation);
-    for (int i = 0; i < HyperBox<T, N>::NumPoints; ++i)
+    for (std::size_t i = 0; i < HyperBox<T, N>::NumPoints; ++i)
     {
       const auto bin_index_0 = (MakeBinaryIndex<N, T>(i));
-      for (int j = 0; j < N; ++j)
+      for (std::size_t j = 0; j < N; ++j)
       {
         auto bin_index_increment = Zero<Vec<T, N>>();
-        for (int k = 0; k < N; ++k) bin_index_increment[k] = static_cast<T>((k == j) ? 1 : 0);
+        for (std::size_t k = 0; k < N; ++k) bin_index_increment[k] = static_cast<T>((k == j) ? 1 : 0);
 
         const auto bin_index_1 = bin_index_0 + bin_index_increment;
         if (bin_index_1 > One<Vec<T, N>>())
