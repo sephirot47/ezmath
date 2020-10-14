@@ -3,6 +3,8 @@
 #include <ez/IntersectMode.h>
 #include <ez/MathMultiComponent.h>
 #include <ez/MathTypeTraits.h>
+#include <ez/PointsIterator.h>
+#include <ez/SegmentsIterator.h>
 #include <ez/Quat.h>
 #include <ez/Vec.h>
 
