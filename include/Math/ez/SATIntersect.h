@@ -57,7 +57,7 @@ bool DoProjectionsOverlap(const TLHSPoints& inLHSPoints,
 template <typename TLHSPrimitive, typename TRHSPrimitive>
 auto IntersectMaxDistanceSAT(const TLHSPrimitive& inLHSPrimitive, const TRHSPrimitive& inRHSPrimitive)
 {
-  using VecType = decltype(GetSATPoints(std::declval<TLHSPrimitive>()))::value_type;
+  using VecType = typename decltype(GetSATPoints(std::declval<TLHSPrimitive>()))::value_type;
   using T = ValueType_t<VecType>;
   static constexpr auto N = NumComponents_v<VecType>;
 
@@ -114,7 +114,7 @@ auto IntersectMaxDistanceSAT(const TLHSPrimitive& inLHSPrimitive, const TRHSPrim
 template <typename TLHSPrimitive, typename TRHSPrimitive>
 bool IntersectCheckSAT(const TLHSPrimitive& inLHSPrimitive, const TRHSPrimitive& inRHSPrimitive)
 {
-  using VecType = decltype(GetSATPoints(std::declval<TLHSPrimitive>()))::value_type;
+  using VecType = typename decltype(GetSATPoints(std::declval<TLHSPrimitive>()))::value_type;
   static constexpr auto N = NumComponents_v<VecType>;
 
   const auto lhs_points = GetSATPoints(inLHSPrimitive);
