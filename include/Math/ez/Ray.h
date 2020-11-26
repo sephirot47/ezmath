@@ -4,6 +4,7 @@
 #include <ez/MathCommon.h>
 #include <ez/MathInitializers.h>
 #include <ez/Vec.h>
+#include <ez/Quat.h>
 #include <type_traits>
 
 namespace ez
