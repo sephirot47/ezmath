@@ -460,7 +460,7 @@ constexpr Vec<T, N> Reflect(const Vec<T, N>& inIncomingVectorNormalized, const V
   EXPECTS(IsNormalized(inIncomingVectorNormalized));
   EXPECTS(IsNormalized(inNormalNormalized));
   const auto reflected = inIncomingVectorNormalized
-      + static_cast<T>(2) * Dot(inIncomingVectorNormalized, inNormalNormalized) * inNormalNormalized;
+      - static_cast<T>(2) * Dot(inIncomingVectorNormalized, inNormalNormalized) * inNormalNormalized;
   return reflected;
 }
 
