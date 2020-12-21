@@ -295,9 +295,9 @@ constexpr Quat<T> AxisAngle(const Vec3<T>& inAxisNormalized, const T& inAngleRad
 template <typename T>
 constexpr Quat<T> FromEulerAngles(const Vec3<T>& inEulerAnglesRads)
 {
-  const auto qx = Quat<T>::AngleAxis(inEulerAnglesRads[0], Right<Vec3<T>>());
-  const auto qy = Quat<T>::AngleAxis(inEulerAnglesRads[1], Up<Vec3<T>>());
-  const auto qz = Quat<T>::AngleAxis(inEulerAnglesRads[2], Forward<Vec3<T>>());
+  const auto qx = AngleAxis(inEulerAnglesRads[0], Right<Vec3<T>>());
+  const auto qy = AngleAxis(inEulerAnglesRads[1], Up<Vec3<T>>());
+  const auto qz = AngleAxis(inEulerAnglesRads[2], Forward<Vec3<T>>());
   return Normalized(qz * qy * qx);
 }
 
