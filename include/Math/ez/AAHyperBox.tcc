@@ -3,6 +3,7 @@
 #include <ez/Macros.h>
 #include <ez/MathTypeTraits.h>
 #include <ez/SATIntersect.h>
+#include <algorithm>
 
 namespace ez
 {

@@ -6,9 +6,13 @@
 #include <ez/PointsIterator.h>
 #include <ez/SegmentsIterator.h>
 #include <ez/Vec.h>
+#include <cmath>
 
 namespace ez
 {
+
+template <typename T>
+constexpr T ConstexprPow(T inNum, T inPow) { return inPow <= static_cast<T>(0) ? static_cast<T>(0) : inNum * ConstexprPow(inNum, inPow - static_cast<T>(1)); }
 
 // For AARect, AABox...
 template <typename T, std::size_t N>
@@ -16,7 +20,7 @@ class AAHyperBox final
 {
 public:
   using ValueType = T;
-  static constexpr auto NumPoints = static_cast<std::size_t>(std::pow(static_cast<std::size_t>(2), N));
+  static constexpr auto NumPoints = static_cast<std::size_t>(ConstexprPow(static_cast<std::size_t>(2), N));
   static constexpr auto NumComponents = N;
   static constexpr auto NumDimensions = N;
 

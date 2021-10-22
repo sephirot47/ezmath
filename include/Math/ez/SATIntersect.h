@@ -2,6 +2,7 @@
 
 #include <ez/IntersectMode.h>
 #include <ez/Vec.h>
+#include <algorithm>
 #include <functional>
 #include <type_traits>
 
