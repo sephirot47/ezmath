@@ -20,9 +20,7 @@ constexpr GBinaryIndex<T, N> _MakeBinaryIndex(const std::size_t inSequentialInde
   for (std::size_t i = 0; i < N; ++i)
   {
     const auto twice_two_to_the_i = two_to_the_i * 2;
-    auto& binary_index_comp = binary_index[N - i - 1];
-    binary_index_comp
-        = static_cast<std::size_t>(static_cast<std::size_t>(inSequentialIndex) % twice_two_to_the_i) / two_to_the_i;
+    binary_index[N - i - 1] = static_cast<T>(static_cast<std::size_t>(static_cast<std::size_t>(inSequentialIndex) % twice_two_to_the_i) / two_to_the_i);
     two_to_the_i = twice_two_to_the_i;
   }
   return binary_index;
@@ -31,7 +29,7 @@ constexpr GBinaryIndex<T, N> _MakeBinaryIndex(const std::size_t inSequentialInde
 template <std::size_t N, typename T = std::size_t>
 constexpr auto _ComputeAllBinaryIndices()
 {
-  std::array<GBinaryIndex<T, N>, static_cast<std::size_t>(std::pow(static_cast<std::size_t>(2), N))> all_binary_indices;
+  std::array<GBinaryIndex<T, N>, static_cast<std::size_t>(ConstexprPow(static_cast<std::size_t>(2), N))> all_binary_indices;
   for (std::size_t i = 0; i < all_binary_indices.size(); ++i) { all_binary_indices[i] = _MakeBinaryIndex<N, T>(i); }
   return all_binary_indices;
 }
