@@ -36,7 +36,7 @@ void AAHyperBox<T, N>::SetMin(const Vec<T, N>& inMin)
 template <typename T, std::size_t N>
 void AAHyperBox<T, N>::SetMax(const Vec<T, N>& inMax)
 {
-  EXPECTS(inMax <= mMinMax[1]);
+  EXPECTS(inMax >= mMinMax[0]);
   mMinMax[1] = inMax;
 }
 
