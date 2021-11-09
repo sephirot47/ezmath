@@ -376,7 +376,7 @@ constexpr auto Inverted(const T& inValue)
 {
   const auto determinant = Determinant(inValue);
   if (determinant == 0)
-    THROW_EXCEPTION("Singular matrix (determinant is 0), can not compute its inverse");
+    assert(false);
 
   const auto adjoint = Adjoint(inValue);
 

@@ -366,43 +366,6 @@ constexpr auto Inverted(const Vec<T, N>& inValue)
 }
 
 template <typename T>
-constexpr std::tuple<Vec3<T>, Vec3<T>, Vec3<T>> Axes(const Vec3<T>& inForwardVectorNormalized,
-    const Vec3<T>& inUpVectorNormalized)
-{
-  EXPECTS(IsNormalized(inForwardVectorNormalized));
-  EXPECTS(IsNormalized(inUpVectorNormalized));
-
-  const auto forward_vector = inForwardVectorNormalized;
-
-  auto up_vector = inUpVectorNormalized;
-  auto right_vector = Zero<Vec3f>();
-  if (IsVeryParallel(forward_vector, up_vector))
-  {
-    right_vector = Right<Vec3f>();
-    if (IsVeryParallel(right_vector, forward_vector))
-      right_vector = Normalized(Vec3f(0.5f, 0.5f, 0.0f));
-
-    up_vector = Normalized(Cross(right_vector, forward_vector));
-    right_vector = Cross(forward_vector, up_vector);
-  }
-  else
-  {
-    right_vector = Normalized(Cross(forward_vector, up_vector));
-    up_vector = Cross(right_vector, forward_vector);
-  }
-
-  ENSURES(IsNormalized(forward_vector));
-  ENSURES(IsNormalized(up_vector));
-  ENSURES(IsNormalized(right_vector));
-
-  ENSURES(IsVeryPerpendicular(forward_vector, up_vector));
-  ENSURES(IsVeryPerpendicular(forward_vector, right_vector));
-  ENSURES(IsVeryPerpendicular(up_vector, right_vector));
-
-  return { right_vector, up_vector, forward_vector };
-}
-
-template <typename T>
 constexpr Vec2<T> Perpendicular(const Vec2<T>& inVector)
 {
   return Vec2<T> { -inVector[1], inVector[0] };
@@ -450,6 +413,43 @@ template <typename T>
 constexpr T Back()
 {
   return -Forward<T>();
+}
+
+template <typename T>
+constexpr std::tuple<Vec3<T>, Vec3<T>, Vec3<T>> Axes(const Vec3<T>& inForwardVectorNormalized,
+    const Vec3<T>& inUpVectorNormalized)
+{
+  EXPECTS(IsNormalized(inForwardVectorNormalized));
+  EXPECTS(IsNormalized(inUpVectorNormalized));
+
+  const auto forward_vector = inForwardVectorNormalized;
+
+  auto up_vector = inUpVectorNormalized;
+  auto right_vector = Zero<Vec3f>();
+  if (IsVeryParallel(forward_vector, up_vector))
+  {
+    right_vector = Right<Vec3f>();
+    if (IsVeryParallel(right_vector, forward_vector))
+      right_vector = Normalized(Vec3f(0.5f, 0.5f, 0.0f));
+
+    up_vector = Normalized(Cross(right_vector, forward_vector));
+    right_vector = Cross(forward_vector, up_vector);
+  }
+  else
+  {
+    right_vector = Normalized(Cross(forward_vector, up_vector));
+    up_vector = Cross(right_vector, forward_vector);
+  }
+
+  ENSURES(IsNormalized(forward_vector));
+  ENSURES(IsNormalized(up_vector));
+  ENSURES(IsNormalized(right_vector));
+
+  ENSURES(IsVeryPerpendicular(forward_vector, up_vector));
+  ENSURES(IsVeryPerpendicular(forward_vector, right_vector));
+  ENSURES(IsVeryPerpendicular(up_vector, right_vector));
+
+  return { right_vector, up_vector, forward_vector };
 }
 
 template <typename T, std::size_t N>
