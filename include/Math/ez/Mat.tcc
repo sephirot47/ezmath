@@ -336,7 +336,7 @@ Cofactor(const SquareMat<T, N>& inMat, const std::size_t inRowToRemove, const st
 template <typename T, std::size_t N>
 constexpr SquareMat<T, N> Adjoint(const SquareMat<T, N>& inMat)
 {
-  if (N == 1)
+  if constexpr (N == 1)
     return All<SquareMat<T, N>>(static_cast<T>(1));
 
   SquareMat<T, N> adjoint;
