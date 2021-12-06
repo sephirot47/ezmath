@@ -12,7 +12,7 @@ namespace ez
 {
 
 template <typename T>
-constexpr T ConstexprPow(T inNum, T inPow) { return inPow <= static_cast<T>(0) ? static_cast<T>(0) : inNum * ConstexprPow(inNum, inPow - static_cast<T>(1)); }
+constexpr T ConstexprPow(T inNum, T inPow) { return inPow <= static_cast<T>(0) ? static_cast<T>(1) : inNum * ConstexprPow(inNum, inPow - static_cast<T>(1)); }
 
 // For AARect, AABox...
 template <typename T, std::size_t N>

@@ -16,7 +16,6 @@ AAHyperBox<T, N>::AAHyperBox()
 template <typename T, std::size_t N>
 AAHyperBox<T, N>::AAHyperBox(const Vec<T, N>& inMin, const Vec<T, N>& inMax) : mMinMax { inMin, inMax }
 {
-  EXPECTS(mMinMax[0] <= mMinMax[1]);
 }
 
 template <typename T, std::size_t N>
@@ -29,21 +28,18 @@ AAHyperBox<T, N>::AAHyperBox(const AAHyperBox<TOther, N>& inRHS)
 template <typename T, std::size_t N>
 void AAHyperBox<T, N>::SetMin(const Vec<T, N>& inMin)
 {
-  EXPECTS(inMin <= mMinMax[1]);
   mMinMax[0] = inMin;
 }
 
 template <typename T, std::size_t N>
 void AAHyperBox<T, N>::SetMax(const Vec<T, N>& inMax)
 {
-  EXPECTS(inMax >= mMinMax[0]);
   mMinMax[1] = inMax;
 }
 
 template <typename T, std::size_t N>
 void AAHyperBox<T, N>::SetMinMax(const Vec<T, N>& inMin, const Vec<T, N>& inMax)
 {
-  EXPECTS(inMin <= inMax);
   mMinMax[0] = inMin;
   mMinMax[1] = inMax;
 }
@@ -495,8 +491,8 @@ template <typename T, std::size_t N>
 constexpr auto BoundingAAHyperBoxTransformed(const AAHyperBox<T, N>& inAAHyperBox,
     const Transformation<T, N>& inTransformation)
 {
-  AAHyperBox<T, N> transformed_hyper_box;
-  std::for_each(inAAHyperBox.cbegin(), inAAHyperBox.cend(), [&](const auto& inPoint) {
+  AAHyperBox<T, N> transformed_hyper_box{ ez::All<ez::Vec<T, N>>(ez::Max<T>()), ez::All<ez::Vec<T, N>>(ez::Min<T>()) };
+  std::for_each(MakePointsBegin(inAAHyperBox), MakePointsEnd(inAAHyperBox), [&](const auto& inPoint) {
     transformed_hyper_box.Wrap(Transformed(inPoint, inTransformation));
   });
   return transformed_hyper_box;
@@ -506,8 +502,8 @@ template <typename T, std::size_t N>
 constexpr auto BoundingAAHyperBoxInverseTransformed(const AAHyperBox<T, N>& inAAHyperBox,
     const Transformation<T, N>& inTransformation)
 {
-  AAHyperBox<T, N> transformed_hyper_box;
-  std::for_each(inAAHyperBox.cbegin(), inAAHyperBox.cend(), [&](const auto& inPoint) {
+  AAHyperBox<T, N> transformed_hyper_box{ ez::All<ez::Vec<T, N>>(ez::Max<T>()), ez::All<ez::Vec<T, N>>(ez::Min<T>()) };
+  std::for_each(MakePointsBegin(inAAHyperBox), MakePointsEnd(inAAHyperBox), [&](const auto& inPoint) {
     transformed_hyper_box.Wrap(InverseTransformed(inPoint, inTransformation));
   });
   return transformed_hyper_box;
@@ -516,9 +512,9 @@ constexpr auto BoundingAAHyperBoxInverseTransformed(const AAHyperBox<T, N>& inAA
 template <typename T, std::size_t N>
 void Transform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const SquareMat<T, N>& inTransformMatrix)
 {
-  AAHyperBox<T, N> transformed_hyper_box;
-  std::for_each(ioAAHyperBoxToTransform.cbegin(), ioAAHyperBoxToTransform.cend(), [&](const auto& inPoint) {
-    transformed_hyper_box.Wrap(InverseTransformed(inPoint, inTransformMatrix));
+  AAHyperBox<T, N> transformed_hyper_box{ ez::All<ez::Vec<T, N>>(ez::Max<T>()), ez::All<ez::Vec<T, N>>(ez::Min<T>()) };
+  std::for_each(MakePointsBegin(ioAAHyperBoxToTransform), MakePointsEnd(ioAAHyperBoxToTransform), [&](const auto& inPoint) {
+    transformed_hyper_box.Wrap(Transformed(inPoint, inTransformMatrix));
   });
   ioAAHyperBoxToTransform = transformed_hyper_box;
 }
@@ -526,8 +522,8 @@ void Transform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const SquareMat<T, N>&
 template <typename T, std::size_t N>
 void Transform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const SquareMat<T, N + 1>& inTransformMatrix)
 {
-  AAHyperBox<T, N> transformed_hyper_box;
-  std::for_each(ioAAHyperBoxToTransform.cbegin(), ioAAHyperBoxToTransform.cend(), [&](const auto& inPoint) {
+  AAHyperBox<T, N> transformed_hyper_box{ ez::All<ez::Vec<T, N>>(ez::Max<T>()), ez::All<ez::Vec<T, N>>(ez::Min<T>()) };
+  std::for_each(MakePointsBegin(ioAAHyperBoxToTransform), MakePointsEnd(ioAAHyperBoxToTransform), [&](const auto& inPoint) {
     transformed_hyper_box.Wrap(Transformed(inPoint, inTransformMatrix));
   });
   ioAAHyperBoxToTransform = transformed_hyper_box;
@@ -536,8 +532,8 @@ void Transform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const SquareMat<T, N +
 template <typename T, std::size_t N>
 void Transform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const Transformation<T, N>& inTransformation)
 {
-  AAHyperBox<T, N> transformed_hyper_box;
-  std::for_each(ioAAHyperBoxToTransform.cbegin(), ioAAHyperBoxToTransform.cend(), [&](const auto& inPoint) {
+  AAHyperBox<T, N> transformed_hyper_box{ ez::All<ez::Vec<T, N>>(ez::Max<T>()), ez::All<ez::Vec<T, N>>(ez::Min<T>()) };
+  std::for_each(MakePointsBegin(ioAAHyperBoxToTransform), MakePointsEnd(ioAAHyperBoxToTransform), [&](const auto& inPoint) {
     transformed_hyper_box.Wrap(Transformed(inPoint, inTransformation));
   });
   ioAAHyperBoxToTransform = transformed_hyper_box;
@@ -547,7 +543,7 @@ template <typename T, std::size_t N>
 void InverseTransform(AAHyperBox<T, N>& ioAAHyperBoxToTransform, const Transformation<T, N>& inTransformation)
 {
   AAHyperBox<T, N> transformed_hyper_box;
-  std::for_each(ioAAHyperBoxToTransform.cbegin(), ioAAHyperBoxToTransform.cend(), [&](const auto& inPoint) {
+  std::for_each(MakePointsBegin(ioAAHyperBoxToTransform), MakePointsEnd(ioAAHyperBoxToTransform), [&](const auto& inPoint) {
     transformed_hyper_box.Wrap(InverseTransformed(inPoint, inTransformation));
   });
   ioAAHyperBoxToTransform = transformed_hyper_box;
