@@ -34,6 +34,9 @@ public:
   Vec<T, N> GetPoint(const T& inDistanceFromOrigin) const;
   Line<T, N> GetLine() const;
 
+  Vec<T, N>& operator[](const int32_t inIndex) { return inIndex == 0 ? mOrigin : mDestiny; }
+  const Vec<T, N>& operator[](const int32_t inIndex) const { return inIndex == 0 ? mOrigin : mDestiny; }
+
 private:
   Vec<T, N> mOrigin = Zero<Vec<T, N>>();
   Vec<T, N> mDestiny = Zero<Vec<T, N>>();
