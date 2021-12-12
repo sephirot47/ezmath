@@ -147,11 +147,14 @@ constexpr auto Sqrt(const T& inValue)
 }
 
 template <typename T>
+constexpr T ConstexprPow(T inNum, T inPow) { return inPow <= static_cast<T>(0) ? static_cast<T>(1) : inNum * ConstexprPow(inNum, inPow - static_cast<T>(1)); }
+
+template <typename T>
 constexpr auto Pow(const T& inValue, const T& inExponent)
 {
   if constexpr (IsNumber_v<T>)
   {
-    return static_cast<T>(std::pow(inValue, inExponent));
+    return static_cast<T>(ConstexprPow(inValue, inExponent));
   }
   else
   {

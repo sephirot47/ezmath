@@ -29,7 +29,7 @@ constexpr GBinaryIndex<T, N> _MakeBinaryIndex(const std::size_t inSequentialInde
 template <std::size_t N, typename T = std::size_t>
 constexpr auto _ComputeAllBinaryIndices()
 {
-  std::array<GBinaryIndex<T, N>, static_cast<std::size_t>(ConstexprPow(static_cast<std::size_t>(2), N))> all_binary_indices;
+  std::array<GBinaryIndex<T, N>, static_cast<std::size_t>(Pow(static_cast<std::size_t>(2), N))> all_binary_indices;
   for (std::size_t i = 0; i < all_binary_indices.size(); ++i) { all_binary_indices[i] = _MakeBinaryIndex<N, T>(i); }
   return all_binary_indices;
 }

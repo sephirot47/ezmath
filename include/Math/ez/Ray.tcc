@@ -116,7 +116,7 @@ auto SqDistance(const Ray<T, N>& inRay, const Vec<T, N>& inPoint)
 template <typename T, std::size_t N, typename TPrimitive>
 auto SqDistance(const Ray<T, N>& inRay, const TPrimitive& inPrimitive)
 {
-  return SqDistance(inRay, ClosestPoint(inRay, inPrimitive));
+  return SqDistance(inPrimitive, ClosestPoint(inRay, inPrimitive));
 }
 
 template <typename T, std::size_t N>

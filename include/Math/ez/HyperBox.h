@@ -17,7 +17,7 @@ class HyperBox final
 {
 public:
   using ValueType = T;
-  static constexpr auto NumPoints = static_cast<std::size_t>(std::pow(static_cast<std::size_t>(2), N));
+  static constexpr auto NumPoints = static_cast<std::size_t>(Pow(static_cast<std::size_t>(2), N));
   static constexpr auto NumComponents = N;
   static constexpr auto NumDimensions = N;
 
@@ -119,7 +119,7 @@ template <typename T, std::size_t N>
 struct PointsIteratorSpecialization<HyperBox<T, N>>
 {
   static constexpr std::size_t NumPoints = HyperBox<T, N>::NumPoints;
-  PointsIteratorSpecialization(const HyperBox<T, N>& inHyperBox) {}
+  PointsIteratorSpecialization(const HyperBox<T, N> &) {}
   Vec<T, N> GetPoint(const HyperBox<T, N>& inHyperBox, const std::size_t inPointIndex) const;
 };
 
