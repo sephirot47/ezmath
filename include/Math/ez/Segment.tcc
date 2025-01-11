@@ -161,7 +161,6 @@ auto Intersect(const Segment<T, N>& inSegment, const TPrimitive& inPrimitive)
 
   constexpr auto Epsilon = static_cast<T>(1e-7);
   const auto segment_sq_length = SqLength(inSegment);
-  const auto segment_direction = (segment_sq_length != 0.0f ? Direction(inSegment) : Right<Vec<T, N>>());
   auto intersections = IntersectAll(inSegment.GetLine(), inPrimitive);
 
   // Invalidate points if outside the segment
