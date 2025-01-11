@@ -17,7 +17,7 @@ class HyperBox final
 {
 public:
   using ValueType = T;
-  static constexpr auto NumPoints = static_cast<std::size_t>(Pow(static_cast<std::size_t>(2), N));
+  static constexpr auto NumPoints = static_cast<std::size_t>(ipow(static_cast<std::size_t>(2), N));
   static constexpr auto NumComponents = N;
   static constexpr auto NumDimensions = N;
 

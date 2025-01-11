@@ -8,6 +8,10 @@
 
 namespace ez
 {
+
+template <typename T>
+constexpr T ipow(T num, T pow) { return pow == 0 ? 1 : num * ipow(num, pow-1); }
+
 template <typename T, auto TGenerateSingleComponentFunction, typename... TExtraArgs>
 constexpr T MathMultiComponentGenerated(TExtraArgs&&... inExtraArgs)
 {
