@@ -552,7 +552,6 @@ constexpr T ClosestPointT(const Line2<T>& inLineLHS, const Line2<T>& inLineRHS)
     return *intersection;
 
   // Lines are parallel. Pick a consistent closest point even when commuting parameters.
-  auto line_lhs_less_than_line_rhs = false;
   for (std::size_t i = 0; i < 2; ++i)
   {
     if (inLineLHS.GetOrigin()[i] < inLineRHS.GetOrigin()[i])
